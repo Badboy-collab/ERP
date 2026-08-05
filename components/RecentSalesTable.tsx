@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { History, RefreshCw } from "lucide-react";
+import { History, RefreshCw, Trash2 } from "lucide-react";
+import { getSessionUser, SessionUser } from "@/lib/userSession";
 
 interface SalesLog {
   id: string;
@@ -15,6 +16,7 @@ interface SalesLog {
 }
 
 export function RecentSalesTable() {
+  const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [sales, setSales] = useState<SalesLog[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -33,8 +35,24 @@ export function RecentSalesTable() {
   };
 
   useEffect(() => {
+    setCurrentUser(getSessionUser());
     fetchSales();
   }, []);
+
+  const handleDelete = async (logId: string) => {
+    if (currentUser?.role !== "SUPER_ADMIN") {
+      alert("Permission Denied: Only Super Admin (Level 1) can reverse and delete sales records.");
+      return;
+    }
+    if (!confirm("Are you sure you want to reverse & delete this sales record? Stock will be restored and dealer balance updated automatically.")) return;
+    try {
+      const res = await fetch(`/api/sales?id=${logId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to reverse sales log");
+      fetchSales();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
@@ -61,13 +79,14 @@ export function RecentSalesTable() {
               <th className="p-3.5">Product</th>
               <th className="p-3.5">Lot No</th>
               <th className="p-3.5">Order No</th>
-              <th className="p-3.5 text-right">Qty (Bags)</th>
+              <th className="p-3.5 text-right">Qty (Kg)</th>
+              {currentUser?.role === "SUPER_ADMIN" && <th className="p-3.5 text-right">Actions</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/60 text-slate-200 font-medium">
             {sales.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-8 text-slate-500">
+                <td colSpan={currentUser?.role === "SUPER_ADMIN" ? 8 : 7} className="text-center py-8 text-slate-500">
                   No sales recorded yet. Use the Sales Entry POS above to execute a sale.
                 </td>
               </tr>
@@ -91,7 +110,18 @@ export function RecentSalesTable() {
                       <span className="text-slate-500">Direct</span>
                     )}
                   </td>
-                  <td className="p-3.5 text-right font-bold text-white">{s.quantity}</td>
+                  <td className="p-3.5 text-right font-bold text-white">{s.quantity.toLocaleString()} kg</td>
+                  {currentUser?.role === "SUPER_ADMIN" && (
+                    <td className="p-3.5 text-right">
+                      <button
+                        onClick={() => handleDelete(s.id)}
+                        className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-950 transition-colors"
+                        title="Reverse & Delete Sale Record (Restores Lot Stock)"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))
             )}

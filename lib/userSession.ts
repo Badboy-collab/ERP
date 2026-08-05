@@ -2,7 +2,7 @@ export interface SessionUser {
   id: string;
   name: string;
   email: string;
-  role: "SUPER_ADMIN" | "DEPOT_ADMIN" | "OPERATOR";
+  role: "SUPER_ADMIN" | "ORG_ADMIN" | "DEPOT_ADMIN" | "OPERATOR";
   depot_id: string | null;
   depot: { id: string; name: string; code: string } | null;
   // Granular Permissions
@@ -42,10 +42,16 @@ export function isSuperAdmin(user: SessionUser | null): boolean {
   return user?.role === "SUPER_ADMIN";
 }
 
-export function hasPermission(user: SessionUser | null, permission: keyof SessionUser): boolean {
-  if (!user) return false;
-  if (user.role === "SUPER_ADMIN") return true;
-  return Boolean(user[permission]);
+export function isOrgAdmin(user: SessionUser | null): boolean {
+  return user?.role === "ORG_ADMIN";
 }
 
+export function hasGlobalAccess(user: SessionUser | null): boolean {
+  return user?.role === "SUPER_ADMIN" || user?.role === "ORG_ADMIN";
+}
 
+export function hasPermission(user: SessionUser | null, permission: keyof SessionUser): boolean {
+  if (!user) return false;
+  if (user.role === "SUPER_ADMIN" || user.role === "ORG_ADMIN") return true;
+  return Boolean(user[permission]);
+}

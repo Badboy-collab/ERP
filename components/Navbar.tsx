@@ -66,6 +66,7 @@ export default function Navbar() {
 
   const roleColor = (role: string) => {
     if (role === "SUPER_ADMIN") return "text-amber-400 bg-amber-950 border-amber-800";
+    if (role === "ORG_ADMIN") return "text-purple-400 bg-purple-950 border-purple-800";
     if (role === "DEPOT_ADMIN") return "text-sky-400 bg-sky-950 border-sky-800";
     return "text-slate-300 bg-slate-800 border-slate-700";
   };

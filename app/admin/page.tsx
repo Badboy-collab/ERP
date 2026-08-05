@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { ShieldAlert, Package, Building2, Users, CheckCircle, Trash2, Edit, Save, Plus, DollarSign } from "lucide-react";
 import SearchableSelect from "@/components/SearchableSelect";
+import { getSessionUser, SessionUser } from "@/lib/userSession";
 
 interface Product {
   id: string;
@@ -59,7 +60,12 @@ interface TransactionItem {
 }
 
 export default function AdminPage() {
+  const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [activeTab, setActiveTab] = useState<"depots" | "products" | "dealers" | "users" | "override" | "setup">("depots");
+
+  useEffect(() => {
+    setCurrentUser(getSessionUser());
+  }, []);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [depots, setDepots] = useState<Depot[]>([]);
@@ -240,7 +246,7 @@ export default function AdminPage() {
           email: userEmail,
           password: userPassword,
           role: userRole,
-          depot_id: userRole === "SUPER_ADMIN" ? null : userDepotId || null,
+          depot_id: (userRole === "SUPER_ADMIN" || userRole === "ORG_ADMIN") ? null : userDepotId || null,
           ...userPermissions,
         }),
       });
@@ -320,11 +326,15 @@ export default function AdminPage() {
   };
 
   const handleDeleteSalesRecord = async (logId: string) => {
-    if (!confirm("Are you sure you want to delete this sales dispatch record? This is a permanent direct override.")) return;
+    if (currentUser?.role !== "SUPER_ADMIN") {
+      alert("Permission Denied: Only Super Admin (Level 1) can reverse and delete sales records.");
+      return;
+    }
+    if (!confirm("Are you sure you want to reverse & delete this sales dispatch record? This will automatically restore lot stock and reverse dealer balance.")) return;
     try {
       const res = await fetch(`/api/sales?id=${logId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete sales log");
-      setMessage({ type: "success", text: "Sales dispatch record deleted!" });
+      if (!res.ok) throw new Error("Failed to reverse sales log");
+      setMessage({ type: "success", text: "Sales record reversed and stock restored successfully!" });
       fetchInitialData();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
@@ -332,11 +342,15 @@ export default function AdminPage() {
   };
 
   const handleDeleteReceiveRecord = async (logId: string) => {
-    if (!confirm("Are you sure you want to delete this receiving record?")) return;
+    if (currentUser?.role !== "SUPER_ADMIN") {
+      alert("Permission Denied: Only Super Admin (Level 1) can reverse and delete stock receive records.");
+      return;
+    }
+    if (!confirm("Are you sure you want to reverse & delete this receiving record? This will deduct the received quantity from the lot stock.")) return;
     try {
       const res = await fetch(`/api/receives?id=${logId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete receive log");
-      setMessage({ type: "success", text: "Receive record deleted!" });
+      if (!res.ok) throw new Error("Failed to reverse receive log");
+      setMessage({ type: "success", text: "Receive record reversed and lot stock deducted successfully!" });
       fetchInitialData();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
@@ -674,13 +688,14 @@ export default function AdminPage() {
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">User Role *</label>
                 <select value={userRole} onChange={(e) => setUserRole(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold">
-                  <option value="OPERATOR">Operator</option>
-                  <option value="DEPOT_ADMIN">Depot Admin</option>
-                  <option value="SUPER_ADMIN">Super Admin (All Depots)</option>
+                  <option value="OPERATOR">Operator (Level 4 - Local Depot Entry)</option>
+                  <option value="DEPOT_ADMIN">Depot Admin (Level 3 - Local Depot Admin)</option>
+                  <option value="ORG_ADMIN">Organization Admin (Level 2 - Global Visibility)</option>
+                  <option value="SUPER_ADMIN">Super Admin (Level 1 - Master Override / God Mode)</option>
                 </select>
               </div>
 
-              {userRole !== "SUPER_ADMIN" && (
+              {userRole !== "SUPER_ADMIN" && userRole !== "ORG_ADMIN" && (
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Assign Depot *</label>
                   <SearchableSelect options={depotOptions} value={userDepotId} onChange={setUserDepotId} placeholder="Assign Depot..." />

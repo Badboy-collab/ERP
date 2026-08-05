@@ -44,11 +44,9 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "ReceiveLog ID is required" }, { status: 400 });
     }
 
-    await prisma.receiveLog.delete({
-      where: { id },
-    });
+    await ERPService.deleteStockReceive(id);
     
-    return NextResponse.json({ message: "Receive record deleted successfully" });
+    return NextResponse.json({ message: "Stock receive entry reversed and lot quantity deducted successfully" });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

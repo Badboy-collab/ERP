@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { ClipboardList, Filter, RefreshCw, ShieldCheck, Building2, AlertCircle } from "lucide-react";
-import { getSessionUser, SessionUser, isSuperAdmin } from "@/lib/userSession";
+import { getSessionUser, SessionUser, hasGlobalAccess, isSuperAdmin } from "@/lib/userSession";
 
 interface DeliveryOrderItem {
   id: string;
@@ -42,11 +42,11 @@ export default function DeliveryOrderListPage() {
     setCurrentUser(user);
 
     // For DEPOT_ADMIN / OPERATOR: force-lock to their depot
-    if (user && !isSuperAdmin(user) && user.depot_id) {
+    if (user && !hasGlobalAccess(user) && user.depot_id) {
       setSelectedDepotId(user.depot_id);
     }
 
-    if (isSuperAdmin(user)) {
+    if (hasGlobalAccess(user)) {
       fetchDepots();
     }
   }, []);
@@ -98,6 +98,7 @@ export default function DeliveryOrderListPage() {
     return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">○ PENDING</span>;
   };
 
+  const userHasGlobal = hasGlobalAccess(currentUser);
   const userIsSuper = isSuperAdmin(currentUser);
 
   return (
@@ -155,8 +156,8 @@ export default function DeliveryOrderListPage() {
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* Depot Filter — SUPER_ADMIN only */}
-          {userIsSuper && (
+          {/* Depot Filter — Global visibility for SUPER_ADMIN & ORG_ADMIN */}
+          {userHasGlobal && (
             <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs">
               <Building2 className="w-3.5 h-3.5 text-amber-400" />
               <select

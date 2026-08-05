@@ -5,7 +5,7 @@ import { Send, Zap, Calendar, User, Package, Layers, Hash, FileText, CheckCircle
 import { ChallanInvoice } from "@/components/ChallanModal";
 import SearchableSelect from "@/components/SearchableSelect";
 import DualQuantityInput from "@/components/DualQuantityInput";
-import { getSessionUser, SessionUser } from "@/lib/userSession";
+import { getSessionUser, SessionUser, hasGlobalAccess } from "@/lib/userSession";
 
 interface Depot {
   id: string;
@@ -101,7 +101,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
       if (depRes.ok) {
         const depotList: Depot[] = await depRes.json();
         setDepots(depotList);
-        if (user && user.role !== "SUPER_ADMIN" && user.depot_id) {
+        if (user && !hasGlobalAccess(user) && user.depot_id) {
           setDepotId(user.depot_id);
         } else if (depotList.length > 0) {
           setDepotId(depotList[0].id);
@@ -425,7 +425,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
             <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
               <Building2 className="w-3.5 h-3.5 text-emerald-400" /> Depot
             </label>
-            {currentUser?.role === "SUPER_ADMIN" ? (
+            {hasGlobalAccess(currentUser) ? (
               <SearchableSelect
                 options={depotOptions}
                 value={depotId}

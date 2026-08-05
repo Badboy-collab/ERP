@@ -907,6 +907,130 @@ export class ERPService {
       }
     });
   }
+
+  /**
+   * TRANSACTION REVERSAL: Delete Sales Log & Restore Inventory / Ledger
+   */
+  static async deleteSalesLog(salesLogId: string) {
+    return prisma.$transaction(async (tx) => {
+      const salesLog = await tx.salesLog.findUnique({
+        where: { id: salesLogId },
+        include: { lot: true, invoice: true }
+      });
+
+      if (!salesLog) throw new Error("Sales log record not found.");
+
+      const qty = salesLog.quantity;
+
+      // 1. Re-add stock back to the LotTracker
+      if (salesLog.lot_id) {
+        const lot = await tx.lotTracker.findUnique({ where: { id: salesLog.lot_id } });
+        if (lot) {
+          const newAvail = lot.available_qty + qty;
+          const newSold = Math.max(0, lot.sold_qty - qty);
+          const newStatus = newAvail > 0 ? "Active" : lot.status;
+
+          await tx.lotTracker.update({
+            where: { id: lot.id },
+            data: {
+              available_qty: newAvail,
+              sold_qty: newSold,
+              status: newStatus,
+            }
+          });
+        }
+      }
+
+      // 2. If linked to an order, restore pending_qty and decrease delivered_qty
+      if (salesLog.order_id) {
+        const orderItem = await tx.orderItem.findFirst({
+          where: {
+            order_id: salesLog.order_id,
+            product_id: salesLog.product_id,
+          }
+        });
+
+        if (orderItem) {
+          const newDelivered = Math.max(0, orderItem.delivered_qty - qty);
+          const newPending = orderItem.pending_qty + qty;
+          await tx.orderItem.update({
+            where: { id: orderItem.id },
+            data: {
+              delivered_qty: newDelivered,
+              pending_qty: newPending,
+            }
+          });
+
+          await tx.deliveryOrder.update({
+            where: { id: salesLog.order_id },
+            data: { status: newDelivered <= 0 ? "Pending" : "Partial" }
+          });
+        }
+      }
+
+      // 3. Reverse Dealer Financial Balance if this sale updated dealer ledger
+      if (salesLog.dealer_id && salesLog.transaction_type === "SALES") {
+        const totalAmount = qty * (salesLog.unit_price || 0);
+        if (totalAmount > 0) {
+          const dealer = await tx.dealer.findUnique({ where: { id: salesLog.dealer_id } });
+          if (dealer) {
+            await tx.dealer.update({
+              where: { id: salesLog.dealer_id },
+              data: { current_balance: dealer.current_balance - totalAmount }
+            });
+          }
+
+          if (salesLog.invoice_id) {
+            await tx.financialTransaction.deleteMany({
+              where: { reference_invoice: salesLog.invoice_id }
+            });
+          }
+        }
+      }
+
+      // 4. Delete the SalesLog
+      return tx.salesLog.delete({ where: { id: salesLogId } });
+    });
+  }
+
+  /**
+   * TRANSACTION REVERSAL: Delete Stock Receive Log & Deduct Inventory
+   */
+  static async deleteStockReceive(receiveLogId: string) {
+    return prisma.$transaction(async (tx) => {
+      const receiveLog = await tx.receiveLog.findUnique({
+        where: { id: receiveLogId },
+        include: { lot: true }
+      });
+
+      if (!receiveLog) throw new Error("Stock receive log record not found.");
+
+      const qty = receiveLog.quantity;
+
+      // Deduct stock from the corresponding LotTracker
+      if (receiveLog.lot_id) {
+        const lot = await tx.lotTracker.findUnique({ where: { id: receiveLog.lot_id } });
+        if (lot) {
+          const newInit = Math.max(0, lot.initial_qty - qty);
+          const newAvail = Math.max(0, lot.available_qty - qty);
+          const newStatus = newAvail <= 0 ? "Depleted" : lot.status;
+
+          await tx.lotTracker.update({
+            where: { id: lot.id },
+            data: {
+              initial_qty: newInit,
+              available_qty: newAvail,
+              status: newStatus,
+            }
+          });
+        }
+      }
+
+      // Delete the ReceiveLog
+      return tx.receiveLog.delete({ where: { id: receiveLogId } });
+    });
+  }
 }
+
 
 

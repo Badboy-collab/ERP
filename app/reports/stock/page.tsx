@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { Package, Printer, RefreshCw, Filter, Layers, Calendar, Eye, EyeOff } from "lucide-react";
-import { getSessionUser, SessionUser } from "@/lib/userSession";
+import { getSessionUser, SessionUser, hasGlobalAccess } from "@/lib/userSession";
 
 interface StockRow {
   product_id: string;
@@ -42,7 +42,7 @@ export default function StockReportPage() {
   useEffect(() => {
     const user = getSessionUser();
     setCurrentUser(user);
-    if (user && user.role !== "SUPER_ADMIN" && user.depot_id) {
+    if (user && !hasGlobalAccess(user) && user.depot_id) {
       setSelectedDepotId(user.depot_id);
     }
     fetchDepots();
@@ -142,8 +142,8 @@ export default function StockReportPage() {
               <span>{showZeroStock ? "Showing Out of Stock" : "Hide Out of Stock"}</span>
             </button>
 
-            {/* Depot Selector (Super Admin Only) */}
-            {currentUser?.role === "SUPER_ADMIN" ? (
+            {/* Depot Selector (Global Visibility for SUPER_ADMIN & ORG_ADMIN) */}
+            {hasGlobalAccess(currentUser) ? (
               <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
                 <Filter className="w-3.5 h-3.5 text-emerald-400" />
                 <select
