@@ -1,10 +1,10 @@
 "use client";
 
-import { Printer, X, Factory, CheckCircle2 } from "lucide-react";
+import { Printer, X, CheckCircle2 } from "lucide-react";
 
 export interface ChallanInvoiceItem {
   id: string;
-  quantity: number;
+  quantity: number; // In bags
   product: {
     code: string;
     name: string;
@@ -22,6 +22,9 @@ export interface ChallanInvoice {
   date: string;
   destination?: string | null;
   notes?: string | null;
+  vehicle_no?: string | null;
+  driver_name?: string | null;
+  driver_phone?: string | null;
   dealer?: {
     name: string;
     phone: string;
@@ -45,22 +48,30 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
     window.print();
   };
 
+  // Date formatting DD-MM-YYYY
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
   const totalBags = invoice.items.reduce((sum, item) => sum + item.quantity, 0);
   const totalWeightKg = invoice.items.reduce(
     (sum, item) => sum + item.quantity * (item.product.bag_size_kg || 50),
     0
   );
-  const totalTons = (totalWeightKg / 1000).toFixed(2);
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto print:p-0 print:bg-white print:static">
       {/* Modal Box */}
-      <div className="bg-white text-slate-900 w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:w-full print:max-w-none print:rounded-none">
-        {/* Action Header (Hidden in Print) */}
+      <div className="bg-white text-black w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:w-full print:max-w-none print:rounded-none print:m-0">
+        {/* Action Header (Hidden during Print) */}
         <div className="bg-slate-900 text-white p-4 flex items-center justify-between print:hidden">
           <div className="flex items-center space-x-2">
             <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-            <span className="font-bold text-sm">Delivery Challan & Invoice Preview</span>
+            <span className="font-bold text-sm">Gate Pass & Challan Document Preview</span>
           </div>
           <div className="flex items-center space-x-3">
             <button
@@ -78,142 +89,161 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
           </div>
         </div>
 
-        {/* Printable Content Area */}
-        <div className="p-8 print:p-0 space-y-6">
-          {/* Header */}
-          <div className="border-b-2 border-slate-900 pb-4 flex justify-between items-start">
-            <div>
-              <h1 className="text-2xl font-black tracking-tight text-slate-900 uppercase">
-                Matber Agro Industries Ltd
+        {/* PRINTABLE GATE PASS DOCUMENT */}
+        <div className="p-8 sm:p-12 print:p-6 space-y-6 font-sans text-black bg-white">
+          
+          {/* HEADER SECTION: Logo & Company Information */}
+          <div className="flex justify-between items-center border-b border-gray-300 pb-4">
+            {/* Left: Brand Logo Badge */}
+            <div className="flex items-center space-x-3">
+              <div className="w-20 h-20 bg-emerald-700 text-white rounded-2xl flex flex-col items-center justify-center border-2 border-emerald-500 p-1.5 text-center shadow-md">
+                <span className="text-[9px] uppercase font-extrabold tracking-tighter leading-none">Matber Agro</span>
+                <span className="text-xs font-black text-amber-300 uppercase leading-tight my-0.5">LEADER</span>
+                <span className="text-[9px] uppercase font-bold tracking-tighter leading-none">FEED</span>
+              </div>
+            </div>
+
+            {/* Middle: Company Details */}
+            <div className="text-center flex-1 px-4">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-black uppercase">
+                MATBER AGRO INDUSTRIES LTD
               </h1>
-              <p className="text-xs text-slate-600 font-medium">
-                High Quality Feed Processing Depot • Head Office & Central Depot
+              <p className="text-xs font-medium text-gray-800 mt-1">
+                House No: 02, Road No: 14, Sector 04, Uttara, Dhaka
               </p>
-              <p className="text-xs text-slate-500">
-                Phone: +880 1712-345678, +880 1898-765432 | Mymensingh Road, Depot Zone
-              </p>
-            </div>
-            <div className="text-right">
-              <span className="inline-block px-3 py-1 bg-slate-900 text-white font-extrabold text-xs uppercase tracking-widest rounded mb-1">
-                DELIVERY CHALLAN
-              </span>
-              <p className="font-mono text-sm font-bold text-slate-800">
-                NO: {invoice.invoice_no}
-              </p>
-              <p className="text-xs text-slate-600">
-                Date: {new Date(invoice.date).toLocaleDateString()}
+              <p className="text-xs font-medium text-gray-800">
+                Phon No. : 01894844082, 01894844072, Email :
               </p>
             </div>
+
+            {/* Right Side: (Yellow Barcode removed per exclusion rule) */}
+            <div className="w-20"></div>
           </div>
 
-          {/* Details Bar */}
-          <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-lg border border-slate-200 print:bg-transparent print:border-slate-300">
-            <div>
-              <p className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">
-                Customer / Dealer Info
-              </p>
-              <p className="font-bold text-sm text-slate-900">
-                {invoice.dealer?.name || invoice.destination || "Direct Depot Cash Dispatch"}
-              </p>
-              {invoice.dealer?.phone && (
-                <p className="text-slate-700">Phone: {invoice.dealer.phone}</p>
-              )}
-              {invoice.dealer?.address && (
-                <p className="text-slate-700">Address: {invoice.dealer.address}</p>
-              )}
-            </div>
+          {/* DOCUMENT TITLE */}
+          <div className="text-center my-2">
+            <h2 className="text-base font-black tracking-wider uppercase underline underline-offset-4">
+              GATE PASS
+            </h2>
+          </div>
 
-            <div className="text-right space-y-1">
-              <p className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">
-                Transaction Specs
-              </p>
-              <p className="font-bold text-xs text-slate-800">
-                Type:{" "}
-                <span className="uppercase text-emerald-700 font-extrabold">
-                  {invoice.transaction_type}
+          {/* CUSTOMER & DELIVERY INFO GRID */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-black font-semibold leading-relaxed">
+            {/* Column 1: Customer Details */}
+            <div className="space-y-1.5">
+              <div className="flex">
+                <span className="w-28 font-bold text-black flex justify-between">Customer Name <span>:</span></span>
+                <span className="flex-1 font-extrabold text-black pl-2">
+                  {invoice.dealer?.name || invoice.destination || "Direct Cash Dispatch"}
                 </span>
-              </p>
-              {invoice.order?.order_no && (
-                <p className="text-slate-700 font-mono">DO Ref: {invoice.order.order_no}</p>
-              )}
-              {invoice.destination && (
-                <p className="text-slate-700 font-medium">Destination: {invoice.destination}</p>
-              )}
+              </div>
+              <div className="flex">
+                <span className="w-28 font-bold text-black flex justify-between">Address <span>:</span></span>
+                <span className="flex-1 font-medium text-gray-900 pl-2">
+                  {invoice.dealer?.address || invoice.destination || "N/A"}
+                </span>
+              </div>
+              <div className="flex">
+                <span className="w-28 font-bold text-black flex justify-between">Delivery Point <span>:</span></span>
+                <span className="flex-1 font-medium text-gray-900 pl-2">
+                  {invoice.destination || invoice.dealer?.address || "Depot Location"}
+                </span>
+              </div>
+            </div>
+
+            {/* Column 2: Challan & Gate Pass Numbers */}
+            <div className="space-y-1.5">
+              <div className="flex">
+                <span className="w-24 font-bold text-black flex justify-between">Challan No <span>:</span></span>
+                <span className="flex-1 font-mono font-bold text-black pl-2">{invoice.invoice_no}</span>
+              </div>
+              <div className="flex">
+                <span className="w-24 font-bold text-black flex justify-between">Challan Date <span>:</span></span>
+                <span className="flex-1 font-medium text-gray-900 pl-2">{formatDate(invoice.date)}</span>
+              </div>
+              <div className="flex">
+                <span className="w-24 font-bold text-black flex justify-between">Gate Pass <span>:</span></span>
+                <span className="flex-1 font-mono font-bold text-black pl-2">{invoice.invoice_no}</span>
+              </div>
+              <div className="flex">
+                <span className="w-24 font-bold text-black flex justify-between">Vehicle No <span>:</span></span>
+                <span className="flex-1 font-medium text-gray-900 pl-2">{invoice.vehicle_no || invoice.notes || "Auto van"}</span>
+              </div>
+            </div>
+
+            {/* Column 3: Driver Information */}
+            <div className="space-y-1.5">
+              <div className="flex">
+                <span className="w-24 font-bold text-black flex justify-between">Driver Name <span>:</span></span>
+                <span className="flex-1 font-bold text-black pl-2">{invoice.driver_name || "Ismail"}</span>
+              </div>
+              <div className="flex">
+                <span className="w-24 font-bold text-black flex justify-between">Driver Contact <span>:</span></span>
+                <span className="flex-1 font-medium text-gray-900 pl-2">{invoice.driver_phone || ""}</span>
+              </div>
             </div>
           </div>
 
-          {/* Items Table */}
-          <div>
-            <table className="w-full text-left text-xs border border-slate-300">
-              <thead className="bg-slate-100 text-slate-800 font-bold uppercase border-b border-slate-300">
-                <tr>
-                  <th className="p-2 border-r border-slate-300 w-10 text-center">Sl</th>
-                  <th className="p-2 border-r border-slate-300">Code</th>
-                  <th className="p-2 border-r border-slate-300">Product Name</th>
-                  <th className="p-2 border-r border-slate-300">Lot / Batch No</th>
-                  <th className="p-2 border-r border-slate-300 text-right">Bag Size</th>
-                  <th className="p-2 text-right">Quantity (Kg / Bags)</th>
+          {/* ITEMS TABLE */}
+          <div className="pt-2">
+            <table className="w-full text-left text-xs border border-black border-collapse">
+              <thead>
+                <tr className="border-b border-black font-bold text-black bg-gray-50 print:bg-transparent">
+                  <th className="p-2 border-r border-black text-center w-12">SL</th>
+                  <th className="p-2 border-r border-black w-28">Item Code</th>
+                  <th className="p-2 border-r border-black">Item Description</th>
+                  <th className="p-2 border-r border-black text-center w-16">Unit</th>
+                  <th className="p-2 border-r border-black text-right w-24">Bag Qty</th>
+                  <th className="p-2 text-right w-28">Quantity</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody>
                 {invoice.items.map((item, idx) => (
-                  <tr key={item.id || idx}>
-                    <td className="p-2 border-r border-slate-200 text-center font-bold">
-                      {idx + 1}
+                  <tr key={item.id || idx} className="border-b border-black font-medium">
+                    <td className="p-2 border-r border-black text-center font-bold">{idx + 1}</td>
+                    <td className="p-2 border-r border-black font-mono font-bold">{item.product.code}</td>
+                    <td className="p-2 border-r border-black font-bold">
+                      {item.product.name} {item.product.bag_size_kg || 50} kg
                     </td>
-                    <td className="p-2 border-r border-slate-200 font-mono font-bold">
-                      {item.product.code}
-                    </td>
-                    <td className="p-2 border-r border-slate-200 font-medium">
-                      {item.product.name}
-                    </td>
-                    <td className="p-2 border-r border-slate-200 font-mono text-slate-700">
-                      {item.lot.lot_no}
-                    </td>
-                    <td className="p-2 border-r border-slate-200 text-right">
-                      {item.product.bag_size_kg} kg
-                    </td>
-                    <td className="p-2 text-right font-bold text-slate-900 text-sm">
-                      {item.quantity * (item.product.bag_size_kg || 50)} Kg ({item.quantity} Bags)
-                    </td>
+                    <td className="p-2 border-r border-black text-center uppercase font-bold">KG</td>
+                    <td className="p-2 border-r border-black text-right font-bold">{item.quantity}</td>
+                    <td className="p-2 text-right font-bold">{item.quantity * (item.product.bag_size_kg || 50)}</td>
                   </tr>
                 ))}
               </tbody>
-              <tfoot className="bg-slate-50 font-bold border-t-2 border-slate-900 text-slate-900">
-                <tr>
-                  <td colSpan={5} className="p-2 text-right uppercase tracking-wider">
-                    Total Quantity & Weight:
-                  </td>
-                  <td className="p-2 text-right text-sm">
-                    {totalWeightKg} Kg ({totalBags} bags / {totalTons} MT)
-                  </td>
+              <tfoot>
+                <tr className="border-t-2 border-black font-black text-black">
+                  <td colSpan={4} className="p-2 text-right uppercase tracking-wider font-extrabold">Total:</td>
+                  <td className="p-2 border-r border-black text-right font-extrabold">{totalBags}</td>
+                  <td className="p-2 text-right font-extrabold">{totalWeightKg}</td>
                 </tr>
               </tfoot>
             </table>
           </div>
 
-          {/* Notes */}
-          {invoice.notes && (
-            <div className="text-xs text-slate-600 italic bg-slate-50 p-2.5 rounded border border-slate-200">
-              Note: {invoice.notes}
+          {/* FOOTER SIGNATURES & NOTICE */}
+          <div className="pt-20 space-y-8">
+            <div className="grid grid-cols-4 gap-4 text-center text-xs font-bold text-black">
+              <div>
+                <p className="border-t border-black pt-1">Delivery-By</p>
+              </div>
+              <div>
+                <p className="border-t border-black pt-1">Prepared-By</p>
+              </div>
+              <div>
+                <p className="border-t border-black pt-1">Store-Officer</p>
+              </div>
+              <div>
+                <p className="border-t border-black pt-1">Authorized-BY</p>
+              </div>
             </div>
-          )}
 
-          {/* Footer Signatures */}
-          <div className="pt-12 grid grid-cols-3 gap-8 text-center text-xs font-semibold text-slate-700">
-            <div className="border-t border-slate-400 pt-2">
-              <p>Prepared By</p>
-              <p className="text-[10px] text-slate-500 font-normal">Depot Operator</p>
-            </div>
-            <div className="border-t border-slate-400 pt-2">
-              <p>Depot In-Charge</p>
-              <p className="text-[10px] text-slate-500 font-normal">Authorized Signature</p>
-            </div>
-            <div className="border-t border-slate-400 pt-2">
-              <p>Received By</p>
-              <p className="text-[10px] text-slate-500 font-normal">Driver / Dealer Signature</p>
+            <div className="flex justify-between items-center text-[10px] font-semibold text-gray-800 pt-4 border-t border-gray-200">
+              <p>Note: No claims for shortage will be entertained after five days from the delivered date.</p>
+              <p>This is an ERP generated report</p>
             </div>
           </div>
+
         </div>
       </div>
     </div>
