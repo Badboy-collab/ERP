@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 
 export async function GET() {
   try {
@@ -33,6 +34,12 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
+    // SUPER_ADMIN role guard
+    const session = await getSession(req);
+    if (!session || session.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Forbidden: Only Super Admin can edit product records." }, { status: 403 });
+    }
+
     const body = await req.json();
     const { id, code, name, category, bag_size_kg, opening_stock, sort_order } = body;
 
@@ -50,5 +57,30 @@ export async function PUT(req: Request) {
     return NextResponse.json(product);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    // SUPER_ADMIN role guard
+    const session = await getSession(req);
+    if (!session || session.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Forbidden: Only Super Admin can delete product records." }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
+    }
+
+    await prisma.product.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: "Product deleted successfully" });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

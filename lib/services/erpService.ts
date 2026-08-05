@@ -38,6 +38,8 @@ export interface CreateOrderInput {
   dealer_id: string;
   order_no?: string;
   order_date?: Date;
+  created_by?: string | null;
+  remarks?: string | null;
   items: {
     product_id: string;
     ordered_qty: number;
@@ -399,6 +401,8 @@ export class ERPService {
         order_no: final_order_no,
         order_date: input.order_date ? new Date(input.order_date) : new Date(),
         status: "Pending",
+        remarks: input.remarks || null,
+        created_by: input.created_by || null,
         items: {
           create: input.items.map((item) => ({
             product_id: item.product_id,
@@ -413,6 +417,132 @@ export class ERPService {
         dealer: true,
         depot: true,
       },
+    });
+  }
+
+  static async updateDeliveryOrder(input: {
+    id: string;
+    dealer_id?: string;
+    order_date?: Date;
+    remarks?: string | null;
+    status?: string;
+    items?: { id?: string; product_id: string; ordered_qty: number }[];
+  }) {
+    return prisma.$transaction(async (tx) => {
+      const order = await tx.deliveryOrder.findUnique({
+        where: { id: input.id },
+        include: { items: true },
+      });
+
+      if (!order) throw new Error("Delivery order not found.");
+
+      const updatedItems = input.items ?? order.items.map((item) => ({
+        id: item.id,
+        product_id: item.product_id,
+        ordered_qty: item.ordered_qty,
+      }));
+
+      const existingItemsById = new Map(order.items.map((item) => [item.id, item]));
+      const updatedItemIds = new Set<string>();
+
+      for (const item of updatedItems) {
+        if (item.id) {
+          const existing = existingItemsById.get(item.id);
+          if (!existing) throw new Error(`Order item ${item.id} not found.`);
+          if (existing.delivered_qty > item.ordered_qty) {
+            throw new Error(
+              `Cannot reduce ordered quantity for product ${existing.product_id} below already delivered quantity (${existing.delivered_qty} kg). Reverse dispatch records first.`
+            );
+          }
+          if (existing.delivered_qty > 0 && existing.product_id !== item.product_id) {
+            throw new Error("Cannot change product for an order item that has already been delivered.");
+          }
+          updatedItemIds.add(item.id);
+        }
+      }
+
+      for (const existing of order.items) {
+        if (!updatedItemIds.has(existing.id) && existing.delivered_qty > 0) {
+          throw new Error(
+            `Cannot remove product ${existing.product_id} because some quantity has already been delivered. Reverse dispatch records first.`
+          );
+        }
+      }
+
+      // Delete removed line items that have no deliveries.
+      for (const existing of order.items) {
+        if (!updatedItemIds.has(existing.id)) {
+          await tx.orderItem.delete({ where: { id: existing.id } });
+        }
+      }
+
+      const updatedItemRecords = [] as { id: string; ordered_qty: number; delivered_qty: number; pending_qty: number }[];
+      for (const item of updatedItems) {
+        if (item.id) {
+          const existing = existingItemsById.get(item.id)!;
+          const deliveredQty = existing.delivered_qty;
+          const pendingQty = Math.max(0, item.ordered_qty - deliveredQty);
+          await tx.orderItem.update({
+            where: { id: item.id },
+            data: {
+              product_id: item.product_id,
+              ordered_qty: item.ordered_qty,
+              pending_qty: pendingQty,
+            },
+          });
+          updatedItemRecords.push({ id: item.id, ordered_qty: item.ordered_qty, delivered_qty: deliveredQty, pending_qty: pendingQty });
+        } else {
+          const pendingQty = item.ordered_qty;
+          const created = await tx.orderItem.create({
+            data: {
+              order_id: order.id,
+              product_id: item.product_id,
+              ordered_qty: item.ordered_qty,
+              delivered_qty: 0,
+              pending_qty: pendingQty,
+            },
+          });
+          updatedItemRecords.push({ id: created.id, ordered_qty: created.ordered_qty, delivered_qty: created.delivered_qty, pending_qty: created.pending_qty });
+        }
+      }
+
+      const totalPending = updatedItemRecords.reduce((sum, item) => sum + item.pending_qty, 0);
+      const totalDelivered = updatedItemRecords.reduce((sum, item) => sum + item.delivered_qty, 0);
+      const computedStatus = totalPending === 0 ? "Complete" : totalDelivered > 0 ? "Partial" : "Pending";
+      const finalStatus = input.status ? input.status : computedStatus;
+
+      const updatedOrder = await tx.deliveryOrder.update({
+        where: { id: order.id },
+        data: {
+          dealer_id: input.dealer_id || order.dealer_id,
+          order_date: input.order_date ? new Date(input.order_date) : order.order_date,
+          remarks: input.remarks !== undefined ? input.remarks : order.remarks,
+          status: finalStatus,
+        },
+      });
+
+      return await tx.deliveryOrder.findUnique({
+        where: { id: updatedOrder.id },
+        include: { items: { include: { product: true } }, dealer: true, depot: true },
+      });
+    });
+  }
+
+  static async deleteDeliveryOrder(input: { id: string }) {
+    return prisma.$transaction(async (tx) => {
+      const order = await tx.deliveryOrder.findUnique({
+        where: { id: input.id },
+        include: { items: true, salesLogs: true },
+      });
+
+      if (!order) throw new Error("Delivery order not found.");
+      if (order.salesLogs.length > 0) {
+        throw new Error("Cannot delete delivery order while there are related sales dispatch records. Reverse dispatch records first.");
+      }
+
+      await tx.deliveryOrder.delete({ where: { id: order.id } });
+
+      return { message: "Delivery order deleted successfully" };
     });
   }
 
@@ -1169,6 +1299,4 @@ export class ERPService {
     });
   }
 }
-
-
 

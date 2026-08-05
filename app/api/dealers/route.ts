@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 
 export async function GET(req: Request) {
   try {
@@ -43,6 +44,12 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
+    // SUPER_ADMIN role guard
+    const session = await getSession(req);
+    if (!session || session.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Forbidden: Only Super Admin can edit dealer records." }, { status: 403 });
+    }
+
     const body = await req.json();
     const { id, name, phone, address, depot_id, current_balance } = body;
 
@@ -65,6 +72,12 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
+    // SUPER_ADMIN role guard
+    const session = await getSession(req);
+    if (!session || session.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Forbidden: Only Super Admin can delete dealer records." }, { status: 403 });
+    }
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 

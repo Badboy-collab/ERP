@@ -61,6 +61,27 @@ interface TransactionItem {
   depot: { name: string };
 }
 
+interface DeliveryOrderItem {
+  id: string;
+  ordered_qty: number;
+  delivered_qty: number;
+  pending_qty: number;
+  product: { id: string; code: string; name: string; bag_size_kg: number };
+}
+
+interface DeliveryOrder {
+  id: string;
+  order_no: string;
+  order_date: string;
+  status: string;
+  dealer: { id: string; name: string; phone: string };
+  depot: { id: string; name: string; code: string };
+  created_by?: string | null;
+  createdAt: string;
+  remarks?: string | null;
+  items: DeliveryOrderItem[];
+}
+
 interface LotItem {
   id: string;
   lot_no: string;
@@ -149,10 +170,48 @@ export default function AdminPage() {
   const [editLotInitQty, setEditLotInitQty] = useState("");
   const [editLotAvailQty, setEditLotAvailQty] = useState("");
 
+  // Edit Depot State (Super Admin)
+  const [editingDepot, setEditingDepot] = useState<Depot | null>(null);
+  const [editDepotCode, setEditDepotCode] = useState("");
+  const [editDepotName, setEditDepotName] = useState("");
+  const [editDepotAddress, setEditDepotAddress] = useState("");
+  const [editDepotPhone, setEditDepotPhone] = useState("");
+
+  // Edit Product State (Super Admin)
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editProdCode, setEditProdCode] = useState("");
+  const [editProdName, setEditProdName] = useState("");
+  const [editProdCategory, setEditProdCategory] = useState("");
+  const [editProdBagSize, setEditProdBagSize] = useState("");
+  const [editProdOpeningStock, setEditProdOpeningStock] = useState("");
+  const [editProdSortOrder, setEditProdSortOrder] = useState("");
+
+  // Master Delivery Orders Override State
+  const [deliveryOrders, setDeliveryOrders] = useState<DeliveryOrder[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<DeliveryOrder | null>(null);
+  const [viewOrder, setViewOrder] = useState<DeliveryOrder | null>(null);
+  const [editOrderDealerId, setEditOrderDealerId] = useState<string>("");
+  const [editOrderDate, setEditOrderDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [editOrderRemarks, setEditOrderRemarks] = useState<string>("");
+
+  // Edit Dealer State (Super Admin)
+  const [editingDealer, setEditingDealer] = useState<Dealer | null>(null);
+  const [editDealerName, setEditDealerName] = useState("");
+  const [editDealerPhone, setEditDealerPhone] = useState("");
+  const [editDealerAddress, setEditDealerAddress] = useState("");
+  const [editDealerDepotId, setEditDealerDepotId] = useState("");
+  const [editDealerBalance, setEditDealerBalance] = useState("");
+
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     fetchInitialData();
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === "override") {
+      fetchDeliveryOrders();
+    }
   }, [activeTab]);
 
   const fetchInitialData = async () => {
@@ -172,14 +231,38 @@ export default function AdminPage() {
         if (uRes.ok) setUsers(await uRes.json());
         if (depRes.ok) setDepots(await depRes.json());
       } else if (activeTab === "override") {
-        const [sRes, rRes, lRes] = await Promise.all([fetch("/api/sales"), fetch("/api/receives"), fetch("/api/lots?include_zero=true")]);
+        const [sRes, rRes, lRes, depRes, dealerRes, userRes] = await Promise.all([
+          fetch("/api/sales"),
+          fetch("/api/receives"),
+          fetch("/api/lots?include_zero=true"),
+          fetch("/api/admin/depots"),
+          fetch("/api/dealers"),
+          fetch("/api/admin/users"),
+        ]);
         if (sRes.ok) setSalesLogs(await sRes.json());
         if (rRes.ok) setReceiveLogs(await rRes.json());
         if (lRes.ok) setLots(await lRes.json());
+        if (depRes.ok) setDepots(await depRes.json());
+        if (dealerRes.ok) setDealers(await dealerRes.json());
+        if (userRes.ok) setUsers(await userRes.json());
       } else if (activeTab === "setup") {
         const [depRes, prodRes] = await Promise.all([fetch("/api/admin/depots"), fetch("/api/products")]);
         if (depRes.ok) setDepots(await depRes.json());
         if (prodRes.ok) setProducts(await prodRes.json());
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchDeliveryOrders = async () => {
+    try {
+      const res = await fetch("/api/orders");
+      if (res.ok) {
+        const data = await res.json();
+        setDeliveryOrders(data);
+      } else {
+        console.error("Failed to load delivery orders", await res.text());
       }
     } catch (err) {
       console.error(err);
@@ -478,6 +561,194 @@ export default function AdminPage() {
     }
   };
 
+  const handleEditDeliveryOrder = (order: DeliveryOrder) => {
+    if (currentUser?.role !== "SUPER_ADMIN") {
+      alert("Permission Denied: Only Super Admin (Level 1) can edit delivery orders.");
+      return;
+    }
+    setSelectedOrder(order);
+    setEditOrderDealerId(order.dealer.id);
+    setEditOrderDate(new Date(order.order_date).toISOString().split("T")[0]);
+    setEditOrderRemarks(order.remarks || "");
+  };
+
+  const handleSaveDeliveryOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedOrder || currentUser?.role !== "SUPER_ADMIN") return;
+
+    try {
+      const res = await fetch("/api/orders/override", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: selectedOrder.id,
+          dealer_id: editOrderDealerId,
+          order_date: editOrderDate,
+          remarks: editOrderRemarks || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update delivery order");
+
+      setMessage({ type: "success", text: "Delivery order updated successfully!" });
+      setSelectedOrder(null);
+      fetchDeliveryOrders();
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message });
+    }
+  };
+
+  const handleDeleteDeliveryOrder = async (order: DeliveryOrder) => {
+    if (currentUser?.role !== "SUPER_ADMIN") {
+      alert("Permission Denied: Only Super Admin (Level 1) can delete delivery orders.");
+      return;
+    }
+    if (!confirm(`Delete delivery order ${order.order_no}? This cannot be undone.`)) return;
+
+    try {
+      const res = await fetch(`/api/orders/override?id=${order.id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to delete delivery order");
+
+      setMessage({ type: "success", text: data.message || "Delivery order deleted successfully!" });
+      fetchDeliveryOrders();
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message });
+    }
+  };
+
+  // ─── Depot Edit/Delete Handlers ─────────────────────────
+  const handleEditDepot = (depot: Depot) => {
+    setEditingDepot(depot);
+    setEditDepotCode(depot.code);
+    setEditDepotName(depot.name);
+    setEditDepotAddress(depot.address || "");
+    setEditDepotPhone(depot.phone || "");
+  };
+
+  const handleSaveEditDepot = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDepot) return;
+    try {
+      const res = await fetch("/api/admin/depots", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingDepot.id,
+          code: editDepotCode,
+          name: editDepotName,
+          address: editDepotAddress,
+          phone: editDepotPhone,
+        }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Failed to update depot"); }
+      setMessage({ type: "success", text: "Depot updated successfully!" });
+      setEditingDepot(null);
+      fetchInitialData();
+    } catch (err: any) { setMessage({ type: "error", text: err.message }); }
+  };
+
+  const handleDeleteDepot = async (depotId: string) => {
+    if (currentUser?.role !== "SUPER_ADMIN") { alert("Only Super Admin can delete depots."); return; }
+    if (!confirm("Are you sure you want to delete this depot? All associated data may be affected.")) return;
+    try {
+      const res = await fetch(`/api/admin/depots?id=${depotId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete depot");
+      setMessage({ type: "success", text: "Depot deleted successfully!" });
+      fetchInitialData();
+    } catch (err: any) { setMessage({ type: "error", text: err.message }); }
+  };
+
+  // ─── Product Edit/Delete Handlers ──────────────────────
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setEditProdCode(product.code);
+    setEditProdName(product.name);
+    setEditProdCategory(product.category);
+    setEditProdBagSize(String(product.bag_size_kg));
+    setEditProdOpeningStock(String(product.opening_stock));
+    setEditProdSortOrder(String(0));
+  };
+
+  const handleSaveEditProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+    try {
+      const res = await fetch("/api/admin/products", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingProduct.id,
+          code: editProdCode,
+          name: editProdName,
+          category: editProdCategory,
+          bag_size_kg: Number(editProdBagSize),
+          opening_stock: Number(editProdOpeningStock),
+          sort_order: Number(editProdSortOrder),
+        }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Failed to update product"); }
+      setMessage({ type: "success", text: "Product updated successfully!" });
+      setEditingProduct(null);
+      fetchInitialData();
+    } catch (err: any) { setMessage({ type: "error", text: err.message }); }
+  };
+
+  const handleDeleteProduct = async (productId: string) => {
+    if (currentUser?.role !== "SUPER_ADMIN") { alert("Only Super Admin can delete products."); return; }
+    if (!confirm("Are you sure you want to delete this product?")) return;
+    try {
+      const res = await fetch(`/api/admin/products?id=${productId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete product");
+      setMessage({ type: "success", text: "Product deleted successfully!" });
+      fetchInitialData();
+    } catch (err: any) { setMessage({ type: "error", text: err.message }); }
+  };
+
+  // ─── Dealer Edit/Delete Handlers ───────────────────────
+  const handleEditDealer = (dealer: Dealer) => {
+    setEditingDealer(dealer);
+    setEditDealerName(dealer.name);
+    setEditDealerPhone(dealer.phone);
+    setEditDealerAddress(dealer.address || "");
+    setEditDealerDepotId(dealer.depot_id);
+    setEditDealerBalance(String(dealer.current_balance));
+  };
+
+  const handleSaveEditDealer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDealer) return;
+    try {
+      const res = await fetch("/api/dealers", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingDealer.id,
+          name: editDealerName,
+          phone: editDealerPhone,
+          address: editDealerAddress,
+          depot_id: editDealerDepotId,
+          current_balance: Number(editDealerBalance),
+        }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Failed to update dealer"); }
+      setMessage({ type: "success", text: "Dealer updated successfully!" });
+      setEditingDealer(null);
+      fetchInitialData();
+    } catch (err: any) { setMessage({ type: "error", text: err.message }); }
+  };
+
+  const handleDeleteDealer = async (dealerId: string) => {
+    if (currentUser?.role !== "SUPER_ADMIN") { alert("Only Super Admin can delete dealers."); return; }
+    if (!confirm("Are you sure you want to delete this dealer? All related ledger data may be affected.")) return;
+    try {
+      const res = await fetch(`/api/dealers?id=${dealerId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete dealer");
+      setMessage({ type: "success", text: "Dealer deleted successfully!" });
+      fetchInitialData();
+    } catch (err: any) { setMessage({ type: "error", text: err.message }); }
+  };
+
   const handleSetupStock = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!setupDepotId || !setupProductId || setupQuantity === "") return;
@@ -607,6 +878,7 @@ export default function AdminPage() {
                       <th className="p-3">Name</th>
                       <th className="p-3">Address</th>
                       <th className="p-3">Phone</th>
+                      {currentUser?.role === "SUPER_ADMIN" && <th className="p-3 text-right">Actions</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800 font-medium">
@@ -616,6 +888,18 @@ export default function AdminPage() {
                         <td className="p-3 text-white font-bold">{d.name}</td>
                         <td className="p-3 text-slate-300">{d.address || "N/A"}</td>
                         <td className="p-3 text-slate-400 font-mono">{d.phone || "N/A"}</td>
+                        {currentUser?.role === "SUPER_ADMIN" && (
+                          <td className="p-3 text-right">
+                            <div className="flex justify-end gap-2">
+                              <button onClick={() => handleEditDepot(d)} className="p-1 text-slate-400 hover:text-emerald-400 rounded hover:bg-slate-950 transition-colors" title="Edit Depot">
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => handleDeleteDepot(d.id)} className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-950 transition-colors" title="Delete Depot">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -681,6 +965,7 @@ export default function AdminPage() {
                       <th className="p-3">Category</th>
                       <th className="p-3 text-right">Bag Size</th>
                       <th className="p-3 text-right">Opening Stock</th>
+                      {currentUser?.role === "SUPER_ADMIN" && <th className="p-3 text-right">Actions</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800 font-medium">
@@ -691,6 +976,18 @@ export default function AdminPage() {
                         <td className="p-3 text-slate-400 font-bold uppercase text-[10px]">{p.category}</td>
                         <td className="p-3 text-right font-mono text-slate-300">{p.bag_size_kg} kg</td>
                         <td className="p-3 text-right font-mono text-slate-300">{p.opening_stock} kg</td>
+                        {currentUser?.role === "SUPER_ADMIN" && (
+                          <td className="p-3 text-right">
+                            <div className="flex justify-end gap-2">
+                              <button onClick={() => handleEditProduct(p)} className="p-1 text-slate-400 hover:text-emerald-400 rounded hover:bg-slate-950 transition-colors" title="Edit Product">
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => handleDeleteProduct(p.id)} className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-950 transition-colors" title="Delete Product">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -743,6 +1040,7 @@ export default function AdminPage() {
                       <th className="p-3">Address</th>
                       <th className="p-3">Depot</th>
                       <th className="p-3 text-right">Ledger Balance</th>
+                      {currentUser?.role === "SUPER_ADMIN" && <th className="p-3 text-right">Actions</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800 font-medium">
@@ -753,6 +1051,18 @@ export default function AdminPage() {
                         <td className="p-3 text-slate-300">{d.address || "N/A"}</td>
                         <td className="p-3 text-emerald-400">{d.depot?.name || "Unassigned"}</td>
                         <td className="p-3 text-right font-mono font-bold text-rose-400">{d.current_balance.toLocaleString()} Tk</td>
+                        {currentUser?.role === "SUPER_ADMIN" && (
+                          <td className="p-3 text-right">
+                            <div className="flex justify-end gap-2">
+                              <button onClick={() => handleEditDealer(d)} className="p-1 text-slate-400 hover:text-emerald-400 rounded hover:bg-slate-950 transition-colors" title="Edit Dealer">
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => handleDeleteDealer(d.id)} className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-950 transition-colors" title="Delete Dealer">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -905,6 +1215,87 @@ export default function AdminPage() {
         {/* Tab 5: Master Override */}
         {activeTab === "override" && (
           <div className="space-y-8">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-base font-extrabold text-emerald-400 flex items-center gap-2">
+                <Package className="w-5 h-5" /> Master Delivery Orders (Direct Override)
+              </h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border border-slate-800">
+                  <thead className="bg-slate-950 text-slate-400 font-bold uppercase">
+                    <tr>
+                      <th className="p-3">Order No</th>
+                      <th className="p-3">Delivery Date</th>
+                      <th className="p-3">Dealer</th>
+                      <th className="p-3">Depot</th>
+                      <th className="p-3 text-right">Total Items</th>
+                      <th className="p-3">Delivery Status</th>
+                      <th className="p-3">Created By</th>
+                      <th className="p-3">Created At</th>
+                      <th className="p-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800 font-medium">
+                    {deliveryOrders.map((order) => (
+                      <tr key={order.id} className="hover:bg-slate-800/40">
+                        <td className="p-3 font-mono font-bold text-emerald-400">{order.order_no}</td>
+                        <td className="p-3 text-slate-400">{new Date(order.order_date).toLocaleDateString()}</td>
+                        <td className="p-3 text-white">{order.dealer?.name}</td>
+                        <td className="p-3 text-slate-300">{order.depot?.name}</td>
+                        <td className="p-3 text-right font-mono text-slate-300">{order.items.length}</td>
+                        <td className="p-3">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            order.status === "Complete"
+                              ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                              : order.status === "Partial"
+                                ? "bg-amber-950 text-amber-400 border border-amber-800"
+                                : "bg-slate-800 text-slate-300 border border-slate-700"
+                          }`}>
+                            {order.status}
+                          </span>
+                        </td>
+                        <td className="p-3 text-slate-300">{order.created_by || "System"}</td>
+                        <td className="p-3 text-slate-400">{new Date(order.createdAt).toLocaleString()}</td>
+                        <td className="p-3 text-right">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => setViewOrder(order)}
+                              className="text-slate-400 hover:text-white transition-colors"
+                              title="View Delivery Order"
+                            >
+                              View
+                            </button>
+                            {currentUser?.role === "SUPER_ADMIN" && (
+                              <>
+                                <button
+                                  onClick={() => handleEditDeliveryOrder(order)}
+                                  className="text-slate-400 hover:text-emerald-400 transition-colors"
+                                  title="Edit Delivery Order"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteDeliveryOrder(order)}
+                                  className="text-slate-400 hover:text-rose-400 transition-colors"
+                                  title="Delete Delivery Order"
+                                >
+                                  Delete
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {deliveryOrders.length === 0 && (
+                      <tr>
+                        <td colSpan={9} className="p-6 text-center text-slate-500">No delivery orders found.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
               <h2 className="text-base font-extrabold text-red-400 flex items-center gap-2">
                 <ShieldAlert className="w-5 h-5" /> Master Sales Dispatches List (Direct Override)
@@ -1080,6 +1471,89 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* Modal: View Delivery Order */}
+        {viewOrder && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+                  <Package className="w-4 h-4 text-emerald-400" /> Delivery Order: {viewOrder.order_no}
+                </h3>
+                <button onClick={() => setViewOrder(null)} className="text-slate-400 hover:text-white" aria-label="Close delivery order details">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div><span className="text-slate-500">Delivery Date</span><p className="text-white font-semibold mt-1">{new Date(viewOrder.order_date).toLocaleDateString()}</p></div>
+                <div><span className="text-slate-500">Delivery Status</span><p className="text-white font-semibold mt-1">{viewOrder.status}</p></div>
+                <div><span className="text-slate-500">Dealer</span><p className="text-white font-semibold mt-1">{viewOrder.dealer?.name} <span className="text-slate-400 font-normal">{viewOrder.dealer?.phone}</span></p></div>
+                <div><span className="text-slate-500">Depot</span><p className="text-white font-semibold mt-1">{viewOrder.depot?.name} <span className="text-slate-400 font-normal">({viewOrder.depot?.code})</span></p></div>
+                <div><span className="text-slate-500">Created By</span><p className="text-white font-semibold mt-1">{viewOrder.created_by || "System"}</p></div>
+                <div><span className="text-slate-500">Created At</span><p className="text-white font-semibold mt-1">{new Date(viewOrder.createdAt).toLocaleString()}</p></div>
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-slate-300 mb-2">Order Items</h4>
+                <div className="border border-slate-800 rounded-xl divide-y divide-slate-800">
+                  {viewOrder.items.map((item) => (
+                    <div key={item.id} className="px-3 py-2 flex items-center justify-between gap-3 text-xs">
+                      <span className="text-white">[{item.product.code}] {item.product.name}</span>
+                      <span className="font-mono text-slate-400 whitespace-nowrap">Ordered: {item.ordered_qty} kg · Delivered: {item.delivered_qty} kg · Pending: {item.pending_qty} kg</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {viewOrder.remarks && <div><span className="text-xs text-slate-500">Remarks</span><p className="text-xs text-slate-300 mt-1">{viewOrder.remarks}</p></div>}
+              <div className="flex justify-end pt-2">
+                <button type="button" onClick={() => setViewOrder(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">Close</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Edit Delivery Order */}
+        {selectedOrder && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+                  <Edit className="w-4 h-4 text-emerald-400" /> Override Delivery Order: {selectedOrder.order_no}
+                </h3>
+                <button onClick={() => setSelectedOrder(null)} className="text-slate-400 hover:text-white" aria-label="Close delivery order editor">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleSaveDeliveryOrder} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Order No</label>
+                  <input type="text" value={selectedOrder.order_no} disabled className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-400 font-mono" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Dealer *</label>
+                  <SearchableSelect
+                    options={dealers.filter((dealer) => dealer.depot_id === selectedOrder.depot.id).map((dealer) => ({ value: dealer.id, label: `${dealer.name} (${dealer.phone})` }))}
+                    value={editOrderDealerId}
+                    onChange={setEditOrderDealerId}
+                    placeholder="Select Dealer..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Delivery Date *</label>
+                  <input type="date" value={editOrderDate} onChange={(e) => setEditOrderDate(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Remarks</label>
+                  <textarea value={editOrderRemarks} onChange={(e) => setEditOrderRemarks(e.target.value)} rows={3} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white resize-none" />
+                </div>
+                <p className="text-[10px] text-slate-500">Order items and delivery status remain unchanged to preserve the existing delivery and inventory rules.</p>
+                <div className="flex gap-2 pt-2">
+                  <button type="submit" className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2.5 rounded-xl transition-all text-xs">Save Override</button>
+                  <button type="button" onClick={() => setSelectedOrder(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {/* Modal: Edit Sales Dispatch */}
         {editingSale && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -1246,6 +1720,141 @@ export default function AdminPage() {
                   <button type="button" onClick={() => setEditingLot(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">
                     Cancel
                   </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Edit Depot */}
+        {editingDepot && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+                  <Edit className="w-4 h-4 text-amber-400" /> Edit Depot: {editingDepot.name}
+                </h3>
+                <button onClick={() => setEditingDepot(null)} className="text-slate-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleSaveEditDepot} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Depot Code *</label>
+                  <input type="text" value={editDepotCode} onChange={(e) => setEditDepotCode(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white uppercase font-bold" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Depot Name *</label>
+                  <input type="text" value={editDepotName} onChange={(e) => setEditDepotName(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Address</label>
+                  <input type="text" value={editDepotAddress} onChange={(e) => setEditDepotAddress(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Phone</label>
+                  <input type="text" value={editDepotPhone} onChange={(e) => setEditDepotPhone(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button type="submit" className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2.5 rounded-xl transition-all text-xs">Save Depot</button>
+                  <button type="button" onClick={() => setEditingDepot(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Edit Product */}
+        {editingProduct && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+                  <Edit className="w-4 h-4 text-amber-400" /> Edit Product: [{editingProduct.code}] {editingProduct.name}
+                </h3>
+                <button onClick={() => setEditingProduct(null)} className="text-slate-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleSaveEditProduct} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Product Code *</label>
+                  <input type="text" value={editProdCode} onChange={(e) => setEditProdCode(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Product Name *</label>
+                  <input type="text" value={editProdName} onChange={(e) => setEditProdName(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Category</label>
+                  <select value={editProdCategory} onChange={(e) => setEditProdCategory(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold">
+                    <option value="Broiler">Broiler</option>
+                    <option value="Layer">Layer</option>
+                    <option value="Sonali">Sonali</option>
+                    <option value="Cattle">Cattle</option>
+                    <option value="Nursery">Nursery</option>
+                    <option value="Floating Oil Coated">Floating Oil Coated</option>
+                    <option value="Floating Non Oil Coated">Floating Non Oil Coated</option>
+                    <option value="Sinking">Sinking</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Bag Size (Kg)</label>
+                  <input type="number" step="any" value={editProdBagSize} onChange={(e) => setEditProdBagSize(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Opening Stock (Kg)</label>
+                  <input type="number" step="any" value={editProdOpeningStock} onChange={(e) => setEditProdOpeningStock(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Sort Order</label>
+                  <input type="number" value={editProdSortOrder} onChange={(e) => setEditProdSortOrder(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button type="submit" className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2.5 rounded-xl transition-all text-xs">Save Product</button>
+                  <button type="button" onClick={() => setEditingProduct(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Edit Dealer */}
+        {editingDealer && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+                  <Edit className="w-4 h-4 text-amber-400" /> Edit Dealer: {editingDealer.name}
+                </h3>
+                <button onClick={() => setEditingDealer(null)} className="text-slate-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleSaveEditDealer} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Dealer Name *</label>
+                  <input type="text" value={editDealerName} onChange={(e) => setEditDealerName(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Phone *</label>
+                  <input type="text" value={editDealerPhone} onChange={(e) => setEditDealerPhone(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Address</label>
+                  <input type="text" value={editDealerAddress} onChange={(e) => setEditDealerAddress(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Assigned Depot</label>
+                  <SearchableSelect options={depotOptions} value={editDealerDepotId} onChange={setEditDealerDepotId} placeholder="Select Depot..." />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Current Balance (৳)</label>
+                  <input type="number" step="any" value={editDealerBalance} onChange={(e) => setEditDealerBalance(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button type="submit" className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2.5 rounded-xl transition-all text-xs">Save Dealer</button>
+                  <button type="button" onClick={() => setEditingDealer(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">Cancel</button>
                 </div>
               </form>
             </div>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ERPService } from "@/lib/services/erpService";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 
 export async function GET(req: Request) {
   try {
@@ -8,13 +9,40 @@ export async function GET(req: Request) {
     const dealerId = searchParams.get("dealer_id") || undefined;
     const depotId = searchParams.get("depot_id") || undefined;
     const status = searchParams.get("status") || undefined;
+    const dateFrom = searchParams.get("date_from") || undefined;
+    const dateTo = searchParams.get("date_to") || undefined;
+    const searchText = searchParams.get("search") || undefined;
+    const limit = Number(searchParams.get("limit") || 1000);
+    const offset = Number(searchParams.get("offset") || 0);
+    const sortField = searchParams.get("sort_field") || "order_date";
+    const sortDirection = searchParams.get("sort_direction") === "asc" ? "asc" : "desc";
+
+    const whereClause: any = {
+      ...(dealerId ? { dealer_id: dealerId } : {}),
+      ...(depotId ? { depot_id: depotId } : {}),
+      ...(status ? { status } : {}),
+      ...(dateFrom || dateTo
+        ? {
+            order_date: {
+              ...(dateFrom ? { gte: new Date(`${dateFrom}T00:00:00.000Z`) } : {}),
+              ...(dateTo ? { lte: new Date(`${dateTo}T23:59:59.999Z`) } : {}),
+            },
+          }
+        : {}),
+      ...(searchText
+        ? {
+            OR: [
+              { order_no: { contains: searchText, mode: "insensitive" } },
+              { dealer: { name: { contains: searchText, mode: "insensitive" } } },
+              { depot: { name: { contains: searchText, mode: "insensitive" } } },
+              { items: { some: { product: { name: { contains: searchText, mode: "insensitive" } } } } },
+            ],
+          }
+        : {}),
+    };
 
     const orders = await prisma.deliveryOrder.findMany({
-      where: {
-        ...(dealerId ? { dealer_id: dealerId } : {}),
-        ...(depotId ? { depot_id: depotId } : {}),
-        ...(status ? { status } : {}),
-      },
+      where: whereClause,
       include: {
         dealer: true,
         depot: true,
@@ -22,7 +50,9 @@ export async function GET(req: Request) {
           include: { product: true },
         },
       },
-      orderBy: { order_date: "desc" },
+      orderBy: [{ [sortField]: sortDirection }],
+      skip: offset,
+      take: limit,
     });
 
     return NextResponse.json(orders);
