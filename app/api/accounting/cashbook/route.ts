@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ERPService } from "@/lib/services/erpService";
 import { verifyJWT } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {
   try {
@@ -17,15 +18,14 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     let depotId = searchParams.get("depot_id") || undefined;
 
-    // Enforce depot isolation for non-super admins
-    if (user.role !== "SUPER_ADMIN") {
+    // Enforce depot isolation for non-super admins & non-org admins
+    if (user.role !== "SUPER_ADMIN" && user.role !== "ORG_ADMIN") {
       depotId = user.depot_id || "no-depot";
     }
 
     const transactions = await ERPService.getDepotTransactions(depotId);
     const summary = await ERPService.getDepotCashBalance(depotId);
 
-    // Also include category lists for convenience
     return NextResponse.json({
       transactions,
       summary,
@@ -54,8 +54,7 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     let depotId = body.depot_id;
-    // Enforce depot isolation for non-super admins
-    if (user.role !== "SUPER_ADMIN") {
+    if (user.role !== "SUPER_ADMIN" && user.role !== "ORG_ADMIN") {
       depotId = user.depot_id || "";
     }
 
@@ -76,5 +75,46 @@ export async function POST(req: Request) {
     return NextResponse.json(transaction, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+}
+
+export async function PUT(req: Request) {
+  try {
+    const body = await req.json();
+    const { id, amount, category, transaction_type, remarks, date } = body;
+
+    const updated = await prisma.depotTransaction.update({
+      where: { id },
+      data: {
+        ...(amount !== undefined ? { amount: parseFloat(amount) } : {}),
+        ...(category ? { category } : {}),
+        ...(transaction_type ? { transaction_type } : {}),
+        ...(remarks !== undefined ? { remarks } : {}),
+        ...(date ? { date: new Date(date) } : {}),
+      },
+    });
+
+    return NextResponse.json(updated);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "DepotTransaction ID is required" }, { status: 400 });
+    }
+
+    await prisma.depotTransaction.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: "Petty cash entry deleted successfully" });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

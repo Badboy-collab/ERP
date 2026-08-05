@@ -11,6 +11,7 @@ export async function GET() {
         lot: true,
         order: true,
         invoice: true,
+        depot: true,
       },
       orderBy: { date: "desc" },
       take: 50,
@@ -26,6 +27,16 @@ export async function POST(req: Request) {
     const body = await req.json();
     const result = await ERPService.recordInvoiceTransaction(body);
     return NextResponse.json(result, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+}
+
+export async function PUT(req: Request) {
+  try {
+    const body = await req.json();
+    const updated = await ERPService.updateSalesLog(body);
+    return NextResponse.json(updated);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }

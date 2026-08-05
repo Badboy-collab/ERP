@@ -10,7 +10,10 @@ import {
   BookOpen,
   PlusCircle,
   MinusCircle,
-  Wallet
+  Wallet,
+  Edit,
+  Trash2,
+  X
 } from "lucide-react";
 import SearchableSelect from "@/components/SearchableSelect";
 import { getSessionUser, SessionUser } from "@/lib/userSession";
@@ -90,6 +93,51 @@ export default function AccountingPage() {
   const [cashAmount, setCashAmount] = useState<number | "">("");
   const [cashDate, setCashDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [cashRemarks, setCashRemarks] = useState<string>("");
+
+  // Edit Petty Cash State (Super Admin)
+  const [editingTx, setEditingTx] = useState<DepotTransaction | null>(null);
+  const [editAmount, setEditAmount] = useState<string>("");
+  const [editCategory, setEditCategory] = useState<string>("");
+  const [editRemarks, setEditRemarks] = useState<string>("");
+
+  const handleDeleteCashTx = async (txId: string) => {
+    if (!isSuperAdmin) {
+      alert("Permission Denied: Only Super Admin can delete financial records.");
+      return;
+    }
+    if (!confirm("Are you sure you want to delete & reverse this petty cash entry?")) return;
+    try {
+      const res = await fetch(`/api/accounting/cashbook?id=${txId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete petty cash entry");
+      setMessage({ type: "success", text: "Petty cash entry deleted & balance recalculated!" });
+      fetchCashBook();
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message });
+    }
+  };
+
+  const handleSaveEditCashTx = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTx) return;
+    try {
+      const res = await fetch("/api/accounting/cashbook", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingTx.id,
+          amount: Number(editAmount),
+          category: editCategory,
+          remarks: editRemarks,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to update petty cash entry");
+      setMessage({ type: "success", text: "Petty cash entry updated & balance recalculated!" });
+      setEditingTx(null);
+      fetchCashBook();
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message });
+    }
+  };
 
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -684,6 +732,7 @@ export default function AccountingPage() {
                           <th className="p-3 text-right">Cash Out (Expense)</th>
                           <th className="p-3 text-right">Running Cash Balance</th>
                           <th className="p-3">Logged By</th>
+                          {isSuperAdmin && <th className="p-3 text-right">Actions</th>}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800 font-medium">
@@ -702,11 +751,36 @@ export default function AccountingPage() {
                               ৳ {t.running_balance?.toLocaleString(undefined, {minimumFractionDigits: 2}) || "-"}
                             </td>
                             <td className="p-3 text-slate-400 font-mono text-[10px]">{t.created_by || "System"}</td>
+                            {isSuperAdmin && (
+                              <td className="p-3 text-right">
+                                <div className="flex justify-end gap-2">
+                                  <button
+                                    onClick={() => {
+                                      setEditingTx(t);
+                                      setEditAmount(String(t.amount));
+                                      setEditCategory(t.category);
+                                      setEditRemarks(t.remarks || "");
+                                    }}
+                                    className="p-1 text-slate-400 hover:text-emerald-400 rounded hover:bg-slate-950 transition-colors"
+                                    title="Edit Petty Cash Entry"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteCashTx(t.id)}
+                                    className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-950 transition-colors"
+                                    title="Delete Petty Cash Entry"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            )}
                           </tr>
                         ))}
                         {cashTransactions.length === 0 && (
                           <tr>
-                            <td colSpan={7} className="p-8 text-center text-slate-500">
+                            <td colSpan={isSuperAdmin ? 8 : 7} className="p-8 text-center text-slate-500">
                               No petty cash book entries found. Log inflow or expense entries to begin.
                             </td>
                           </tr>
@@ -716,6 +790,69 @@ export default function AccountingPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Edit Petty Cash Transaction */}
+        {editingTx && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+                  <Edit className="w-4 h-4 text-emerald-400" /> Edit & Override Petty Cash Entry
+                </h3>
+                <button onClick={() => setEditingTx(null)} className="text-slate-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveEditCashTx} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Category</label>
+                  <select
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold"
+                  >
+                    {editingTx.transaction_type === "INCOME"
+                      ? inflowCategories.map((c) => <option key={c} value={c}>{c}</option>)
+                      : expenseCategories.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Amount (৳)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="any"
+                    value={editAmount}
+                    onChange={(e) => setEditAmount(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Remarks</label>
+                  <textarea
+                    rows={2}
+                    value={editRemarks}
+                    onChange={(e) => setEditRemarks(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white"
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button type="submit" className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2.5 rounded-xl transition-all text-xs">
+                    Save Override
+                  </button>
+                  <button type="button" onClick={() => setEditingTx(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">
+                    Cancel
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

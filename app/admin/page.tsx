@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
-import { ShieldAlert, Package, Building2, Users, CheckCircle, Trash2, Edit, Save, Plus, DollarSign } from "lucide-react";
+import { ShieldAlert, Package, Building2, Users, CheckCircle, Trash2, Edit, Save, Plus, DollarSign, X } from "lucide-react";
 import SearchableSelect from "@/components/SearchableSelect";
 import { getSessionUser, SessionUser } from "@/lib/userSession";
 
@@ -55,6 +55,8 @@ interface TransactionItem {
   invoice_no: string;
   date: string;
   quantity: number;
+  unit_price?: number;
+  supplier_challan_no?: string;
   product: { name: string };
   depot: { name: string };
 }
@@ -119,6 +121,16 @@ export default function AdminPage() {
   const [setupProductId, setSetupProductId] = useState("");
   const [setupQuantity, setSetupQuantity] = useState<number | "">("");
   const [setupCashAmount, setSetupCashAmount] = useState<number | "">("");
+
+  // Edit Sales State (Super Admin)
+  const [editingSale, setEditingSale] = useState<TransactionItem | null>(null);
+  const [editSaleQty, setEditSaleQty] = useState("");
+  const [editSalePrice, setEditSalePrice] = useState("");
+
+  // Edit Receive State (Super Admin)
+  const [editingReceive, setEditingReceive] = useState<TransactionItem | null>(null);
+  const [editReceiveQty, setEditReceiveQty] = useState("");
+  const [editReceiveChallan, setEditReceiveChallan] = useState("");
 
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -351,6 +363,56 @@ export default function AdminPage() {
       const res = await fetch(`/api/receives?id=${logId}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to reverse receive log");
       setMessage({ type: "success", text: "Receive record reversed and lot stock deducted successfully!" });
+      fetchInitialData();
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message });
+    }
+  };
+
+  const handleSaveEditSale = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSale) return;
+    try {
+      const res = await fetch("/api/sales", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingSale.id,
+          quantity: Number(editSaleQty),
+          unit_price: Number(editSalePrice),
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update sales log");
+      }
+      setMessage({ type: "success", text: "Sales dispatch record overridden & stock/ledger recalculated successfully!" });
+      setEditingSale(null);
+      fetchInitialData();
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message });
+    }
+  };
+
+  const handleSaveEditReceive = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingReceive) return;
+    try {
+      const res = await fetch("/api/receives", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingReceive.id,
+          quantity: Number(editReceiveQty),
+          supplier_challan_no: editReceiveChallan,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update receive log");
+      }
+      setMessage({ type: "success", text: "Stock receive record overridden & lot stock updated successfully!" });
+      setEditingReceive(null);
       fetchInitialData();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
@@ -809,9 +871,26 @@ export default function AdminPage() {
                         <td className="p-3 text-slate-100">{log.product?.name}</td>
                         <td className="p-3 text-right font-mono">{log.quantity.toLocaleString()} kg</td>
                         <td className="p-3 text-right">
-                          <button onClick={() => handleDeleteSalesRecord(log.id)} className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-950 transition-colors">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingSale(log);
+                                setEditSaleQty(String(log.quantity));
+                                setEditSalePrice(String(log.unit_price || 0));
+                              }}
+                              className="p-1 text-slate-400 hover:text-emerald-400 rounded hover:bg-slate-950 transition-colors"
+                              title="Edit & Override Sales Dispatch"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSalesRecord(log.id)}
+                              className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-950 transition-colors"
+                              title="Reverse & Delete Sales Dispatch"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -845,15 +924,146 @@ export default function AdminPage() {
                         <td className="p-3 text-slate-100">{log.product?.name}</td>
                         <td className="p-3 text-right font-mono">+{log.quantity.toLocaleString()} kg</td>
                         <td className="p-3 text-right">
-                          <button onClick={() => handleDeleteReceiveRecord(log.id)} className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-950 transition-colors">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingReceive(log);
+                                setEditReceiveQty(String(log.quantity));
+                                setEditReceiveChallan(log.supplier_challan_no || "");
+                              }}
+                              className="p-1 text-slate-400 hover:text-emerald-400 rounded hover:bg-slate-950 transition-colors"
+                              title="Edit & Override Stock Receive"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteReceiveRecord(log.id)}
+                              className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-950 transition-colors"
+                              title="Reverse & Delete Stock Receive"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Edit Sales Dispatch */}
+        {editingSale && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+                  <Edit className="w-4 h-4 text-emerald-400" /> Override Sale: {editingSale.invoice_no}
+                </h3>
+                <button onClick={() => setEditingSale(null)} className="text-slate-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveEditSale} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Product</label>
+                  <input type="text" value={editingSale.product?.name || ""} disabled className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-400" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Quantity (Kg) *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="any"
+                    value={editSaleQty}
+                    onChange={(e) => setEditSaleQty(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold"
+                    required
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">Changing quantity will automatically adjust lot stock and order pending qty.</p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Unit Price (৳/Kg)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={editSalePrice}
+                    onChange={(e) => setEditSalePrice(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold"
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button type="submit" className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2.5 rounded-xl transition-all text-xs">
+                    Save Override
+                  </button>
+                  <button type="button" onClick={() => setEditingSale(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Edit Stock Receive */}
+        {editingReceive && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+                  <Edit className="w-4 h-4 text-blue-400" /> Override Stock Receive: {editingReceive.invoice_no}
+                </h3>
+                <button onClick={() => setEditingReceive(null)} className="text-slate-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveEditReceive} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Product</label>
+                  <input type="text" value={editingReceive.product?.name || ""} disabled className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-400" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Received Quantity (Kg) *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="any"
+                    value={editReceiveQty}
+                    onChange={(e) => setEditReceiveQty(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold"
+                    required
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">Changing received quantity will automatically adjust lot initial and available stock.</p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Supplier Challan No</label>
+                  <input
+                    type="text"
+                    value={editReceiveChallan}
+                    onChange={(e) => setEditReceiveChallan(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-mono"
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl transition-all text-xs">
+                    Save Override
+                  </button>
+                  <button type="button" onClick={() => setEditingReceive(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">
+                    Cancel
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

@@ -33,3 +33,43 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 }
+
+export async function PUT(req: Request) {
+  try {
+    const body = await req.json();
+    const { id, code, name, address, phone } = body;
+
+    const updated = await prisma.depot.update({
+      where: { id },
+      data: {
+        ...(code ? { code } : {}),
+        ...(name ? { name } : {}),
+        ...(address !== undefined ? { address } : {}),
+        ...(phone !== undefined ? { phone } : {}),
+      },
+    });
+
+    return NextResponse.json(updated);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Depot ID is required" }, { status: 400 });
+    }
+
+    await prisma.depot.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: "Depot deleted successfully" });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

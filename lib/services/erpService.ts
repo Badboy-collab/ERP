@@ -1030,6 +1030,143 @@ export class ERPService {
       return tx.receiveLog.delete({ where: { id: receiveLogId } });
     });
   }
+
+  /**
+   * MASTER OVERRIDE: Update Sales Log & Adjust Inventory / Order / Dealer Balance
+   */
+  static async updateSalesLog(input: { id: string; quantity: number; unit_price?: number; date?: Date }) {
+    return prisma.$transaction(async (tx) => {
+      const salesLog = await tx.salesLog.findUnique({
+        where: { id: input.id },
+        include: { lot: true, invoice: true }
+      });
+
+      if (!salesLog) throw new Error("Sales log record not found.");
+
+      const oldQty = salesLog.quantity;
+      const newQty = Number(input.quantity);
+      const deltaQty = newQty - oldQty; // Positive = sale increased, Negative = sale decreased
+
+      if (salesLog.lot_id) {
+        const lot = await tx.lotTracker.findUnique({ where: { id: salesLog.lot_id } });
+        if (lot) {
+          if (deltaQty > 0 && lot.available_qty < deltaQty) {
+            throw new Error(`Insufficient stock in lot ${lot.lot_no}. Requested additional: ${deltaQty} kg, Available: ${lot.available_qty} kg`);
+          }
+          const newAvail = lot.available_qty - deltaQty;
+          const newSold = Math.max(0, lot.sold_qty + deltaQty);
+          const newStatus = newAvail <= 0 ? "Depleted" : "Active";
+
+          await tx.lotTracker.update({
+            where: { id: lot.id },
+            data: {
+              available_qty: newAvail,
+              sold_qty: newSold,
+              status: newStatus,
+            }
+          });
+        }
+      }
+
+      if (salesLog.order_id) {
+        const orderItem = await tx.orderItem.findFirst({
+          where: {
+            order_id: salesLog.order_id,
+            product_id: salesLog.product_id,
+          }
+        });
+
+        if (orderItem) {
+          const newDelivered = Math.max(0, orderItem.delivered_qty + deltaQty);
+          const newPending = Math.max(0, orderItem.pending_qty - deltaQty);
+          await tx.orderItem.update({
+            where: { id: orderItem.id },
+            data: {
+              delivered_qty: newDelivered,
+              pending_qty: newPending,
+            }
+          });
+        }
+      }
+
+      const oldUnitPrice = salesLog.unit_price || 0;
+      const newUnitPrice = input.unit_price !== undefined ? Number(input.unit_price) : oldUnitPrice;
+      const oldTotal = oldQty * oldUnitPrice;
+      const newTotal = newQty * newUnitPrice;
+      const deltaAmount = newTotal - oldTotal;
+
+      if (salesLog.dealer_id && salesLog.transaction_type === "SALES" && deltaAmount !== 0) {
+        const dealer = await tx.dealer.findUnique({ where: { id: salesLog.dealer_id } });
+        if (dealer) {
+          await tx.dealer.update({
+            where: { id: salesLog.dealer_id },
+            data: { current_balance: dealer.current_balance + deltaAmount }
+          });
+        }
+
+        if (salesLog.invoice_id) {
+          await tx.financialTransaction.updateMany({
+            where: { reference_invoice: salesLog.invoice_id },
+            data: { amount: newTotal }
+          });
+        }
+      }
+
+      return tx.salesLog.update({
+        where: { id: input.id },
+        data: {
+          quantity: newQty,
+          unit_price: newUnitPrice,
+          ...(input.date ? { date: new Date(input.date) } : {}),
+        }
+      });
+    });
+  }
+
+  /**
+   * MASTER OVERRIDE: Update Stock Receive & Adjust Lot Inventory
+   */
+  static async updateStockReceive(input: { id: string; quantity: number; supplier_challan_no?: string; receive_date?: Date }) {
+    return prisma.$transaction(async (tx) => {
+      const receiveLog = await tx.receiveLog.findUnique({
+        where: { id: input.id },
+        include: { lot: true }
+      });
+
+      if (!receiveLog) throw new Error("Stock receive log record not found.");
+
+      const oldQty = receiveLog.quantity;
+      const newQty = Number(input.quantity);
+      const deltaQty = newQty - oldQty;
+
+      if (receiveLog.lot_id) {
+        const lot = await tx.lotTracker.findUnique({ where: { id: receiveLog.lot_id } });
+        if (lot) {
+          const newInit = Math.max(0, lot.initial_qty + deltaQty);
+          const newAvail = Math.max(0, lot.available_qty + deltaQty);
+          const newStatus = newAvail <= 0 ? "Depleted" : "Active";
+
+          await tx.lotTracker.update({
+            where: { id: lot.id },
+            data: {
+              initial_qty: newInit,
+              available_qty: newAvail,
+              status: newStatus,
+            }
+          });
+        }
+      }
+
+      return tx.receiveLog.update({
+        where: { id: input.id },
+        data: {
+          quantity: newQty,
+          ...(input.supplier_challan_no !== undefined ? { supplier_challan_no: input.supplier_challan_no } : {}),
+          ...(input.receive_date ? { receive_date: new Date(input.receive_date) } : {}),
+        }
+      });
+    });
+  }
 }
 
 
