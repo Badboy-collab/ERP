@@ -133,6 +133,12 @@ export default function Navbar() {
                   <span>Accounting</span>
                 </Link>
               )}
+              {currentUser?.role !== "SUPER_ADMIN" && !currentUser?.can_view_accounting && (currentUser?.role === "DEPOT_ADMIN" || currentUser?.role === "OPERATOR") && (
+                <Link href="/accounting" className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center space-x-1.5">
+                  <DollarSign className="w-4 h-4 text-emerald-400" />
+                  <span>Daily Expenses</span>
+                </Link>
+              )}
               {currentUser?.role === "SUPER_ADMIN" && (
                 <Link href="/admin" className="px-3 py-2 rounded-lg text-sm font-medium text-amber-400 hover:bg-amber-950/40 border border-amber-800/60 transition-colors flex items-center space-x-1.5">
                   <ShieldAlert className="w-4 h-4" />

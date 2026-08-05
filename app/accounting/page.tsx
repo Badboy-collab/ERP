@@ -130,6 +130,9 @@ export default function AccountingPage() {
       if (user.role !== "SUPER_ADMIN" && user.depot_id) {
         setSelectedDepotId(user.depot_id);
       }
+      if (user.role !== "SUPER_ADMIN" && !user.can_view_accounting) {
+        setActiveTab("cashbook");
+      }
     }
     fetchDepots();
   }, []);
@@ -344,20 +347,22 @@ export default function AccountingPage() {
 
         {/* Tab Buttons */}
         <div className="flex border-b border-slate-800">
-          <button
-            onClick={() => {
-              setActiveTab("dealer");
-              setMessage(null);
-            }}
-            className={`px-6 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
-              activeTab === "dealer"
-                ? "border-emerald-500 text-emerald-400"
-                : "border-transparent text-slate-400 hover:text-white"
-            }`}
-          >
-            <DollarSign className="w-4 h-4" />
-            Dealer Ledgers & Collections
-          </button>
+          {(isSuperAdmin || currentUser?.can_view_accounting) && (
+            <button
+              onClick={() => {
+                setActiveTab("dealer");
+                setMessage(null);
+              }}
+              className={`px-6 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+                activeTab === "dealer"
+                  ? "border-emerald-500 text-emerald-400"
+                  : "border-transparent text-slate-400 hover:text-white"
+              }`}
+            >
+              <DollarSign className="w-4 h-4" />
+              Dealer Ledgers & Collections
+            </button>
+          )}
           <button
             onClick={() => {
               setActiveTab("cashbook");

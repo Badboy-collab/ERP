@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
-import { ShieldAlert, Package, Building2, Users, CheckCircle, Trash2, Edit, Save, Plus } from "lucide-react";
+import { ShieldAlert, Package, Building2, Users, CheckCircle, Trash2, Edit, Save, Plus, DollarSign } from "lucide-react";
 import SearchableSelect from "@/components/SearchableSelect";
 
 interface Product {
@@ -59,7 +59,7 @@ interface TransactionItem {
 }
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<"depots" | "products" | "dealers" | "users" | "override">("depots");
+  const [activeTab, setActiveTab] = useState<"depots" | "products" | "dealers" | "users" | "override" | "setup">("depots");
 
   const [products, setProducts] = useState<Product[]>([]);
   const [depots, setDepots] = useState<Depot[]>([]);
@@ -107,6 +107,12 @@ export default function AdminPage() {
 
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
+  // Setup Form State
+  const [setupDepotId, setSetupDepotId] = useState("");
+  const [setupProductId, setSetupProductId] = useState("");
+  const [setupQuantity, setSetupQuantity] = useState<number | "">("");
+  const [setupCashAmount, setSetupCashAmount] = useState<number | "">("");
+
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
@@ -133,6 +139,10 @@ export default function AdminPage() {
         const [sRes, rRes] = await Promise.all([fetch("/api/sales"), fetch("/api/receives")]);
         if (sRes.ok) setSalesLogs(await sRes.json());
         if (rRes.ok) setReceiveLogs(await rRes.json());
+      } else if (activeTab === "setup") {
+        const [depRes, prodRes] = await Promise.all([fetch("/api/admin/depots"), fetch("/api/products")]);
+        if (depRes.ok) setDepots(await depRes.json());
+        if (prodRes.ok) setProducts(await prodRes.json());
       }
     } catch (err) {
       console.error(err);
@@ -330,6 +340,59 @@ export default function AdminPage() {
     }
   };
 
+  const handleSetupStock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!setupDepotId || !setupProductId || setupQuantity === "") return;
+    try {
+      const res = await fetch("/api/admin/setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "STOCK",
+          depot_id: setupDepotId,
+          product_id: setupProductId,
+          quantity: Number(setupQuantity),
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to initialize opening stock");
+      }
+
+      setMessage({ type: "success", text: "Depot opening stock initialized successfully!" });
+      setSetupQuantity("");
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message });
+    }
+  };
+
+  const handleSetupCash = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!setupDepotId || setupCashAmount === "") return;
+    try {
+      const res = await fetch("/api/admin/setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "CASH",
+          depot_id: setupDepotId,
+          amount: Number(setupCashAmount),
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to initialize opening cash balance");
+      }
+
+      setMessage({ type: "success", text: "Depot opening cash balance setup successfully!" });
+      setSetupCashAmount("");
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message });
+    }
+  };
+
   const depotOptions = depots.map((d) => ({ value: d.id, label: `${d.name} (${d.code})` }));
 
   return (
@@ -342,7 +405,7 @@ export default function AdminPage() {
             Master Admin Control Panel
           </h1>
           <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-1 text-xs font-bold flex-wrap gap-1">
-            {["depots", "products", "dealers", "users", "override"].map((tab) => (
+            {["depots", "products", "dealers", "users", "override", "setup"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab as any)}
@@ -350,7 +413,7 @@ export default function AdminPage() {
                   activeTab === tab ? "bg-amber-600 text-white" : "text-slate-400 hover:text-white"
                 }`}
               >
-                {tab === "override" ? "Master Override" : tab}
+                {tab === "override" ? "Master Override" : tab === "setup" ? "System Setup" : tab}
               </button>
             ))}
           </div>
@@ -765,6 +828,95 @@ export default function AdminPage() {
                 </table>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Tab 6: System Setup */}
+        {activeTab === "setup" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Form 1: Opening Stock Setup */}
+            <form onSubmit={handleSetupStock} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-base font-extrabold text-white mb-2 flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-amber-400" /> Initialize Depot Opening Stock
+              </h2>
+              <p className="text-xs text-slate-400">
+                Setup the starting stock level for a product in a specific depot. This will create an opening stock entry that acts as the baseline inventory.
+              </p>
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Select Depot *</label>
+                <SearchableSelect
+                  options={depotOptions}
+                  value={setupDepotId}
+                  onChange={setSetupDepotId}
+                  placeholder="Choose Depot..."
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Select Product *</label>
+                <SearchableSelect
+                  options={products.map((p) => ({ value: p.id, label: `[${p.code}] ${p.name}` }))}
+                  value={setupProductId}
+                  onChange={setSetupProductId}
+                  placeholder="Choose Product..."
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Opening Quantity (in Kg) *</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={setupQuantity}
+                  onChange={(e) => setSetupQuantity(e.target.value === "" ? "" : Number(e.target.value))}
+                  placeholder="e.g. 5000"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-bold"
+                  required
+                />
+                {setupQuantity !== "" && setupProductId && (
+                  <p className="text-[10px] text-emerald-400 mt-1 font-semibold">
+                    Equivalent to approximately {(Number(setupQuantity) / (products.find(p => p.id === setupProductId)?.bag_size_kg || 50.0)).toFixed(2)} Bags (based on {(products.find(p => p.id === setupProductId)?.bag_size_kg || 50.0)}kg bag size)
+                  </p>
+                )}
+              </div>
+              <button type="submit" className="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-3 rounded-xl shadow-lg transition-all text-xs font-black">
+                Initialize Opening Stock
+              </button>
+            </form>
+
+            {/* Form 2: Opening Cash Balance Setup */}
+            <form onSubmit={handleSetupCash} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-base font-extrabold text-white mb-2 flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-amber-400" /> Initialize Opening Cash Balance
+              </h2>
+              <p className="text-xs text-slate-400">
+                Setup the starting cash balance for the depot's Petty Cash Book. This creates a transaction with category 'Opening Balance' and type 'INCOME'.
+              </p>
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Select Depot *</label>
+                <SearchableSelect
+                  options={depotOptions}
+                  value={setupDepotId}
+                  onChange={setSetupDepotId}
+                  placeholder="Choose Depot..."
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Opening Cash Balance (৳) *</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={setupCashAmount}
+                  onChange={(e) => setSetupCashAmount(e.target.value === "" ? "" : Number(e.target.value))}
+                  placeholder="0.00"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-bold"
+                  required
+                />
+              </div>
+              <button type="submit" className="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-3 rounded-xl shadow-lg transition-all text-xs font-black">
+                Initialize Opening Cash Balance
+              </button>
+            </form>
           </div>
         )}
       </main>

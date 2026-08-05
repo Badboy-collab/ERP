@@ -439,7 +439,27 @@ export class ERPService {
           _sum: { quantity: true },
         });
 
-        const openingKg = prod.opening_stock || 0;
+        let openingKg = 0;
+        if (depot_id) {
+          const openingLots = await prisma.lotTracker.aggregate({
+            where: {
+              product_id: prod.id,
+              depot_id,
+              lot_no: { startsWith: "OPENING" }
+            },
+            _sum: { initial_qty: true }
+          });
+          openingKg = openingLots._sum.initial_qty || 0;
+        } else {
+          const openingLots = await prisma.lotTracker.aggregate({
+            where: {
+              product_id: prod.id,
+              lot_no: { startsWith: "OPENING" }
+            },
+            _sum: { initial_qty: true }
+          });
+          openingKg = (prod.opening_stock || 0) + (openingLots._sum.initial_qty || 0);
+        }
         const openingBags = bagSize > 0 ? openingKg / bagSize : 0;
 
         const receivedKg = rxAgg._sum.quantity || 0;
@@ -490,6 +510,7 @@ export class ERPService {
     const activeLots = await prisma.lotTracker.findMany({
       where: {
         available_qty: { gt: 0 },
+        lot_no: { not: { startsWith: "OPENING" } },
         ...(depot_id ? { depot_id } : {}),
       },
       include: {
@@ -784,5 +805,85 @@ export class ERPService {
       balance,
     };
   }
+
+  /**
+   * System Setup: Initialize Depot Opening Stock
+   */
+  static async initializeOpeningStock(input: { depot_id: string; product_id: string; quantity: number }) {
+    const product = await prisma.product.findUnique({ where: { id: input.product_id } });
+    if (!product) throw new Error("Product not found");
+
+    const lotNo = `OPENING-${product.code}`;
+    
+    // Check if opening lot already exists for this depot and product
+    const existing = await prisma.lotTracker.findFirst({
+      where: {
+        depot_id: input.depot_id,
+        product_id: input.product_id,
+        lot_no: lotNo
+      }
+    });
+
+    if (existing) {
+      return prisma.lotTracker.update({
+        where: { id: existing.id },
+        data: {
+          initial_qty: existing.initial_qty + input.quantity,
+          available_qty: existing.available_qty + input.quantity
+        }
+      });
+    }
+
+    const mfg = new Date();
+    const exp = new Date();
+    exp.setFullYear(mfg.getFullYear() + 10); // Far future expiry
+
+    return prisma.lotTracker.create({
+      data: {
+        depot_id: input.depot_id,
+        product_id: input.product_id,
+        lot_no: lotNo,
+        mfg_date: mfg,
+        exp_date: exp,
+        initial_qty: input.quantity,
+        available_qty: input.quantity,
+        status: "Active"
+      }
+    });
+  }
+
+  /**
+   * System Setup: Initialize Opening Petty Cash Balance
+   */
+  static async initializeOpeningPettyCash(input: { depot_id: string; amount: number }) {
+    // Check if opening cash balance already exists
+    const existing = await prisma.depotTransaction.findFirst({
+      where: {
+        depot_id: input.depot_id,
+        category: "Opening Balance"
+      }
+    });
+
+    if (existing) {
+      return prisma.depotTransaction.update({
+        where: { id: existing.id },
+        data: {
+          amount: input.amount
+        }
+      });
+    }
+
+    return prisma.depotTransaction.create({
+      data: {
+        depot_id: input.depot_id,
+        transaction_type: "INCOME",
+        category: "Opening Balance",
+        amount: input.amount,
+        remarks: "System Initial Setup Opening Balance",
+        created_by: "System Setup"
+      }
+    });
+  }
 }
+
 
