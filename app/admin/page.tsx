@@ -61,6 +61,17 @@ interface TransactionItem {
   depot: { name: string };
 }
 
+interface LotItem {
+  id: string;
+  lot_no: string;
+  initial_qty: number;
+  available_qty: number;
+  status: string;
+  createdAt: string;
+  depot?: { name: string };
+  product?: { name: string; code: string };
+}
+
 export default function AdminPage() {
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [activeTab, setActiveTab] = useState<"depots" | "products" | "dealers" | "users" | "override" | "setup">("depots");
@@ -132,6 +143,12 @@ export default function AdminPage() {
   const [editReceiveQty, setEditReceiveQty] = useState("");
   const [editReceiveChallan, setEditReceiveChallan] = useState("");
 
+  // Edit Lot / Opening Stock State (Super Admin)
+  const [lots, setLots] = useState<LotItem[]>([]);
+  const [editingLot, setEditingLot] = useState<LotItem | null>(null);
+  const [editLotInitQty, setEditLotInitQty] = useState("");
+  const [editLotAvailQty, setEditLotAvailQty] = useState("");
+
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
@@ -155,9 +172,10 @@ export default function AdminPage() {
         if (uRes.ok) setUsers(await uRes.json());
         if (depRes.ok) setDepots(await depRes.json());
       } else if (activeTab === "override") {
-        const [sRes, rRes] = await Promise.all([fetch("/api/sales"), fetch("/api/receives")]);
+        const [sRes, rRes, lRes] = await Promise.all([fetch("/api/sales"), fetch("/api/receives"), fetch("/api/lots?include_zero=true")]);
         if (sRes.ok) setSalesLogs(await sRes.json());
         if (rRes.ok) setReceiveLogs(await rRes.json());
+        if (lRes.ok) setLots(await lRes.json());
       } else if (activeTab === "setup") {
         const [depRes, prodRes] = await Promise.all([fetch("/api/admin/depots"), fetch("/api/products")]);
         if (depRes.ok) setDepots(await depRes.json());
@@ -413,6 +431,47 @@ export default function AdminPage() {
       }
       setMessage({ type: "success", text: "Stock receive record overridden & lot stock updated successfully!" });
       setEditingReceive(null);
+      fetchInitialData();
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message });
+    }
+  };
+
+  const handleDeleteLot = async (lotId: string) => {
+    if (currentUser?.role !== "SUPER_ADMIN") {
+      alert("Permission Denied: Only Super Admin (Level 1) can delete lot records.");
+      return;
+    }
+    if (!confirm("Are you sure you want to delete this opening stock/lot entry?")) return;
+    try {
+      const res = await fetch(`/api/lots?id=${lotId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete lot");
+      setMessage({ type: "success", text: "Opening stock / lot deleted successfully!" });
+      fetchInitialData();
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message });
+    }
+  };
+
+  const handleSaveEditLot = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingLot) return;
+    try {
+      const res = await fetch("/api/lots", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingLot.id,
+          initial_qty: Number(editLotInitQty),
+          available_qty: Number(editLotAvailQty),
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update lot stock");
+      }
+      setMessage({ type: "success", text: "Opening stock / lot quantity overridden successfully!" });
+      setEditingLot(null);
       fetchInitialData();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
@@ -951,6 +1010,73 @@ export default function AdminPage() {
                 </table>
               </div>
             </div>
+
+            {/* Table 3: Master Opening Stock & Inventory Lots */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-base font-extrabold text-amber-400 flex items-center gap-2">
+                <Package className="w-5 h-5" /> Master Opening Stock & Inventory Lots (Direct Override)
+              </h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border border-slate-800">
+                  <thead className="bg-slate-950 text-slate-400 font-bold uppercase">
+                    <tr>
+                      <th className="p-3">Lot No</th>
+                      <th className="p-3">Depot</th>
+                      <th className="p-3">Product</th>
+                      <th className="p-3 text-right">Initial Qty (Kg)</th>
+                      <th className="p-3 text-right">Available Qty (Kg)</th>
+                      <th className="p-3">Status</th>
+                      <th className="p-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800 font-medium">
+                    {lots.map((lot) => (
+                      <tr key={lot.id} className="hover:bg-slate-800/40">
+                        <td className="p-3 font-mono font-bold text-amber-400">{lot.lot_no}</td>
+                        <td className="p-3 text-slate-300">{lot.depot?.name || "Depot"}</td>
+                        <td className="p-3 text-slate-100">[{lot.product?.code}] {lot.product?.name}</td>
+                        <td className="p-3 text-right font-mono text-slate-300">{lot.initial_qty.toLocaleString()} kg</td>
+                        <td className="p-3 text-right font-mono font-bold text-emerald-400">{lot.available_qty.toLocaleString()} kg</td>
+                        <td className="p-3">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${lot.status === 'Active' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-rose-950 text-rose-400 border border-rose-800'}`}>
+                            {lot.status}
+                          </span>
+                        </td>
+                        <td className="p-3 text-right">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingLot(lot);
+                                setEditLotInitQty(String(lot.initial_qty));
+                                setEditLotAvailQty(String(lot.available_qty));
+                              }}
+                              className="p-1 text-slate-400 hover:text-emerald-400 rounded hover:bg-slate-950 transition-colors"
+                              title="Edit & Override Opening Stock / Lot Qty"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteLot(lot.id)}
+                              className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-950 transition-colors"
+                              title="Delete Opening Stock / Lot Entry"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {lots.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="p-6 text-center text-slate-500">
+                          No opening stock or lot entries found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1060,6 +1186,64 @@ export default function AdminPage() {
                     Save Override
                   </button>
                   <button type="button" onClick={() => setEditingReceive(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Edit Opening Stock / Lot */}
+        {editingLot && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+                  <Edit className="w-4 h-4 text-amber-400" /> Override Lot / Opening Stock: {editingLot.lot_no}
+                </h3>
+                <button onClick={() => setEditingLot(null)} className="text-slate-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveEditLot} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Product</label>
+                  <input type="text" value={`[${editingLot.product?.code || ""}] ${editingLot.product?.name || ""}`} disabled className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-400" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Initial Quantity (Kg) *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={editLotInitQty}
+                    onChange={(e) => setEditLotInitQty(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Available Quantity (Kg) *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={editLotAvailQty}
+                    onChange={(e) => setEditLotAvailQty(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold"
+                    required
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button type="submit" className="flex-1 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2.5 rounded-xl transition-all text-xs">
+                    Save Override
+                  </button>
+                  <button type="button" onClick={() => setEditingLot(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">
                     Cancel
                   </button>
                 </div>

@@ -23,11 +23,55 @@ export async function GET(req: Request) {
       },
       include: {
         product: true,
+        depot: true,
       },
-      orderBy: { exp_date: "asc" },
+      orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json(lots);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function PUT(req: Request) {
+  try {
+    const body = await req.json();
+    const { id, initial_qty, available_qty, status } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: "Lot ID is required" }, { status: 400 });
+    }
+
+    const updated = await prisma.lotTracker.update({
+      where: { id },
+      data: {
+        ...(initial_qty !== undefined ? { initial_qty: Number(initial_qty) } : {}),
+        ...(available_qty !== undefined ? { available_qty: Number(available_qty) } : {}),
+        ...(status ? { status } : {}),
+      },
+    });
+
+    return NextResponse.json(updated);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Lot ID is required" }, { status: 400 });
+    }
+
+    await prisma.lotTracker.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: "Lot record deleted successfully" });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

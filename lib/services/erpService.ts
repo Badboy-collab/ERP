@@ -851,8 +851,9 @@ export class ERPService {
       return prisma.lotTracker.update({
         where: { id: existing.id },
         data: {
-          initial_qty: existing.initial_qty + input.quantity,
-          available_qty: existing.available_qty + input.quantity
+          initial_qty: input.quantity,
+          available_qty: input.quantity,
+          status: input.quantity > 0 ? "Active" : "Depleted"
         }
       });
     }
