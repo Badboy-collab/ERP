@@ -7,23 +7,31 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// ============================================================
+// DEPOT (Branch / Warehouse / Section)
+// ============================================================
 model Depot {
   id        String   @id @default(uuid())
-  code      String   @unique // e.g. DEP-MYM, DEP-BOG
+  code      String   @unique
   name      String
   address   String?
   phone     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users          User[]
-  lots           LotTracker[]
-  deliveryOrders DeliveryOrder[]
-  invoices       Invoice[]
-  salesLogs      SalesLog[]
-  receiveLogs    ReceiveLog[]
+  users                User[]
+  dealers              Dealer[]
+  lots                 LotTracker[]
+  deliveryOrders       DeliveryOrder[]
+  invoices             Invoice[]
+  salesLogs            SalesLog[]
+  receiveLogs          ReceiveLog[]
+  financialTransactions FinancialTransaction[]
 }
 
+// ============================================================
+// USER with Granular RBAC Permissions
+// ============================================================
 model User {
   id            String   @id @default(uuid())
   name          String
@@ -34,15 +42,28 @@ model User {
   depot         Depot?   @relation(fields: [depot_id], references: [id], onDelete: SetNull)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  // Granular Permissions
+  can_create_do         Boolean @default(false)
+  can_edit_sales        Boolean @default(false)
+  can_delete_sales      Boolean @default(false)
+  can_create_sales      Boolean @default(true)
+  can_receive_stock     Boolean @default(true)
+  can_view_reports      Boolean @default(true)
+  can_view_accounting   Boolean @default(false)
+  can_manage_accounting Boolean @default(false)
 }
 
+// ============================================================
+// PRODUCT CATALOG
+// ============================================================
 model Product {
   id            String       @id @default(uuid())
   code          String       @unique
   name          String
-  category      String       @default("Poultry Feed") // Poultry Feed, Fish Feed, Cattle Feed
+  category      String       @default("Poultry Feed")
   bag_size_kg   Float        @default(50.0)
-  opening_stock Int          @default(0) // Bags
+  opening_stock Int          @default(0) // in Kg
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
@@ -52,11 +73,16 @@ model Product {
   salesLogs     SalesLog[]
 }
 
+// ============================================================
+// DEALER (belongs to a Depot)
+// ============================================================
 model Dealer {
   id              String          @id @default(uuid())
   name            String
   phone           String
   address         String?
+  depot_id        String
+  depot           Depot           @relation(fields: [depot_id], references: [id], onDelete: Cascade)
   current_balance Float           @default(0.0)
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
@@ -64,8 +90,12 @@ model Dealer {
   deliveryOrders  DeliveryOrder[]
   invoices        Invoice[]
   salesLogs       SalesLog[]
+  financialTransactions FinancialTransaction[]
 }
 
+// ============================================================
+// LOT TRACKER (FIFO Inventory per Depot)
+// ============================================================
 model LotTracker {
   id                 String       @id @default(uuid())
   depot_id           String
@@ -75,12 +105,12 @@ model LotTracker {
   lot_no             String
   mfg_date           DateTime
   exp_date           DateTime
-  initial_qty        Int
+  initial_qty        Int          // in Kg
   sold_qty           Int          @default(0)
   factory_return_qty Int          @default(0)
   transfer_qty       Int          @default(0)
-  available_qty      Int
-  status             String       @default("Active") // Active, Expired, Depleted
+  available_qty      Int          // in Kg
+  status             String       @default("Active")
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 
@@ -88,15 +118,18 @@ model LotTracker {
   salesLogs          SalesLog[]
 }
 
+// ============================================================
+// DELIVERY ORDER (D.O.)
+// ============================================================
 model DeliveryOrder {
   id         String      @id @default(uuid())
   depot_id   String
   depot      Depot       @relation(fields: [depot_id], references: [id], onDelete: Cascade)
   dealer_id  String
   dealer     Dealer      @relation(fields: [dealer_id], references: [id], onDelete: Cascade)
-  order_no   String      @unique
+  order_no   String      @unique // Format: YYMMDDXXX
   order_date DateTime    @default(now())
-  status     String      @default("Pending") // Pending, Complete
+  status     String      @default("Pending")
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 
@@ -105,25 +138,31 @@ model DeliveryOrder {
   salesLogs  SalesLog[]
 }
 
+// ============================================================
+// ORDER ITEM (D.O. line items)
+// ============================================================
 model OrderItem {
   id            String        @id @default(uuid())
   order_id      String
   order         DeliveryOrder @relation(fields: [order_id], references: [id], onDelete: Cascade)
   product_id    String
   product       Product       @relation(fields: [product_id], references: [id], onDelete: Cascade)
-  ordered_qty   Int
+  ordered_qty   Int           // in Kg
   delivered_qty Int           @default(0)
-  pending_qty   Int
+  pending_qty   Int           // in Kg
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 }
 
+// ============================================================
+// INVOICE / CHALLAN
+// ============================================================
 model Invoice {
   id               String         @id @default(uuid())
   depot_id         String
   depot            Depot          @relation(fields: [depot_id], references: [id], onDelete: Cascade)
   invoice_no       String         @unique
-  transaction_type String         @default("SALES") // SALES, DELIVERY, TRANSFER_OUT, TRANSFER_IN, FACTORY_RETURN
+  transaction_type String         @default("SALES")
   date             DateTime       @default(now())
   dealer_id        String?
   dealer           Dealer?        @relation(fields: [dealer_id], references: [id], onDelete: SetNull)
@@ -131,11 +170,15 @@ model Invoice {
   order            DeliveryOrder? @relation(fields: [order_id], references: [id], onDelete: SetNull)
   destination      String?
   notes            String?
+  total_amount     Float          @default(0)
   createdAt        DateTime       @default(now())
 
   items            SalesLog[]
 }
 
+// ============================================================
+// RECEIVE LOG (Stock In)
+// ============================================================
 model ReceiveLog {
   id           String     @id @default(uuid())
   depot_id     String
@@ -146,10 +189,13 @@ model ReceiveLog {
   product      Product    @relation(fields: [product_id], references: [id], onDelete: Cascade)
   lot_id       String
   lot          LotTracker @relation(fields: [lot_id], references: [id], onDelete: Cascade)
-  quantity     Int
+  quantity     Int        // in Kg
   createdAt    DateTime   @default(now())
 }
 
+// ============================================================
+// SALES LOG (Stock Out line items)
+// ============================================================
 model SalesLog {
   id               String         @id @default(uuid())
   invoice_id       String?
@@ -167,6 +213,25 @@ model SalesLog {
   product          Product        @relation(fields: [product_id], references: [id], onDelete: Cascade)
   lot_id           String
   lot              LotTracker     @relation(fields: [lot_id], references: [id], onDelete: Cascade)
-  quantity         Int
+  quantity         Int            // in Kg
+  unit_price       Float          @default(0)
+  total_amount     Float          @default(0)
   createdAt        DateTime       @default(now())
+}
+
+// ============================================================
+// FINANCIAL TRANSACTION (Accounting Module)
+// ============================================================
+model FinancialTransaction {
+  id                String   @id @default(uuid())
+  depot_id          String
+  depot             Depot    @relation(fields: [depot_id], references: [id], onDelete: Cascade)
+  dealer_id         String?
+  dealer            Dealer?  @relation(fields: [dealer_id], references: [id], onDelete: SetNull)
+  type              String   // "DEBIT" (sale/due) or "CREDIT" (payment received)
+  amount            Float
+  date              DateTime @default(now())
+  remarks           String?
+  reference_invoice String?
+  createdAt         DateTime @default(now())
 }

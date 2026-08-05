@@ -152,7 +152,7 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
                   <th className="p-2 border-r border-slate-300">Product Name</th>
                   <th className="p-2 border-r border-slate-300">Lot / Batch No</th>
                   <th className="p-2 border-r border-slate-300 text-right">Bag Size</th>
-                  <th className="p-2 text-right">Quantity (Bags)</th>
+                  <th className="p-2 text-right">Quantity (Kg / Bags)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -174,7 +174,7 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
                       {item.product.bag_size_kg} kg
                     </td>
                     <td className="p-2 text-right font-bold text-slate-900 text-sm">
-                      {item.quantity}
+                      {item.quantity * (item.product.bag_size_kg || 50)} Kg ({item.quantity} Bags)
                     </td>
                   </tr>
                 ))}
@@ -185,7 +185,7 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
                     Total Quantity & Weight:
                   </td>
                   <td className="p-2 text-right text-sm">
-                    {totalBags} bags ({totalTons} MT)
+                    {totalWeightKg} Kg ({totalBags} bags / {totalTons} MT)
                   </td>
                 </tr>
               </tfoot>

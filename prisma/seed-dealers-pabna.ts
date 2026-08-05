@@ -24,12 +24,34 @@ const dealers = [
 async function main() {
   console.log("Adding Pabna Depot dealers...\n");
 
+  // Find or create Pabna Depot
+  let depot = await prisma.depot.findFirst({
+    where: { name: { contains: "Pabna" } }
+  });
+
+  if (!depot) {
+    depot = await prisma.depot.create({
+      data: {
+        code: "DEP-PAB",
+        name: "Pabna Depot",
+        address: "Pabna, Bangladesh",
+      }
+    });
+    console.log(`+ Created Pabna Depot: ${depot.name}`);
+  }
+
   for (const dealer of dealers) {
     const existing = await prisma.dealer.findFirst({ where: { name: dealer.name } });
     if (existing) {
       console.log(`  ✓ Already exists: ${dealer.name}`);
     } else {
-      await prisma.dealer.create({ data: dealer });
+      await prisma.dealer.create({
+        data: {
+          name: dealer.name,
+          phone: dealer.phone,
+          depot_id: depot.id,
+        }
+      });
       console.log(`  + Added: ${dealer.name}`);
     }
   }

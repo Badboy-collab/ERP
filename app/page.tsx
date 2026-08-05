@@ -1,284 +1,145 @@
-import Navbar from "@/components/Navbar";
-import { ERPService } from "@/lib/services/erpService";
-import { prisma } from "@/lib/prisma";
-import Link from "next/link";
-import {
-  TrendingUp,
-  AlertTriangle,
-  Layers,
-  Clock,
-  ArrowRight,
-  Package,
-  Building2,
-} from "lucide-react";
+"use client";
 
-export const revalidate = 0;
+import { useState } from "react";
+import { Lock, User, AlertCircle, Loader2 } from "lucide-react";
 
-export default async function DashboardPage() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+export default function LoginPage() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const todaySalesAgg = await prisma.salesLog.aggregate({
-    where: { date: { gte: today } },
-    _sum: { quantity: true },
-  });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username || !password) {
+      setError("Please enter both username and password.");
+      return;
+    }
 
-  const pendingOrdersCount = await prisma.deliveryOrder.count({
-    where: { status: "Pending" },
-  });
+    setLoading(true);
+    setError(null);
 
-  const activeLotsCount = await prisma.lotTracker.count({
-    where: { available_qty: { gt: 0 } },
-  });
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: username, password }),
+      });
 
-  const depotsCount = await prisma.depot.count();
+      const data = await res.json();
 
-  // Expiry Report
-  const expiryReport = await ERPService.getDetailedExpiryReport();
-  const criticalExpiringLots = expiryReport.filter((l) => l.status !== "ACTIVE");
+      if (!res.ok) {
+        throw new Error(data.error || "Login failed. Please check your credentials.");
+      }
 
-  // Realtime Stock Report
-  const realTimeStock = await ERPService.getRealtimeStockReport();
+      // Sync with existing userSession localStorage for Navbar and client-side permissions
+      localStorage.setItem("erp_active_user", JSON.stringify(data.user));
+
+      // Redirect to protected dashboard
+      window.location.href = "/dashboard";
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
-      <Navbar />
+    <div className="min-h-screen bg-slate-950 flex flex-col md:flex-row font-sans">
+      {/* LEFT PANEL: Branding & Welcome (Hidden on small mobile screens) */}
+      <div className="md:w-1/2 bg-gradient-to-br from-emerald-950 via-slate-900 to-slate-950 border-r border-slate-800/80 p-12 flex flex-col justify-between relative overflow-hidden">
+        {/* Subtle background overlay grids */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#022c22_1px,transparent_1px),linear-gradient(to_bottom,#022c22_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30 pointer-events-none" />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Welcome Banner */}
-        <div className="bg-gradient-to-r from-slate-900 via-emerald-950/60 to-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-2xl">
-          <div className="relative z-10 max-w-3xl space-y-3">
-            <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full text-xs font-semibold uppercase tracking-wider border border-emerald-500/30 inline-block">
-              Matber Agro Industries Ltd • Multi-Depot Enterprise ERP
-            </span>
-            <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-              Enterprise Depot Operations & Real-Time Stock Control
-            </h1>
-            <p className="text-sm sm:text-base text-slate-300">
-              Integrated Multi-Depot RBAC, Real-time Stock Display (Kg & Bags), Automatic Delivery Order Auto-Populate, FIFO Lotting & Printable Expiry Reports.
+        <div className="relative z-10">
+          <span className="text-emerald-400 font-black tracking-widest text-xs uppercase border border-emerald-500/30 bg-emerald-950/40 px-3 py-1 rounded-full">
+            Matber Agro Industries Ltd
+          </span>
+        </div>
+
+        <div className="space-y-4 my-auto relative z-10 max-w-lg">
+          <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
+            Welcome to <span className="text-emerald-400">Matber Agro ERP</span>
+          </h1>
+          <p className="text-slate-300 text-sm lg:text-base leading-relaxed font-medium">
+            Streamlining feed distribution, inventory, sales, and depot management for Matber Agro Industries Ltd. Experience real-time stock control, granular RBAC, and automated sales processing.
+          </p>
+        </div>
+
+        <div className="relative z-10 text-xs text-slate-500 font-semibold font-mono">
+          © {new Date().getFullYear()} Matber Agro Industries Ltd. All rights reserved.
+        </div>
+      </div>
+
+      {/* RIGHT PANEL: Form */}
+      <div className="md:w-1/2 flex items-center justify-center p-8 sm:p-12 bg-slate-950">
+        <div className="w-full max-w-md space-y-8 bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl">
+          <div className="text-center md:text-left space-y-2">
+            <h2 className="text-2xl font-black text-white">Sign In to Account</h2>
+            <p className="text-xs text-slate-400 font-medium">
+              Enter your credential keys to access depot logs & dashboard.
             </p>
-
-            <div className="pt-2 flex flex-wrap gap-4">
-              <Link
-                href="/pos"
-                className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl shadow-lg transition-all flex items-center gap-2 text-sm"
-              >
-                <span>Launch Multi-Product POS</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                href="/reports/stock"
-                className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold px-5 py-2.5 rounded-xl border border-slate-700 transition-all text-sm"
-              >
-                View Real-Time Stock Ledger (Kg & Bags)
-              </Link>
-            </div>
           </div>
-        </div>
 
-        {/* Top Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center justify-between">
+          {error && (
+            <div className="p-4 bg-rose-950/60 border border-rose-800 rounded-2xl flex items-center space-x-2 text-rose-300 text-xs font-semibold animate-shake">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Sales Today
-              </p>
-              <p className="text-2xl font-black text-emerald-400 mt-1">
-                {todaySalesAgg._sum.quantity || 0}{" "}
-                <span className="text-xs text-slate-400 font-normal">bags</span>
-              </p>
+              <label className="block text-xs font-bold text-slate-300 mb-2">Username / Email</label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-3 text-slate-500">
+                  <User className="w-4.5 h-4.5" />
+                </span>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="admin"
+                  className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white font-bold transition-all outline-none"
+                  required
+                />
+              </div>
             </div>
-            <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl">
-              <TrendingUp className="w-6 h-6" />
-            </div>
-          </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Pending DO Orders
-              </p>
-              <p className="text-2xl font-black text-amber-400 mt-1">
-                {pendingOrdersCount}{" "}
-                <span className="text-xs text-slate-400 font-normal">active</span>
-              </p>
+              <label className="block text-xs font-bold text-slate-300 mb-2">Password</label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-3 text-slate-500">
+                  <Lock className="w-4.5 h-4.5" />
+                </span>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white font-bold transition-all outline-none"
+                  required
+                />
+              </div>
             </div>
-            <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl">
-              <Clock className="w-6 h-6" />
-            </div>
-          </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Active Stock Batches
-              </p>
-              <p className="text-2xl font-black text-blue-400 mt-1">
-                {activeLotsCount}{" "}
-                <span className="text-xs text-slate-400 font-normal">lots</span>
-              </p>
-            </div>
-            <div className="p-3 bg-blue-500/10 text-blue-400 rounded-xl">
-              <Layers className="w-6 h-6" />
-            </div>
-          </div>
-
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Expiring Lots Flagged
-              </p>
-              <p className="text-2xl font-black text-rose-400 mt-1">
-                {criticalExpiringLots.length}{" "}
-                <span className="text-xs text-slate-400 font-normal">lots</span>
-              </p>
-            </div>
-            <div className="p-3 bg-rose-500/10 text-rose-400 rounded-xl">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
-          </div>
-        </div>
-
-        {/* Dynamic Expiry Alerts Overview */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-            <div className="flex items-center space-x-2">
-              <AlertTriangle className="w-5 h-5 text-rose-400" />
-              <h2 className="text-lg font-bold text-white">
-                Lot Expiry Alert Summary (Sorted by Nearest Exp Date)
-              </h2>
-            </div>
-            <Link
-              href="/reports/expiry"
-              className="text-xs text-rose-400 hover:underline font-semibold"
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-500 hover:to-green-400 disabled:opacity-50 text-slate-950 font-black py-3 rounded-xl shadow-lg shadow-emerald-950/20 transition-all flex items-center justify-center space-x-2 text-sm"
             >
-              Open Full Printable Expiry Sheet &rarr;
-            </Link>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-950 text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                <tr>
-                  <th className="p-3.5">Lot No</th>
-                  <th className="p-3.5">Depot</th>
-                  <th className="p-3.5">Product</th>
-                  <th className="p-3.5 text-right">Avail Qty (Bags)</th>
-                  <th className="p-3.5">Exp Date</th>
-                  <th className="p-3.5 text-center">Days Remaining</th>
-                  <th className="p-3.5 text-right">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 font-medium">
-                {expiryReport.slice(0, 5).map((lot) => (
-                  <tr key={lot.lot_id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="p-3.5 font-mono text-emerald-400 font-bold">{lot.lot_no}</td>
-                    <td className="p-3.5 text-xs text-slate-300 font-semibold">{lot.depot_name}</td>
-                    <td className="p-3.5">
-                      <div>{lot.product_name}</div>
-                      <span className="text-[11px] text-slate-500 font-mono">
-                        {lot.product_code}
-                      </span>
-                    </td>
-                    <td className="p-3.5 text-right font-bold text-white">
-                      {lot.available_bag} bags ({lot.available_kg} kg)
-                    </td>
-                    <td className="p-3.5 text-xs text-slate-400">
-                      {new Date(lot.exp_date).toLocaleDateString()}
-                    </td>
-                    <td className="p-3.5 text-center font-mono font-bold">
-                      {lot.days_to_expiry <= 0 ? (
-                        <span className="text-rose-500">EXPIRED</span>
-                      ) : (
-                        <span>{lot.days_to_expiry} days</span>
-                      )}
-                    </td>
-                    <td className="p-3.5 text-right">
-                      {lot.status === "URGENT" && (
-                        <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-rose-950 text-rose-400 border border-rose-800 animate-pulse">
-                          🚨 URGENT (&le;10d)
-                        </span>
-                      )}
-                      {lot.status === "WARNING" && (
-                        <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-amber-950 text-amber-400 border border-amber-800">
-                          ⚠️ WARNING (&le;20d)
-                        </span>
-                      )}
-                      {lot.status === "CAUTION" && (
-                        <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-yellow-950 text-yellow-300 border border-yellow-800">
-                          ⚡ CAUTION (&le;30d)
-                        </span>
-                      )}
-                      {lot.status === "ACTIVE" && (
-                        <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">
-                          ACTIVE
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              {loading ? (
+                <>
+                  <Loader2 className="w-4.5 h-4.5 animate-spin" />
+                  <span>Verifying credentials...</span>
+                </>
+              ) : (
+                <span>Access System</span>
+              )}
+            </button>
+          </form>
         </div>
-
-        {/* Real-time Stock Display Table Summary */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-            <div className="flex items-center space-x-2">
-              <Package className="w-5 h-5 text-emerald-400" />
-              <h2 className="text-lg font-bold text-white">
-                Real-Time Stock Display (Spreadsheet Exact Formulas)
-              </h2>
-            </div>
-            <Link href="/reports/stock" className="text-xs text-emerald-400 hover:underline font-semibold">
-              Open Full Printable Stock Sheet &rarr;
-            </Link>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-950 text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                <tr>
-                  <th className="p-3.5">Category & Product</th>
-                  <th className="p-3.5">Code</th>
-                  <th className="p-3.5 text-right">Opening (Kg)</th>
-                  <th className="p-3.5 text-right">Received (Kg)</th>
-                  <th className="p-3.5 text-right font-bold text-blue-400">Total (Kg)</th>
-                  <th className="p-3.5 text-right text-rose-400">Sales (Kg)</th>
-                  <th className="p-3.5 text-right text-amber-400">Return (Kg)</th>
-                  <th className="p-3.5 text-right font-bold text-emerald-400">Balance (Kg)</th>
-                  <th className="p-3.5 text-right font-bold text-emerald-300">Balance (Bags)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 font-medium">
-                {realTimeStock.map((row) => (
-                  <tr key={row.product_id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="p-3.5 font-semibold text-white">
-                      <span className="text-[10px] text-emerald-400 block font-normal uppercase">
-                        {row.category}
-                      </span>
-                      {row.name}
-                    </td>
-                    <td className="p-3.5 font-mono text-slate-400">{row.code}</td>
-                    <td className="p-3.5 text-right font-mono text-slate-400">{row.opening_kg.toLocaleString()}</td>
-                    <td className="p-3.5 text-right font-mono text-blue-400">+{row.received_kg.toLocaleString()}</td>
-                    <td className="p-3.5 text-right font-mono font-bold text-blue-300">{row.total_kg.toLocaleString()}</td>
-                    <td className="p-3.5 text-right font-mono text-rose-400">-{row.sales_kg.toLocaleString()}</td>
-                    <td className="p-3.5 text-right font-mono text-amber-400">-{row.return_kg.toLocaleString()}</td>
-                    <td className="p-3.5 text-right font-mono font-extrabold text-emerald-400">
-                      {row.balance_kg.toLocaleString()} kg
-                    </td>
-                    <td className="p-3.5 text-right font-mono font-extrabold text-emerald-300">
-                      {row.balance_bags} bags
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }

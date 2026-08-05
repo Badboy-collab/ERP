@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { PlusCircle, ClipboardList, ArrowDownCircle, CheckCircle, Building2 } from "lucide-react";
+import SearchableSelect from "@/components/SearchableSelect";
+import DualQuantityInput from "@/components/DualQuantityInput";
 
 interface Depot {
   id: string;
@@ -13,6 +15,7 @@ interface Depot {
 interface Dealer {
   id: string;
   name: string;
+  phone: string;
 }
 
 interface Product {
@@ -31,10 +34,10 @@ interface DeliveryOrder {
   dealer: { name: string };
   items: {
     id: string;
-    product: { name: string; code: string };
-    ordered_qty: number;
-    delivered_qty: number;
-    pending_qty: number;
+    product: { name: string; code: string; bag_size_kg: number };
+    ordered_qty: number; // in Kg
+    delivered_qty: number; // in Kg
+    pending_qty: number; // in Kg
   }[];
 }
 
@@ -49,10 +52,10 @@ export default function OrdersPage() {
   const [ordersList, setOrdersList] = useState<DeliveryOrder[]>([]);
 
   // Delivery Order Form State
-  const [orderNo, setOrderNo] = useState<string>(`DO-${Date.now().toString().slice(-6)}`);
+  const [orderNo, setOrderNo] = useState<string>("");
   const [dealerId, setDealerId] = useState<string>("");
-  const [orderItems, setOrderItems] = useState<{ product_id: string; ordered_qty: number }[]>([
-    { product_id: "", ordered_qty: 10 },
+  const [orderItems, setOrderItems] = useState<{ product_id: string; ordered_qty: number | "" }[]>([
+    { product_id: "", ordered_qty: "" },
   ]);
 
   // Stock Receive Form State
@@ -63,7 +66,7 @@ export default function OrdersPage() {
   const [rcvExpDate, setRcvExpDate] = useState<string>(
     new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
   );
-  const [rcvQuantity, setRcvQuantity] = useState<number | "">(100);
+  const [rcvQuantity, setRcvQuantity] = useState<number | "">("");
 
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -71,11 +74,43 @@ export default function OrdersPage() {
     fetchInitialData();
   }, []);
 
+  // Cascading Depot -> Dealer
+  useEffect(() => {
+    if (selectedDepotId) {
+      setDealerId("");
+      fetch(`/api/dealers?depot_id=${selectedDepotId}`)
+        .then((res) => res.json())
+        .then((data) => setDealers(data))
+        .catch((err) => console.error(err));
+    } else {
+      setDealers([]);
+      setDealerId("");
+    }
+  }, [selectedDepotId]);
+
+  // Auto-fetch Next D.O. Number
+  const fetchNextDONumber = async () => {
+    try {
+      const res = await fetch("/api/orders/next-number");
+      if (res.ok) {
+        const data = await res.json();
+        setOrderNo(data.order_no);
+      }
+    } catch (err) {
+      console.error("Failed to load D.O. number", err);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "orders") {
+      fetchNextDONumber();
+    }
+  }, [activeTab]);
+
   const fetchInitialData = async () => {
     try {
-      const [depRes, dRes, pRes, oRes] = await Promise.all([
+      const [depRes, pRes, oRes] = await Promise.all([
         fetch("/api/admin/depots"),
-        fetch("/api/dealers"),
         fetch("/api/products"),
         fetch("/api/orders"),
       ]);
@@ -84,7 +119,6 @@ export default function OrdersPage() {
         setDepots(depotList);
         if (depotList.length > 0) setSelectedDepotId(depotList[0].id);
       }
-      if (dRes.ok) setDealers(await dRes.json());
       if (pRes.ok) setProducts(await pRes.json());
       if (oRes.ok) setOrdersList(await oRes.json());
     } catch (err) {
@@ -94,7 +128,7 @@ export default function OrdersPage() {
 
   const handleCreateOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedDepotId || !dealerId || orderItems.some((i) => !i.product_id || i.ordered_qty <= 0)) {
+    if (!selectedDepotId || !dealerId || orderItems.some((i) => !i.product_id || !i.ordered_qty || i.ordered_qty <= 0)) {
       setMessage({ type: "error", text: "Please complete all delivery order items and select a depot." });
       return;
     }
@@ -107,16 +141,19 @@ export default function OrdersPage() {
           depot_id: selectedDepotId,
           dealer_id: dealerId,
           order_no: orderNo,
-          items: orderItems,
+          items: orderItems.map(item => ({
+            product_id: item.product_id,
+            ordered_qty: Number(item.ordered_qty)
+          })),
         }),
       });
 
       if (!res.ok) throw new Error("Failed to create delivery order");
 
       setMessage({ type: "success", text: `Delivery Order ${orderNo} created successfully!` });
-      setOrderNo(`DO-${Date.now().toString().slice(-6)}`);
-      setOrderItems([{ product_id: "", ordered_qty: 10 }]);
+      setOrderItems([{ product_id: "", ordered_qty: "" }]);
       fetchInitialData();
+      fetchNextDONumber();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
     }
@@ -151,12 +188,27 @@ export default function OrdersPage() {
         text: `Stock Received & New Lot ${rcvLotNo} generated in LotTracker!`,
       });
       setReceiveInvoiceNo(`RCV-${Date.now().toString().slice(-6)}`);
-      setRcvQuantity(100);
+      setRcvQuantity("");
       fetchInitialData();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
     }
   };
+
+  const depotOptions = depots.map((d) => ({
+    value: d.id,
+    label: `${d.name} (${d.code})`,
+  }));
+
+  const dealerOptions = dealers.map((d) => ({
+    value: d.id,
+    label: `${d.name} (${d.phone})`,
+  }));
+
+  const productOptions = products.map((p) => ({
+    value: p.id,
+    label: `[${p.code}] ${p.name}`,
+  }));
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
@@ -223,90 +275,76 @@ export default function OrdersPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1">Depot *</label>
-                    <select
+                    <SearchableSelect
+                      options={depotOptions}
                       value={selectedDepotId}
-                      onChange={(e) => setSelectedDepotId(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold"
-                      required
-                    >
-                      {depots.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.name}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setSelectedDepotId}
+                      placeholder="Select Depot..."
+                    />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Order No</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Order No (Auto)</label>
                     <input
                       type="text"
                       value={orderNo}
-                      onChange={(e) => setOrderNo(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-mono"
-                      required
+                      readOnly
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-400 font-mono focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Dealer *</label>
-                  <select
+                  <SearchableSelect
+                    options={dealerOptions}
                     value={dealerId}
-                    onChange={(e) => setDealerId(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white"
-                    required
-                  >
-                    <option value="">-- Choose Dealer --</option>
-                    {dealers.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setDealerId}
+                    placeholder="Select Dealer..."
+                  />
                 </div>
 
                 <div className="space-y-3 pt-2">
                   <label className="block text-xs font-semibold text-slate-300">Order Items</label>
-                  {orderItems.map((item, idx) => (
-                    <div key={idx} className="flex gap-2">
-                      <select
-                        value={item.product_id}
-                        onChange={(e) => {
-                          const updated = [...orderItems];
-                          updated[idx].product_id = e.target.value;
-                          setOrderItems(updated);
-                        }}
-                        className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
-                        required
-                      >
-                        <option value="">-- Product --</option>
-                        {products.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name}
-                          </option>
-                        ))}
-                      </select>
+                  {orderItems.map((item, idx) => {
+                    const selectedProd = products.find((p) => p.id === item.product_id);
+                    const bagSize = selectedProd?.bag_size_kg || 50.0;
 
-                      <input
-                        type="number"
-                        min="1"
-                        value={item.ordered_qty}
-                        onChange={(e) => {
-                          const updated = [...orderItems];
-                          updated[idx].ordered_qty = Number(e.target.value);
-                          setOrderItems(updated);
-                        }}
-                        placeholder="Qty"
-                        className="w-24 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-bold"
-                        required
-                      />
-                    </div>
-                  ))}
+                    return (
+                      <div key={idx} className="flex gap-2 items-end">
+                        <div className="flex-1">
+                          <label className="block text-[10px] text-slate-400 mb-1">Product</label>
+                          <SearchableSelect
+                            options={productOptions}
+                            value={item.product_id}
+                            onChange={(val) => {
+                              const updated = [...orderItems];
+                              updated[idx].product_id = val;
+                              setOrderItems(updated);
+                            }}
+                            placeholder="Select product..."
+                          />
+                        </div>
+
+                        <div className="w-48">
+                          <label className="block text-[10px] text-slate-400 mb-1">Ordered Qty</label>
+                          <DualQuantityInput
+                            kgValue={item.ordered_qty}
+                            onKgChange={(val) => {
+                              const updated = [...orderItems];
+                              updated[idx].ordered_qty = val;
+                              setOrderItems(updated);
+                            }}
+                            bagSizeKg={bagSize}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
 
                   <button
                     type="button"
                     onClick={() =>
-                      setOrderItems([...orderItems, { product_id: "", ordered_qty: 10 }])
+                      setOrderItems([...orderItems, { product_id: "", ordered_qty: "" }])
                     }
                     className="text-xs text-emerald-400 hover:underline font-semibold"
                   >
@@ -324,8 +362,8 @@ export default function OrdersPage() {
             </div>
 
             <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <h2 className="text-base font-extrabold text-white">Delivery Orders List ({ordersList.length})</h2>
-              <div className="space-y-4">
+              <h2 className="text-base font-extrabold text-white font-black">Delivery Orders List ({ordersList.length})</h2>
+              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                 {ordersList.map((ord) => (
                   <div
                     key={ord.id}
@@ -344,7 +382,9 @@ export default function OrdersPage() {
                         className={`text-xs px-2.5 py-0.5 rounded-full font-bold border ${
                           ord.status === "Complete"
                             ? "bg-emerald-950 text-emerald-400 border-emerald-800"
-                            : "bg-amber-950 text-amber-400 border-amber-800"
+                            : ord.status === "Partial"
+                            ? "bg-amber-950 text-amber-400 border-amber-800"
+                            : "bg-slate-900 text-slate-400 border-slate-800"
                         }`}
                       >
                         {ord.status}
@@ -352,16 +392,23 @@ export default function OrdersPage() {
                     </div>
                     <p className="text-xs text-slate-300">Dealer: {ord.dealer.name}</p>
 
-                    <div className="divide-y divide-slate-900 text-xs">
-                      {ord.items.map((it) => (
-                        <div key={it.id} className="py-1.5 flex justify-between">
-                          <span>{it.product.name}</span>
-                          <span className="font-mono">
-                            Delivered: {it.delivered_qty}/{it.ordered_qty} (Pending:{" "}
-                            <strong className="text-amber-400">{it.pending_qty}</strong>)
-                          </span>
-                        </div>
-                      ))}
+                    <div className="divide-y divide-slate-900 text-xs pt-1">
+                      {ord.items.map((it) => {
+                        const bagSize = it.product.bag_size_kg || 50.0;
+                        const orderedBags = Math.round((it.ordered_qty / bagSize) * 100) / 100;
+                        const deliveredBags = Math.round((it.delivered_qty / bagSize) * 100) / 100;
+                        const pendingBags = Math.round((it.pending_qty / bagSize) * 100) / 100;
+
+                        return (
+                          <div key={it.id} className="py-2 flex justify-between">
+                            <span>{it.product.name}</span>
+                            <span className="font-mono text-slate-400">
+                              Delivered: <strong className="text-white">{it.delivered_qty} kg ({deliveredBags} bags)</strong> / {it.ordered_qty} kg ({orderedBags} bags) (Pending:{" "}
+                              <strong className="text-amber-400">{it.pending_qty} kg ({pendingBags} bags)</strong>)
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
@@ -378,18 +425,12 @@ export default function OrdersPage() {
             <form onSubmit={handleCreateReceive} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">Target Depot *</label>
-                <select
+                <SearchableSelect
+                  options={depotOptions}
                   value={selectedDepotId}
-                  onChange={(e) => setSelectedDepotId(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white font-bold"
-                  required
-                >
-                  {depots.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name} ({d.code})
-                    </option>
-                  ))}
-                </select>
+                  onChange={setSelectedDepotId}
+                  placeholder="Select Target Depot..."
+                />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -408,19 +449,12 @@ export default function OrdersPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Product</label>
-                  <select
+                  <SearchableSelect
+                    options={productOptions}
                     value={rcvProductId}
-                    onChange={(e) => setRcvProductId(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white"
-                    required
-                  >
-                    <option value="">-- Choose Product --</option>
-                    {products.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        [{p.code}] {p.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setRcvProductId}
+                    placeholder="Select Product..."
+                  />
                 </div>
               </div>
 
@@ -461,15 +495,12 @@ export default function OrdersPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Received Quantity (Bags)
+                  Received Quantity
                 </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={rcvQuantity}
-                  onChange={(e) => setRcvQuantity(e.target.value === "" ? "" : Number(e.target.value))}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white font-bold"
-                  required
+                <DualQuantityInput
+                  kgValue={rcvQuantity}
+                  onKgChange={setRcvQuantity}
+                  bagSizeKg={products.find(p => p.id === rcvProductId)?.bag_size_kg || 50.0}
                 />
               </div>
 

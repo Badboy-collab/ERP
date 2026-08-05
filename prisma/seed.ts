@@ -115,6 +115,7 @@ async function main() {
       phone: "+8801712345678",
       address: "Mymensingh Sadar, Mymensingh",
       current_balance: 150000.0,
+      depot_id: depotCentral.id,
     },
   });
 
@@ -124,6 +125,7 @@ async function main() {
       phone: "+8801898765432",
       address: "Bhaluka, Mymensingh",
       current_balance: 75000.0,
+      depot_id: depotCentral.id,
     },
   });
 

@@ -30,3 +30,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    
+    if (!id) {
+      return NextResponse.json({ error: "SalesLog ID is required" }, { status: 400 });
+    }
+
+    // Super Admin master override: direct delete
+    await prisma.salesLog.delete({
+      where: { id },
+    });
+    
+    return NextResponse.json({ message: "Sales record deleted successfully" });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

@@ -10,7 +10,7 @@ interface DeliveryOrderItem {
   ordered_qty: number;
   delivered_qty: number;
   pending_qty: number;
-  product: { code: string; name: string };
+  product: { code: string; name: string; bag_size_kg: number };
 }
 
 interface DeliveryOrder {
@@ -268,19 +268,25 @@ export default function DeliveryOrderListPage() {
                       </td>
                       <td className="p-4">
                         <div className="space-y-1">
-                          {ord.items.map((it) => (
-                            <div key={it.id} className="text-xs flex justify-between gap-4 font-mono">
-                              <span className="text-slate-300">[{it.product.code}] {it.product.name}</span>
-                              <span className="text-slate-400 whitespace-nowrap">
-                                Ord: <strong className="text-white">{it.ordered_qty}</strong> |
-                                Del: <strong className="text-emerald-400">{it.delivered_qty}</strong> |
-                                Pnd:{" "}
-                                <strong className={it.pending_qty > 0 ? "text-amber-400" : "text-emerald-400"}>
-                                  {it.pending_qty}
-                                </strong>
-                              </span>
-                            </div>
-                          ))}
+                          {ord.items.map((it) => {
+                            const bagSize = it.product.bag_size_kg || 50.0;
+                            const ordBags = Math.round((it.ordered_qty / bagSize) * 100) / 100;
+                            const delBags = Math.round((it.delivered_qty / bagSize) * 100) / 100;
+                            const pndBags = Math.round((it.pending_qty / bagSize) * 100) / 100;
+                            return (
+                              <div key={it.id} className="text-[11px] flex justify-between gap-4 font-mono">
+                                <span className="text-slate-300">[{it.product.code}] {it.product.name}</span>
+                                <span className="text-slate-400 whitespace-nowrap">
+                                  Ord: <strong className="text-white">{it.ordered_qty} kg ({ordBags} b)</strong> |
+                                  Del: <strong className="text-emerald-400">{it.delivered_qty} kg ({delBags} b)</strong> |
+                                  Pnd:{" "}
+                                  <strong className={it.pending_qty > 0 ? "text-amber-400" : "text-emerald-400"}>
+                                    {it.pending_qty} kg ({pndBags} b)
+                                  </strong>
+                                </span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </td>
                       <td className="p-4 text-center">{statusBadge(ord.status)}</td>

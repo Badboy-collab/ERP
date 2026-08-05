@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Send, Zap, Calendar, User, Package, Layers, Hash, FileText, CheckCircle, Plus, Trash2, Building2, AlertTriangle } from "lucide-react";
+import { Send, Zap, Calendar, User, Package, Layers, Hash, FileText, CheckCircle, Plus, Trash2, Building2, AlertTriangle, DollarSign } from "lucide-react";
 import { ChallanInvoice } from "@/components/ChallanModal";
+import SearchableSelect from "@/components/SearchableSelect";
+import DualQuantityInput from "@/components/DualQuantityInput";
 
 interface Depot {
   id: string;
@@ -27,7 +29,7 @@ interface Lot {
   id: string;
   lot_no: string;
   exp_date: string;
-  available_qty: number;
+  available_qty: number; // in Kg
 }
 
 interface DeliveryOrder {
@@ -39,7 +41,8 @@ interface FormRowItem {
   id: string;
   product_id: string;
   lot_id: string;
-  quantity: number | "";
+  quantity: number | ""; // in Kg
+  unit_price: number | "";
   availableLots: Lot[];
   fifoLot: Lot | null;
   selectedLotObj: Lot | null;
@@ -68,7 +71,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
 
   // Dynamic Product Rows State
   const [items, setItems] = useState<FormRowItem[]>([
-    { id: "1", product_id: "", lot_id: "", quantity: "", availableLots: [], fifoLot: null, selectedLotObj: null },
+    { id: "1", product_id: "", lot_id: "", quantity: "", unit_price: "", availableLots: [], fifoLot: null, selectedLotObj: null },
   ]);
 
   const [loadingDO, setLoadingDO] = useState<boolean>(false);
@@ -82,9 +85,8 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
 
   const fetchInitialData = async () => {
     try {
-      const [depRes, dRes, pRes] = await Promise.all([
+      const [depRes, pRes] = await Promise.all([
         fetch("/api/admin/depots"),
-        fetch("/api/dealers"),
         fetch("/api/products"),
       ]);
       if (depRes.ok) {
@@ -92,13 +94,27 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
         setDepots(depotList);
         if (depotList.length > 0) setDepotId(depotList[0].id);
       }
-      if (dRes.ok) setDealers(await dRes.json());
       if (pRes.ok) setProducts(await pRes.json());
     } catch (err) {
       console.error("Failed to load initial data", err);
     }
   };
 
+  // Cascading Depot -> Dealer
+  useEffect(() => {
+    if (depotId) {
+      setDealerId("");
+      fetch(`/api/dealers?depot_id=${depotId}`)
+        .then((res) => res.json())
+        .then((data) => setDealers(data))
+        .catch((err) => console.error(err));
+    } else {
+      setDealers([]);
+      setDealerId("");
+    }
+  }, [depotId]);
+
+  // Load pending D.Os for selected dealer
   useEffect(() => {
     if (onDealerChange) onDealerChange(dealerId);
     if (dealerId) {
@@ -127,7 +143,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
 
       const newRows: FormRowItem[] = await Promise.all(
         doData.items.map(async (item: any, idx: number) => {
-          const lotsRes = await fetch(`/api/lots?product_id=${item.product_id}`);
+          const lotsRes = await fetch(`/api/lots?product_id=${item.product_id}&depot_id=${doData.depot_id}`);
           const availableLots: Lot[] = lotsRes.ok ? await lotsRes.json() : [];
           const fifoLot = item.suggestedLot || availableLots[0] || null;
 
@@ -135,7 +151,8 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
             id: String(idx + 1),
             product_id: item.product_id,
             lot_id: fifoLot ? fifoLot.id : "",
-            quantity: item.pending_qty,
+            quantity: item.pending_qty, // In Kg now
+            unit_price: "",
             availableLots,
             fifoLot,
             selectedLotObj: fifoLot,
@@ -168,8 +185,8 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
 
     if (selectedProductId) {
       const [lotsRes, fifoRes] = await Promise.all([
-        fetch(`/api/lots?product_id=${selectedProductId}`),
-        fetch(`/api/lots?product_id=${selectedProductId}&fifo=true`),
+        fetch(`/api/lots?product_id=${selectedProductId}&depot_id=${depotId}`),
+        fetch(`/api/lots?product_id=${selectedProductId}&depot_id=${depotId}&fifo=true`),
       ]);
       if (lotsRes.ok) updated[index].availableLots = await lotsRes.json();
       if (fifoRes.ok) {
@@ -195,7 +212,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
   const handleAddRow = () => {
     setItems([
       ...items,
-      { id: Date.now().toString(), product_id: "", lot_id: "", quantity: "", availableLots: [], fifoLot: null, selectedLotObj: null },
+      { id: Date.now().toString(), product_id: "", lot_id: "", quantity: "", unit_price: "", availableLots: [], fifoLot: null, selectedLotObj: null },
     ]);
   };
 
@@ -221,10 +238,11 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
       if (item.selectedLotObj && Number(item.quantity) > item.selectedLotObj.available_qty) {
         const prod = products.find((p) => p.id === item.product_id);
         const bagSize = prod?.bag_size_kg || 50.0;
-        const availKg = item.selectedLotObj.available_qty * bagSize;
+        const requestedBags = Number(item.quantity) / bagSize;
+        const availBags = item.selectedLotObj.available_qty / bagSize;
         setMessage({
           type: "error",
-          text: `Error: Insufficient stock. Only ${item.selectedLotObj.available_qty} bags (${availKg} kg) available for Lot ${item.selectedLotObj.lot_no}. You requested ${item.quantity} bags.`,
+          text: `Error: Insufficient stock. Only ${item.selectedLotObj.available_qty} kg (${Math.round(availBags * 100) / 100} bags) available for Lot ${item.selectedLotObj.lot_no}. You requested ${item.quantity} kg (${Math.round(requestedBags * 100) / 100} bags).`,
         });
         return;
       }
@@ -246,6 +264,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
           product_id: i.product_id,
           lot_id: i.lot_id,
           quantity: Number(i.quantity),
+          unit_price: i.unit_price === "" ? 0 : Number(i.unit_price),
         })),
       };
 
@@ -260,7 +279,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
 
       setMessage({ type: "success", text: `Transaction Invoice ${invoiceNo} recorded successfully!` });
 
-      setItems([{ id: Date.now().toString(), product_id: "", lot_id: "", quantity: "", availableLots: [], fifoLot: null, selectedLotObj: null }]);
+      setItems([{ id: Date.now().toString(), product_id: "", lot_id: "", quantity: "", unit_price: "", availableLots: [], fifoLot: null, selectedLotObj: null }]);
       setInvoiceNo(`INV-${Date.now().toString().slice(-6)}`);
 
       if (onSaleSuccess) {
@@ -272,6 +291,26 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
       setSubmitting(false);
     }
   };
+
+  const depotOptions = depots.map((d) => ({
+    value: d.id,
+    label: `${d.name} (${d.code})`,
+  }));
+
+  const dealerOptions = dealers.map((d) => ({
+    value: d.id,
+    label: `${d.name} (${d.phone})`,
+  }));
+
+  const orderOptions = orders.map((o) => ({
+    value: o.id,
+    label: o.order_no,
+  }));
+
+  const productOptions = products.map((p) => ({
+    value: p.id,
+    label: `[${p.code}] ${p.name}`,
+  }));
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
@@ -337,18 +376,12 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
             <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
               <Building2 className="w-3.5 h-3.5 text-emerald-400" /> Depot *
             </label>
-            <select
+            <SearchableSelect
+              options={depotOptions}
               value={depotId}
-              onChange={(e) => setDepotId(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-2 text-xs text-white font-bold"
-              required
-            >
-              {depots.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name} ({d.code})
-                </option>
-              ))}
-            </select>
+              onChange={setDepotId}
+              placeholder="Select Depot..."
+            />
           </div>
 
           <div>
@@ -368,37 +401,25 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
             <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
               <User className="w-3.5 h-3.5 text-emerald-400" /> Dealer
             </label>
-            <select
+            <SearchableSelect
+              options={dealerOptions}
               value={dealerId}
-              onChange={(e) => setDealerId(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-2 text-xs text-white"
-            >
-              <option value="">-- Choose Dealer --</option>
-              {dealers.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
+              onChange={setDealerId}
+              placeholder="Select Dealer..."
+            />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
               <FileText className="w-3.5 h-3.5 text-emerald-400" /> Delivery Order
             </label>
-            <select
+            <SearchableSelect
+              options={orderOptions}
               value={orderId}
-              onChange={(e) => handleSelectDeliveryOrder(e.target.value)}
-              disabled={loadingDO}
-              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-2 text-xs text-white"
-            >
-              <option value="">Auto-Fill from DO...</option>
-              {orders.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.order_no}
-                </option>
-              ))}
-            </select>
+              onChange={handleSelectDeliveryOrder}
+              placeholder="Auto-Fill DO..."
+              isDisabled={loadingDO}
+            />
           </div>
 
           <div>
@@ -452,82 +473,93 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
               row.quantity !== "" &&
               Number(row.quantity) > row.selectedLotObj.available_qty;
 
+            const selectedProduct = products.find((p) => p.id === row.product_id);
+            const bagSize = selectedProduct?.bag_size_kg || 50.0;
+
+            const lotOptions = row.availableLots.map((l) => {
+              const bags = Math.round((l.available_qty / bagSize) * 100) / 100;
+              return {
+                value: l.id,
+                label: `${l.lot_no} (Avail: ${l.available_qty} kg / ${bags} bags | Exp: ${new Date(l.exp_date).toLocaleDateString()})`,
+              };
+            });
+
             return (
               <div
                 key={row.id}
-                className={`grid grid-cols-1 sm:grid-cols-12 gap-3 items-end p-3.5 rounded-xl border relative transition-all ${
+                className={`grid grid-cols-1 sm:grid-cols-12 gap-3 items-end p-4 rounded-xl border relative transition-all ${
                   isOverStock
                     ? "bg-rose-950/40 border-rose-800"
                     : "bg-slate-950/80 border-slate-800"
                 }`}
               >
-                <div className="sm:col-span-4">
+                <div className="sm:col-span-3">
                   <label className="block text-[11px] text-slate-400 mb-1 font-semibold">Product *</label>
-                  <select
+                  <SearchableSelect
+                    options={productOptions}
                     value={row.product_id}
-                    onChange={(e) => handleProductChange(idx, e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white"
-                    required
-                  >
-                    <option value="">-- Choose Product --</option>
-                    {products.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        [{p.code}] {p.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => handleProductChange(idx, val)}
+                    placeholder="Select product..."
+                  />
                 </div>
 
-                <div className="sm:col-span-5">
+                <div className="sm:col-span-4">
                   <div className="flex items-center justify-between mb-1">
                     <label className="text-[11px] text-slate-400 font-semibold">Lot (Batch) *</label>
                     {row.fifoLot && (
                       <span className="text-[10px] text-emerald-400 font-bold">⚡ FIFO Suggested</span>
                     )}
                   </div>
-                  <select
+                  <SearchableSelect
+                    options={lotOptions}
                     value={row.lot_id}
-                    onChange={(e) => handleLotChange(idx, e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white"
-                    required
-                    disabled={!row.product_id}
-                  >
-                    <option value="">-- Select Lot --</option>
-                    {row.availableLots.map((l) => (
-                      <option key={l.id} value={l.id}>
-                        {l.lot_no} (Avail: {l.available_qty} bags | Exp: {new Date(l.exp_date).toLocaleDateString()})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-[11px] text-slate-400 mb-1 font-semibold">Qty (Bags) *</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max={row.selectedLotObj?.available_qty || undefined}
-                    value={row.quantity}
-                    onChange={(e) => {
-                      const updated = [...items];
-                      updated[idx].quantity = e.target.value === "" ? "" : Number(e.target.value);
-                      setItems(updated);
-                    }}
-                    className={`w-full bg-slate-900 border rounded-lg px-3 py-2 text-xs text-white font-bold ${
-                      isOverStock ? "border-rose-500 text-rose-300" : "border-slate-800"
-                    }`}
-                    required
+                    onChange={(val) => handleLotChange(idx, val)}
+                    placeholder="Select lot..."
+                    isDisabled={!row.product_id}
                   />
                 </div>
 
-                <div className="sm:col-span-1 text-right">
+                <div className="sm:col-span-3">
+                  <label className="block text-[11px] text-slate-400 mb-1 font-semibold">Quantity *</label>
+                  <DualQuantityInput
+                    kgValue={row.quantity}
+                    onKgChange={(val) => {
+                      const updated = [...items];
+                      updated[idx].quantity = val;
+                      setItems(updated);
+                    }}
+                    bagSizeKg={bagSize}
+                  />
+                </div>
+
+                <div className="sm:col-span-1.5 relative">
+                  <label className="block text-[11px] text-slate-400 mb-1 font-semibold">Price/Kg *</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      step="any"
+                      placeholder="0"
+                      value={row.unit_price}
+                      onChange={(e) => {
+                        const updated = [...items];
+                        updated[idx].unit_price = e.target.value === "" ? "" : Number(e.target.value);
+                        setItems(updated);
+                      }}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-2 text-xs text-white font-bold"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="sm:col-span-0.5 text-right">
                   <button
                     type="button"
                     onClick={() => handleRemoveRow(idx)}
                     disabled={items.length <= 1}
                     className="p-2 text-slate-500 hover:text-rose-400 disabled:opacity-30 rounded-lg hover:bg-slate-900 transition-colors"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4.5 h-4.5" />
                   </button>
                 </div>
 
@@ -535,7 +567,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
                 {isOverStock && row.selectedLotObj && (
                   <div className="col-span-12 text-xs text-rose-400 font-bold flex items-center gap-1.5 pt-1">
                     <AlertTriangle className="w-3.5 h-3.5" />
-                    Exceeds available Lot stock! Only {row.selectedLotObj.available_qty} bags available in {row.selectedLotObj.lot_no}.
+                    Exceeds available Lot stock! Only {row.selectedLotObj.available_qty} kg ({Math.round((row.selectedLotObj.available_qty / bagSize) * 100) / 100} bags) available.
                   </div>
                 )}
               </div>

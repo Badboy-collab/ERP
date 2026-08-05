@@ -6,6 +6,7 @@ export interface InvoiceItemInput {
   product_id: string;
   lot_id: string;
   quantity: number;
+  unit_price?: number;
 }
 
 export interface CreateInvoiceTransactionInput {
@@ -27,14 +28,14 @@ export interface CreateReceiveInput {
   lot_no: string;
   mfg_date: Date;
   exp_date: Date;
-  quantity: number;
+  quantity: number; // in Kg
   receive_date?: Date;
 }
 
 export interface CreateOrderInput {
   depot_id: string;
   dealer_id: string;
-  order_no: string;
+  order_no?: string;
   order_date?: Date;
   items: {
     product_id: string;
@@ -42,9 +43,42 @@ export interface CreateOrderInput {
   }[];
 }
 
+export interface PaymentInput {
+  depot_id: string;
+  dealer_id: string;
+  amount: number;
+  remarks?: string;
+  date?: Date;
+}
+
 export class ERPService {
   /**
+   * Get Next D.O Number
+   */
+  static async getNextDONumber() {
+    const today = new Date();
+    const yy = String(today.getFullYear()).slice(-2);
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const prefix = `${yy}${mm}${dd}`;
+
+    const lastDO = await prisma.deliveryOrder.findFirst({
+      where: { order_no: { startsWith: prefix } },
+      orderBy: { order_no: 'desc' }
+    });
+
+    if (lastDO) {
+      const lastSeq = parseInt(lastDO.order_no.slice(-3), 10);
+      const nextSeq = String(lastSeq + 1).padStart(3, '0');
+      return `${prefix}${nextSeq}`;
+    }
+
+    return `${prefix}001`;
+  }
+
+  /**
    * Record Stock Receive
+   * All quantities are in Kg.
    */
   static async recordStockReceive(input: CreateReceiveInput) {
     if (input.quantity <= 0) {
@@ -103,7 +137,6 @@ export class ERPService {
   }
 
   /**
-   * FEATURE 10: Strict Inventory Validation (Prevent Negative Stock)
    * Record Multi-Item Invoice Transaction
    */
   static async recordInvoiceTransaction(input: CreateInvoiceTransactionInput) {
@@ -117,6 +150,17 @@ export class ERPService {
     const txDate = input.date ? new Date(input.date) : new Date();
 
     return prisma.$transaction(async (tx) => {
+      let invoiceTotalAmount = 0;
+
+      for (const item of input.items) {
+        const qty = Number(item.quantity);
+        const unit_price = item.unit_price ? Number(item.unit_price) : 0;
+        if (isNaN(qty) || qty <= 0) {
+          throw new Error("Quantity must be greater than 0");
+        }
+        invoiceTotalAmount += qty * unit_price;
+      }
+
       const invoice = await tx.invoice.create({
         data: {
           depot_id: input.depot_id,
@@ -127,14 +171,14 @@ export class ERPService {
           order_id: input.order_id || null,
           destination: input.destination || null,
           notes: input.notes || null,
+          total_amount: invoiceTotalAmount,
         },
       });
 
       for (const item of input.items) {
         const qty = Number(item.quantity);
-        if (isNaN(qty) || qty <= 0) {
-          throw new Error("Quantity must be greater than 0");
-        }
+        const unit_price = item.unit_price ? Number(item.unit_price) : 0;
+        const total_amount = qty * unit_price;
 
         const lot = await tx.lotTracker.findUnique({
           where: { id: item.lot_id },
@@ -145,12 +189,9 @@ export class ERPService {
           throw new Error(`Lot ID ${item.lot_id} does not exist.`);
         }
 
-        // STRICT INVENTORY VALIDATION: Prevent negative stock
         if (lot.available_qty < qty) {
-          const bagSize = lot.product.bag_size_kg || 50.0;
-          const availableKg = lot.available_qty * bagSize;
           throw new Error(
-            `Error: Insufficient stock. Only ${lot.available_qty} bags (${availableKg} kg) available for Lot ${lot.lot_no}. Requested: ${qty} bags.`
+            `Error: Insufficient stock. Only ${lot.available_qty} kg available for Lot ${lot.lot_no}. Requested: ${qty} kg.`
           );
         }
 
@@ -166,6 +207,8 @@ export class ERPService {
             product_id: item.product_id,
             lot_id: item.lot_id,
             quantity: qty,
+            unit_price: unit_price,
+            total_amount: total_amount,
           },
         });
 
@@ -195,7 +238,6 @@ export class ERPService {
           },
         });
 
-        // Update OrderItem pending/delivered
         if (input.order_id) {
           const orderItem = await tx.orderItem.findFirst({
             where: {
@@ -219,7 +261,6 @@ export class ERPService {
         }
       }
 
-      // Update DeliveryOrder status (Pending, Partial, Complete)
       if (input.order_id) {
         const orderItemsAgg = await tx.orderItem.aggregate({
           where: { order_id: input.order_id },
@@ -240,6 +281,29 @@ export class ERPService {
           where: { id: input.order_id },
           data: { status: newOrderStatus },
         });
+      }
+
+      // Auto-create a DEBIT FinancialTransaction for the dealer
+      if (input.dealer_id && invoiceTotalAmount > 0 && input.transaction_type === "SALES") {
+        await tx.financialTransaction.create({
+          data: {
+            depot_id: input.depot_id,
+            dealer_id: input.dealer_id,
+            type: "DEBIT",
+            amount: invoiceTotalAmount,
+            date: txDate,
+            remarks: `Sales Invoice ${input.invoice_no}`,
+            reference_invoice: invoice.id,
+          }
+        });
+
+        const dealer = await tx.dealer.findUnique({ where: { id: input.dealer_id } });
+        if (dealer) {
+          await tx.dealer.update({
+            where: { id: input.dealer_id },
+            data: { current_balance: dealer.current_balance + invoiceTotalAmount }
+          });
+        }
       }
 
       return tx.invoice.findUnique({
@@ -312,11 +376,13 @@ export class ERPService {
    * Create Delivery Order
    */
   static async createDeliveryOrder(input: CreateOrderInput) {
+    const final_order_no = input.order_no || await ERPService.getNextDONumber();
+
     return prisma.deliveryOrder.create({
       data: {
         depot_id: input.depot_id,
         dealer_id: input.dealer_id,
-        order_no: input.order_no,
+        order_no: final_order_no,
         order_date: input.order_date ? new Date(input.order_date) : new Date(),
         status: "Pending",
         items: {
@@ -373,17 +439,19 @@ export class ERPService {
           _sum: { quantity: true },
         });
 
-        const openingBags = prod.opening_stock || 0;
-        const receivedBags = rxAgg._sum.quantity || 0;
-        const salesBags = salesAgg._sum.quantity || 0;
-        const returnBags = returnAgg._sum.quantity || 0;
+        const openingKg = prod.opening_stock || 0;
+        const openingBags = bagSize > 0 ? openingKg / bagSize : 0;
 
-        const openingKg = openingBags * bagSize;
-        const receivedKg = receivedBags * bagSize;
+        const receivedKg = rxAgg._sum.quantity || 0;
+        const receivedBags = bagSize > 0 ? receivedKg / bagSize : 0;
+
+        const salesKg = salesAgg._sum.quantity || 0;
+        const salesBags = bagSize > 0 ? salesKg / bagSize : 0;
+
+        const returnKg = returnAgg._sum.quantity || 0;
+        const returnBags = bagSize > 0 ? returnKg / bagSize : 0;
+
         const totalKg = openingKg + receivedKg;
-        const salesKg = salesBags * bagSize;
-        const returnKg = returnBags * bagSize;
-
         const balanceKg = totalKg - salesKg - returnKg;
         const balanceBags = bagSize > 0 ? balanceKg / bagSize : 0;
 
@@ -394,18 +462,18 @@ export class ERPService {
           code: prod.code,
           bag_size_kg: bagSize,
 
-          opening_bags: openingBags,
+          opening_bags: Math.round(openingBags * 100) / 100,
           opening_kg: openingKg,
 
-          received_bags: receivedBags,
+          received_bags: Math.round(receivedBags * 100) / 100,
           received_kg: receivedKg,
 
           total_kg: totalKg,
 
-          sales_bags: salesBags,
+          sales_bags: Math.round(salesBags * 100) / 100,
           sales_kg: salesKg,
 
-          return_bags: returnBags,
+          return_bags: Math.round(returnBags * 100) / 100,
           return_kg: returnKg,
 
           balance_kg: balanceKg,
@@ -437,7 +505,8 @@ export class ERPService {
       const diffTime = expDate.getTime() - now.getTime();
       const daysToExpiry = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       const bagSize = lot.product.bag_size_kg || 50.0;
-      const availableKg = lot.available_qty * bagSize;
+      const availableKg = lot.available_qty;
+      const availableBags = bagSize > 0 ? availableKg / bagSize : 0;
 
       let status: "URGENT" | "WARNING" | "CAUTION" | "ACTIVE" | "EXPIRED" = "ACTIVE";
       if (daysToExpiry <= 0) {
@@ -456,7 +525,7 @@ export class ERPService {
         product_name: lot.product.name,
         product_code: lot.product.code,
         lot_no: lot.lot_no,
-        available_bag: lot.available_qty,
+        available_bag: Math.round(availableBags * 100) / 100,
         available_kg: availableKg,
         mfg_date: lot.mfg_date,
         exp_date: lot.exp_date,
@@ -522,5 +591,88 @@ export class ERPService {
         };
       })
     );
+  }
+
+  /**
+   * Get Dealer Ledger
+   */
+  static async getDealerLedger(dealer_id: string) {
+    const transactions = await prisma.financialTransaction.findMany({
+      where: { dealer_id },
+      orderBy: { date: 'asc' },
+      include: { depot: true },
+    });
+
+    let running_balance = 0;
+    const ledger = transactions.map(tx => {
+      if (tx.type === 'DEBIT') {
+        running_balance += tx.amount;
+      } else if (tx.type === 'CREDIT') {
+        running_balance -= tx.amount;
+      }
+      return {
+        ...tx,
+        running_balance
+      };
+    });
+
+    return ledger;
+  }
+
+  /**
+   * Get Depot Financial Summary
+   */
+  static async getDepotFinancialSummary(depot_id?: string) {
+    const filter = depot_id ? { depot_id } : {};
+    
+    const debitsAgg = await prisma.financialTransaction.aggregate({
+      where: { ...filter, type: 'DEBIT' },
+      _sum: { amount: true }
+    });
+    
+    const creditsAgg = await prisma.financialTransaction.aggregate({
+      where: { ...filter, type: 'CREDIT' },
+      _sum: { amount: true }
+    });
+
+    const total_sales = debitsAgg._sum.amount || 0;
+    const total_received = creditsAgg._sum.amount || 0;
+    const total_due = total_sales - total_received;
+
+    return {
+      total_sales,
+      total_received,
+      total_due
+    };
+  }
+
+  /**
+   * Record Payment (CREDIT)
+   */
+  static async recordPayment(input: PaymentInput) {
+    return prisma.$transaction(async (tx) => {
+      const txDate = input.date ? new Date(input.date) : new Date();
+
+      const transaction = await tx.financialTransaction.create({
+        data: {
+          depot_id: input.depot_id,
+          dealer_id: input.dealer_id,
+          type: "CREDIT",
+          amount: input.amount,
+          date: txDate,
+          remarks: input.remarks || "Payment Received",
+        }
+      });
+
+      const dealer = await tx.dealer.findUnique({ where: { id: input.dealer_id } });
+      if (dealer) {
+        await tx.dealer.update({
+          where: { id: input.dealer_id },
+          data: { current_balance: dealer.current_balance - input.amount }
+        });
+      }
+
+      return transaction;
+    });
   }
 }

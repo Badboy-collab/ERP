@@ -174,7 +174,7 @@ export default function ExpiryReportPage() {
                         {item.available_kg.toLocaleString()} kg
                       </td>
                       <td className="p-3 text-right font-mono text-white font-extrabold print:text-slate-900">
-                        {item.available_bag} bags
+                        {item.available_kg} Kg ({item.available_bag} bags)
                       </td>
                       <td className="p-3 font-mono text-slate-400 print:text-slate-800">
                         {new Date(item.mfg_date).toLocaleDateString()}

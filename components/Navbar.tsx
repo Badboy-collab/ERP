@@ -5,9 +5,9 @@ import { useState, useEffect } from "react";
 import {
   Factory, PackageCheck, Layers, ClipboardList, Printer,
   ShieldAlert, BarChart3, AlertTriangle, ListOrdered,
-  UserCircle, ChevronDown, X, ShieldCheck, Users
+  UserCircle, ChevronDown, X, ShieldCheck, Users, DollarSign
 } from "lucide-react";
-import { getSessionUser, setSessionUser, clearSessionUser, SessionUser } from "@/lib/userSession";
+import { getSessionUser, setSessionUser, clearSessionUser, SessionUser, hasPermission } from "@/lib/userSession";
 
 export default function Navbar() {
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
@@ -34,18 +34,34 @@ export default function Navbar() {
     }
   };
 
-  const handleSelectUser = (user: SessionUser) => {
-    setSessionUser(user);
-    setCurrentUser(user);
-    setShowSwitcher(false);
-    window.location.reload();
+  const handleSelectUser = async (user: SessionUser) => {
+    try {
+      const res = await fetch("/api/auth/switch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id }),
+      });
+      if (res.ok) {
+        setSessionUser(user);
+        setCurrentUser(user);
+        setShowSwitcher(false);
+        window.location.href = "/dashboard";
+      }
+    } catch (err) {
+      console.error("Failed to switch user", err);
+    }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (err) {
+      console.error("Failed to logout session", err);
+    }
     clearSessionUser();
     setCurrentUser(null);
     setShowSwitcher(false);
-    window.location.reload();
+    window.location.href = "/";
   };
 
   const roleColor = (role: string) => {
@@ -74,37 +90,55 @@ export default function Navbar() {
             </div>
 
             <nav className="hidden md:flex items-center space-x-1">
-              <Link href="/" className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">
+              <Link href="/dashboard" className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">
                 Dashboard
               </Link>
-              <Link href="/pos" className="px-3 py-2 rounded-lg text-sm font-medium bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-900/50 transition-all flex items-center space-x-1.5">
-                <PackageCheck className="w-4 h-4" />
-                <span>POS Entry</span>
-              </Link>
-              <Link href="/orders/list" className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center space-x-1.5">
-                <ListOrdered className="w-4 h-4 text-emerald-400" />
-                <span>D.O List</span>
-              </Link>
-              <Link href="/reports/stock" className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center space-x-1.5">
-                <BarChart3 className="w-4 h-4 text-emerald-400" />
-                <span>Stock Report</span>
-              </Link>
-              <Link href="/reports/expiry" className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center space-x-1.5">
-                <AlertTriangle className="w-4 h-4 text-rose-400" />
-                <span>Expiry Report</span>
-              </Link>
+              {hasPermission(currentUser, 'can_create_sales') && (
+                <Link href="/pos" className="px-3 py-2 rounded-lg text-sm font-medium bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-900/50 transition-all flex items-center space-x-1.5">
+                  <PackageCheck className="w-4 h-4" />
+                  <span>POS Entry</span>
+                </Link>
+              )}
+              {hasPermission(currentUser, 'can_create_do') && (
+                <>
+                  <Link href="/orders/list" className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center space-x-1.5">
+                    <ListOrdered className="w-4 h-4 text-emerald-400" />
+                    <span>D.O List</span>
+                  </Link>
+                  <Link href="/orders" className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center space-x-1.5">
+                    <ClipboardList className="w-4 h-4" />
+                    <span>DO & Receive</span>
+                  </Link>
+                </>
+              )}
+              {hasPermission(currentUser, 'can_view_reports') && (
+                <>
+                  <Link href="/reports/stock" className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center space-x-1.5">
+                    <BarChart3 className="w-4 h-4 text-emerald-400" />
+                    <span>Stock Report</span>
+                  </Link>
+                  <Link href="/reports/expiry" className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center space-x-1.5">
+                    <AlertTriangle className="w-4 h-4 text-rose-400" />
+                    <span>Expiry Report</span>
+                  </Link>
+                </>
+              )}
               <Link href="/invoices" className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center space-x-1.5">
                 <Printer className="w-4 h-4" />
                 <span>Challans</span>
               </Link>
-              <Link href="/orders" className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center space-x-1.5">
-                <ClipboardList className="w-4 h-4" />
-                <span>DO & Receive</span>
-              </Link>
-              <Link href="/admin" className="px-3 py-2 rounded-lg text-sm font-medium text-amber-400 hover:bg-amber-950/40 border border-amber-800/60 transition-colors flex items-center space-x-1.5">
-                <ShieldAlert className="w-4 h-4" />
-                <span>Admin Panel</span>
-              </Link>
+              {hasPermission(currentUser, 'can_view_accounting') && (
+                <Link href="/accounting" className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center space-x-1.5">
+                  <DollarSign className="w-4 h-4 text-emerald-400" />
+                  <span>Accounting</span>
+                </Link>
+              )}
+              {currentUser?.role === "SUPER_ADMIN" && (
+                <Link href="/admin" className="px-3 py-2 rounded-lg text-sm font-medium text-amber-400 hover:bg-amber-950/40 border border-amber-800/60 transition-colors flex items-center space-x-1.5">
+                  <ShieldAlert className="w-4 h-4" />
+                  <span>Admin Panel</span>
+                </Link>
+              )}
             </nav>
 
             {/* Active User Badge */}
