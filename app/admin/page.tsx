@@ -258,6 +258,7 @@ export default function AdminPage() {
     setEditingUserId(user.id);
     setUserRole(user.role);
     setUserDepotId(user.depot_id || "");
+    setUserPassword(""); // Clear password field by default when editing starts
     setUserPermissions({
       can_create_do: user.can_create_do,
       can_edit_sales: user.can_edit_sales,
@@ -279,12 +280,14 @@ export default function AdminPage() {
           id: userId,
           role: userRole,
           depot_id: userRole === "SUPER_ADMIN" ? null : userDepotId || null,
+          password: userPassword, // Include password if user types one to change it
           ...userPermissions,
         }),
       });
       if (!res.ok) throw new Error("Failed to update user");
       setMessage({ type: "success", text: "User updated successfully!" });
       setEditingUserId(null);
+      setUserPassword(""); // Clear password field state
       fetchInitialData();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
@@ -573,9 +576,23 @@ export default function AdminPage() {
                   </div>
                 </>
               ) : (
-                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs">
-                  <p className="font-bold text-slate-300">Modifying Role & Permissions for User:</p>
-                  <p className="text-emerald-400 font-black mt-1">{users.find(u => u.id === editingUserId)?.name}</p>
+                <div className="space-y-3">
+                  <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs">
+                    <p className="font-bold text-slate-300">Modifying Role & Permissions for User:</p>
+                    <p className="text-emerald-400 font-black mt-1">{users.find(u => u.id === editingUserId)?.name}</p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Change Password (Leave blank to keep current)
+                    </label>
+                    <input
+                      type="password"
+                      value={userPassword}
+                      onChange={(e) => setUserPassword(e.target.value)}
+                      placeholder="New Password (optional)"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white"
+                    />
+                  </div>
                 </div>
               )}
 

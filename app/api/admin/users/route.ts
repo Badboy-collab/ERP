@@ -47,15 +47,20 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { id, ...data } = body;
+    const { id, password, ...data } = body;
     
     if (!id) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
+    const updateData: any = { ...data };
+    if (password && password.trim() !== "") {
+      updateData.password_hash = await bcrypt.hash(password, 10);
+    }
+
     const user = await prisma.user.update({
       where: { id },
-      data,
+      data: updateData,
       include: { depot: true },
     });
     return NextResponse.json(user);

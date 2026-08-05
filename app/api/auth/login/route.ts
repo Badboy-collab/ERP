@@ -11,9 +11,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Username and password are required" }, { status: 400 });
     }
 
-    // Find user (email acts as username)
-    const user = await prisma.user.findUnique({
-      where: { email },
+    // Find user (by email/username or display name case-insensitively)
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: { equals: email, mode: "insensitive" } },
+          { name: { equals: email, mode: "insensitive" } }
+        ]
+      },
       include: { depot: true }
     });
 
@@ -21,8 +26,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    // Check password
-    const isMatch = await bcrypt.compare(password, user.password_hash);
+    // Check password (support legacy plaintext check and automatic bcrypt upgrade)
+    let isMatch = false;
+    if (user.password_hash.startsWith("$2b$") || user.password_hash.startsWith("$2a$") || user.password_hash.startsWith("$2y$")) {
+      isMatch = await bcrypt.compare(password, user.password_hash);
+    } else {
+      isMatch = password === user.password_hash;
+      if (isMatch) {
+        // Automatically upgrade legacy plaintext password to bcrypt hash
+        const hashed = await bcrypt.hash(password, 10);
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { password_hash: hashed }
+        });
+      }
+    }
+
     if (!isMatch) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
