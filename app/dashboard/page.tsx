@@ -54,8 +54,8 @@ export default async function DashboardPage() {
   const expiryReport = await ERPService.getDetailedExpiryReport(depotId || undefined);
   const criticalExpiringLots = expiryReport.filter((l) => l.status !== "ACTIVE");
 
-  // Realtime Stock Report filtered by depot
-  const realTimeStock = await ERPService.getRealtimeStockReport(depotId || undefined);
+  // Realtime Stock Report filtered by depot (hiding zero stock items)
+  const realTimeStock = (await ERPService.getRealtimeStockReport(depotId || undefined)).filter(r => r.balance_kg > 0);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
-import { Package, Printer, RefreshCw, Filter, Layers } from "lucide-react";
+import { Package, Printer, RefreshCw, Filter, Layers, Calendar, Eye, EyeOff } from "lucide-react";
+import { getSessionUser, SessionUser } from "@/lib/userSession";
 
 interface StockRow {
   product_id: string;
@@ -30,18 +31,26 @@ interface Depot {
 }
 
 export default function StockReportPage() {
+  const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [stockData, setStockData] = useState<StockRow[]>([]);
   const [depots, setDepots] = useState<Depot[]>([]);
   const [selectedDepotId, setSelectedDepotId] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [showZeroStock, setShowZeroStock] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    const user = getSessionUser();
+    setCurrentUser(user);
+    if (user && user.role !== "SUPER_ADMIN" && user.depot_id) {
+      setSelectedDepotId(user.depot_id);
+    }
     fetchDepots();
   }, []);
 
   useEffect(() => {
     fetchStockData();
-  }, [selectedDepotId]);
+  }, [selectedDepotId, selectedDate]);
 
   const fetchDepots = async () => {
     try {
@@ -55,9 +64,11 @@ export default function StockReportPage() {
   const fetchStockData = async () => {
     setLoading(true);
     try {
-      const url = selectedDepotId
-        ? `/api/reports/stock?depot_id=${selectedDepotId}`
-        : `/api/reports/stock`;
+      const params = new URLSearchParams();
+      if (selectedDepotId) params.append("depot_id", selectedDepotId);
+      if (selectedDate) params.append("date", selectedDate);
+
+      const url = `/api/reports/stock?${params.toString()}`;
       const res = await fetch(url);
       if (res.ok) setStockData(await res.json());
     } catch (err) {
@@ -71,7 +82,9 @@ export default function StockReportPage() {
     window.print();
   };
 
-  const totals = stockData.reduce(
+  const displayedStock = showZeroStock ? stockData : stockData.filter(r => r.balance_kg > 0);
+
+  const totals = displayedStock.reduce(
     (acc, row) => ({
       opening_kg: acc.opening_kg + row.opening_kg,
       received_kg: acc.received_kg + row.received_kg,
@@ -104,22 +117,53 @@ export default function StockReportPage() {
           </div>
 
           {/* Controls (Hidden in Print) */}
-          <div className="flex items-center space-x-3 print:hidden">
+          <div className="flex flex-wrap items-center gap-3 print:hidden">
+            {/* Date Selection Filter */}
             <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
-              <Filter className="w-3.5 h-3.5 text-emerald-400" />
-              <select
-                value={selectedDepotId}
-                onChange={(e) => setSelectedDepotId(e.target.value)}
+              <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
                 className="bg-transparent text-white font-semibold focus:outline-none"
-              >
-                <option value="" className="bg-slate-900">All Depots Consolidated</option>
-                {depots.map((d) => (
-                  <option key={d.id} value={d.id} className="bg-slate-900">
-                    {d.name} ({d.code})
-                  </option>
-                ))}
-              </select>
+              />
             </div>
+
+            {/* Zero Stock Toggle Button */}
+            <button
+              onClick={() => setShowZeroStock(!showZeroStock)}
+              className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${
+                showZeroStock
+                  ? "bg-amber-950/60 border-amber-800 text-amber-300"
+                  : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
+              }`}
+            >
+              {showZeroStock ? <Eye className="w-3.5 h-3.5 text-amber-400" /> : <EyeOff className="w-3.5 h-3.5 text-slate-400" />}
+              <span>{showZeroStock ? "Showing Out of Stock" : "Hide Out of Stock"}</span>
+            </button>
+
+            {/* Depot Selector (Super Admin Only) */}
+            {currentUser?.role === "SUPER_ADMIN" ? (
+              <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
+                <Filter className="w-3.5 h-3.5 text-emerald-400" />
+                <select
+                  value={selectedDepotId}
+                  onChange={(e) => setSelectedDepotId(e.target.value)}
+                  className="bg-transparent text-white font-semibold focus:outline-none"
+                >
+                  <option value="" className="bg-slate-900">All Depots Consolidated</option>
+                  {depots.map((d) => (
+                    <option key={d.id} value={d.id} className="bg-slate-900">
+                      {d.name} ({d.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-400">
+                {depots.find(d => d.id === selectedDepotId)?.name || "Assigned Depot"}
+              </div>
+            )}
 
             <button
               onClick={fetchStockData}
@@ -180,14 +224,14 @@ export default function StockReportPage() {
                       Calculating real-time stock balances...
                     </td>
                   </tr>
-                ) : stockData.length === 0 ? (
+                ) : displayedStock.length === 0 ? (
                   <tr>
                     <td colSpan={10} className="text-center py-12 text-slate-500">
-                      No feed product stock records found.
+                      No feed product stock records found matching filters.
                     </td>
                   </tr>
                 ) : (
-                  stockData.map((row) => (
+                  displayedStock.map((row) => (
                     <tr key={row.product_id} className="hover:bg-slate-800/40 transition-colors">
                       <td className="p-3 font-semibold text-slate-100 print:text-slate-900">
                         <span className="text-[10px] text-emerald-400 block font-normal uppercase print:text-slate-600">

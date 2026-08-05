@@ -6,6 +6,7 @@ import { PlusCircle, ClipboardList, ArrowDownCircle, CheckCircle, Building2 } fr
 import SearchableSelect from "@/components/SearchableSelect";
 import DualQuantityInput from "@/components/DualQuantityInput";
 import PendingTransfersWidget from "@/components/PendingTransfersWidget";
+import { getSessionUser, SessionUser } from "@/lib/userSession";
 
 interface Depot {
   id: string;
@@ -44,6 +45,7 @@ interface DeliveryOrder {
 
 export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState<"orders" | "receives">("orders");
+  const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
 
   const [depots, setDepots] = useState<Depot[]>([]);
   const [selectedDepotId, setSelectedDepotId] = useState<string>("");
@@ -61,6 +63,7 @@ export default function OrdersPage() {
 
   // Stock Receive Form State
   const [receiveInvoiceNo, setReceiveInvoiceNo] = useState<string>(`RCV-${Date.now().toString().slice(-6)}`);
+  const [rcvSupplierChallanNo, setRcvSupplierChallanNo] = useState<string>("");
   const [rcvProductId, setRcvProductId] = useState<string>("");
   const [rcvLotNo, setRcvLotNo] = useState<string>(`LOT-${new Date().getFullYear()}-001`);
   const [rcvMfgDate, setRcvMfgDate] = useState<string>(new Date().toISOString().split("T")[0]);
@@ -111,6 +114,9 @@ export default function OrdersPage() {
 
   const fetchInitialData = async () => {
     try {
+      const user = getSessionUser();
+      setCurrentUser(user);
+
       const [depRes, pRes, oRes] = await Promise.all([
         fetch("/api/admin/depots"),
         fetch("/api/products"),
@@ -119,7 +125,11 @@ export default function OrdersPage() {
       if (depRes.ok) {
         const depotList: Depot[] = await depRes.json();
         setDepots(depotList);
-        if (depotList.length > 0) setSelectedDepotId(depotList[0].id);
+        if (user && user.role !== "SUPER_ADMIN" && user.depot_id) {
+          setSelectedDepotId(user.depot_id);
+        } else if (depotList.length > 0 && !selectedDepotId) {
+          setSelectedDepotId(depotList[0].id);
+        }
       }
       if (pRes.ok) setProducts(await pRes.json());
       if (oRes.ok) setOrdersList(await oRes.json());
@@ -163,8 +173,8 @@ export default function OrdersPage() {
 
   const handleCreateReceive = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedDepotId || !rcvProductId || !rcvLotNo || !rcvMfgDate || !rcvExpDate || !rcvQuantity) {
-      setMessage({ type: "error", text: "Please fill in all stock receiving fields." });
+    if (!selectedDepotId || !rcvProductId || !rcvLotNo || !rcvMfgDate || !rcvExpDate || !rcvQuantity || !rcvSupplierChallanNo) {
+      setMessage({ type: "error", text: "Please fill in all stock receiving fields including Factory/Supplier Challan No." });
       return;
     }
 
@@ -175,6 +185,7 @@ export default function OrdersPage() {
         body: JSON.stringify({
           depot_id: selectedDepotId,
           invoice_no: receiveInvoiceNo,
+          supplier_challan_no: rcvSupplierChallanNo,
           product_id: rcvProductId,
           lot_no: rcvLotNo,
           mfg_date: rcvMfgDate,
@@ -190,6 +201,7 @@ export default function OrdersPage() {
         text: `Stock Received & New Lot ${rcvLotNo} generated in LotTracker!`,
       });
       setReceiveInvoiceNo(`RCV-${Date.now().toString().slice(-6)}`);
+      setRcvSupplierChallanNo("");
       setRcvQuantity("");
       fetchInitialData();
     } catch (err: any) {
@@ -434,18 +446,24 @@ export default function OrdersPage() {
             <form onSubmit={handleCreateReceive} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">Target Depot *</label>
-                <SearchableSelect
-                  options={depotOptions}
-                  value={selectedDepotId}
-                  onChange={setSelectedDepotId}
-                  placeholder="Select Target Depot..."
-                />
+                {currentUser?.role === "SUPER_ADMIN" ? (
+                  <SearchableSelect
+                    options={depotOptions}
+                    value={selectedDepotId}
+                    onChange={setSelectedDepotId}
+                    placeholder="Select Target Depot..."
+                  />
+                ) : (
+                  <div className="bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-emerald-400 font-bold">
+                    {depots.find(d => d.id === selectedDepotId)?.name || "Assigned Depot"}
+                  </div>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Receive Invoice No
+                    Receive System Ref No
                   </label>
                   <input
                     type="text"
@@ -457,7 +475,21 @@ export default function OrdersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Product</label>
+                  <label className="block text-xs font-semibold text-amber-300 mb-1">
+                    Factory/Supplier Challan No *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. F-CH-2026-992"
+                    value={rcvSupplierChallanNo}
+                    onChange={(e) => setRcvSupplierChallanNo(e.target.value)}
+                    className="w-full bg-slate-950 border border-amber-900/60 rounded-xl px-3.5 py-2 text-sm text-amber-200 font-mono font-bold"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Product *</label>
                   <SearchableSelect
                     options={productOptions}
                     value={rcvProductId}

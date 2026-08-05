@@ -24,6 +24,7 @@ export interface CreateInvoiceTransactionInput {
 export interface CreateReceiveInput {
   depot_id: string;
   invoice_no: string;
+  supplier_challan_no?: string;
   product_id: string;
   lot_no: string;
   mfg_date: Date;
@@ -137,6 +138,7 @@ export class ERPService {
         data: {
           depot_id: input.depot_id,
           invoice_no: input.invoice_no,
+          supplier_challan_no: input.supplier_challan_no || null,
           receive_date: input.receive_date ? new Date(input.receive_date) : new Date(),
           product_id: input.product_id,
           lot_id: lot.id,
@@ -417,19 +419,24 @@ export class ERPService {
   /**
    * Real-Time Stock Display
    */
-  static async getRealtimeStockReport(depot_id?: string) {
+  static async getRealtimeStockReport(depot_id?: string, asOfDate?: string) {
     const products = await prisma.product.findMany({
-      orderBy: [{ category: "asc" }, { name: "asc" }],
+      orderBy: [{ sort_order: "asc" }, { category: "asc" }, { code: "asc" }],
     });
 
     const depotFilter = depot_id ? { depot_id } : {};
+    const dateFilter = asOfDate ? { lte: new Date(asOfDate + "T23:59:59.999Z") } : undefined;
 
     return Promise.all(
       products.map(async (prod) => {
         const bagSize = prod.bag_size_kg || 50.0;
 
         const rxAgg = await prisma.receiveLog.aggregate({
-          where: { product_id: prod.id, ...depotFilter },
+          where: {
+            product_id: prod.id,
+            ...depotFilter,
+            ...(dateFilter ? { receive_date: dateFilter } : {}),
+          },
           _sum: { quantity: true },
         });
 
@@ -438,6 +445,7 @@ export class ERPService {
             product_id: prod.id,
             transaction_type: { in: ["SALES", "DELIVERY"] },
             ...depotFilter,
+            ...(dateFilter ? { date: dateFilter } : {}),
           },
           _sum: { quantity: true },
         });
@@ -447,6 +455,7 @@ export class ERPService {
             product_id: prod.id,
             transaction_type: "FACTORY_RETURN",
             ...depotFilter,
+            ...(dateFilter ? { date: dateFilter } : {}),
           },
           _sum: { quantity: true },
         });
@@ -457,7 +466,8 @@ export class ERPService {
             where: {
               product_id: prod.id,
               depot_id,
-              lot_no: { startsWith: "OPENING" }
+              lot_no: { startsWith: "OPENING" },
+              ...(dateFilter ? { createdAt: dateFilter } : {}),
             },
             _sum: { initial_qty: true }
           });
@@ -466,7 +476,8 @@ export class ERPService {
           const openingLots = await prisma.lotTracker.aggregate({
             where: {
               product_id: prod.id,
-              lot_no: { startsWith: "OPENING" }
+              lot_no: { startsWith: "OPENING" },
+              ...(dateFilter ? { createdAt: dateFilter } : {}),
             },
             _sum: { initial_qty: true }
           });

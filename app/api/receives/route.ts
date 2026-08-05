@@ -2,12 +2,19 @@ import { NextResponse } from "next/server";
 import { ERPService } from "@/lib/services/erpService";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+    const depotId = searchParams.get("depot_id") || undefined;
+
     const receives = await prisma.receiveLog.findMany({
+      where: {
+        ...(depotId ? { depot_id: depotId } : {}),
+      },
       include: {
         product: true,
         lot: true,
+        depot: true,
       },
       orderBy: { receive_date: "desc" },
       take: 50,

@@ -77,9 +77,10 @@ export default function AdminPage() {
   // Product Form State
   const [prodCode, setProdCode] = useState("");
   const [prodName, setProdName] = useState("");
-  const [prodCategory, setProdCategory] = useState("Poultry Feed");
+  const [prodCategory, setProdCategory] = useState("Broiler");
   const [prodBagSize, setProdBagSize] = useState<number>(50.0);
   const [prodOpeningStock, setProdOpeningStock] = useState<number>(0);
+  const [prodSortOrder, setProdSortOrder] = useState<number>(0);
 
   // Dealer Form State
   const [dealerName, setDealerName] = useState("");
@@ -186,6 +187,7 @@ export default function AdminPage() {
           category: prodCategory,
           bag_size_kg: prodBagSize,
           opening_stock: prodOpeningStock,
+          sort_order: prodSortOrder,
         }),
       });
       if (!res.ok) throw new Error("Failed to create product");
@@ -193,6 +195,7 @@ export default function AdminPage() {
       setProdCode("");
       setProdName("");
       setProdOpeningStock(0);
+      setProdSortOrder(0);
       fetchInitialData();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
@@ -503,12 +506,21 @@ export default function AdminPage() {
                 <input type="text" value={prodName} onChange={(e) => setProdName(e.target.value)} placeholder="e.g. Broiler Starter (C) 510" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" required />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Category</label>
-                <select value={prodCategory} onChange={(e) => setProdCategory(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white">
-                  <option>Poultry Feed</option>
-                  <option>Fish Feed</option>
-                  <option>Cattle Feed</option>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Category *</label>
+                <select value={prodCategory} onChange={(e) => setProdCategory(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold">
+                  <option value="Broiler">Broiler</option>
+                  <option value="Layer">Layer</option>
+                  <option value="Sonali">Sonali</option>
+                  <option value="Cattle">Cattle</option>
+                  <option value="Nursery">Nursery</option>
+                  <option value="Floating Oil Coated">Floating Oil Coated</option>
+                  <option value="Floating Non Oil Coated">Floating Non Oil Coated</option>
+                  <option value="Sinking">Sinking</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Sort Order (Spreadsheet Sequence #)</label>
+                <input type="number" value={prodSortOrder} onChange={(e) => setProdSortOrder(Number(e.target.value))} placeholder="e.g. 1, 2, 3..." className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">Bag Size (Kg) *</label>
