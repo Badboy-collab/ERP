@@ -1,0 +1,172 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Depot {
+  id        String   @id @default(uuid())
+  code      String   @unique // e.g. DEP-MYM, DEP-BOG
+  name      String
+  address   String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users          User[]
+  lots           LotTracker[]
+  deliveryOrders DeliveryOrder[]
+  invoices       Invoice[]
+  salesLogs      SalesLog[]
+  receiveLogs    ReceiveLog[]
+}
+
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  password_hash String
+  role          String   @default("OPERATOR") // SUPER_ADMIN, DEPOT_ADMIN, OPERATOR
+  depot_id      String?
+  depot         Depot?   @relation(fields: [depot_id], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Product {
+  id            String       @id @default(uuid())
+  code          String       @unique
+  name          String
+  category      String       @default("Poultry Feed") // Poultry Feed, Fish Feed, Cattle Feed
+  bag_size_kg   Float        @default(50.0)
+  opening_stock Int          @default(0) // Bags
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  lots          LotTracker[]
+  orderItems    OrderItem[]
+  receiveLogs   ReceiveLog[]
+  salesLogs     SalesLog[]
+}
+
+model Dealer {
+  id              String          @id @default(uuid())
+  name            String
+  phone           String
+  address         String?
+  current_balance Float           @default(0.0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  deliveryOrders  DeliveryOrder[]
+  invoices        Invoice[]
+  salesLogs       SalesLog[]
+}
+
+model LotTracker {
+  id                 String       @id @default(uuid())
+  depot_id           String
+  depot              Depot        @relation(fields: [depot_id], references: [id], onDelete: Cascade)
+  product_id         String
+  product            Product      @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  lot_no             String
+  mfg_date           DateTime
+  exp_date           DateTime
+  initial_qty        Int
+  sold_qty           Int          @default(0)
+  factory_return_qty Int          @default(0)
+  transfer_qty       Int          @default(0)
+  available_qty      Int
+  status             String       @default("Active") // Active, Expired, Depleted
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  receiveLogs        ReceiveLog[]
+  salesLogs          SalesLog[]
+}
+
+model DeliveryOrder {
+  id         String      @id @default(uuid())
+  depot_id   String
+  depot      Depot       @relation(fields: [depot_id], references: [id], onDelete: Cascade)
+  dealer_id  String
+  dealer     Dealer      @relation(fields: [dealer_id], references: [id], onDelete: Cascade)
+  order_no   String      @unique
+  order_date DateTime    @default(now())
+  status     String      @default("Pending") // Pending, Complete
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  items      OrderItem[]
+  invoices   Invoice[]
+  salesLogs  SalesLog[]
+}
+
+model OrderItem {
+  id            String        @id @default(uuid())
+  order_id      String
+  order         DeliveryOrder @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  product_id    String
+  product       Product       @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  ordered_qty   Int
+  delivered_qty Int           @default(0)
+  pending_qty   Int
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Invoice {
+  id               String         @id @default(uuid())
+  depot_id         String
+  depot            Depot          @relation(fields: [depot_id], references: [id], onDelete: Cascade)
+  invoice_no       String         @unique
+  transaction_type String         @default("SALES") // SALES, DELIVERY, TRANSFER_OUT, TRANSFER_IN, FACTORY_RETURN
+  date             DateTime       @default(now())
+  dealer_id        String?
+  dealer           Dealer?        @relation(fields: [dealer_id], references: [id], onDelete: SetNull)
+  order_id         String?
+  order            DeliveryOrder? @relation(fields: [order_id], references: [id], onDelete: SetNull)
+  destination      String?
+  notes            String?
+  createdAt        DateTime       @default(now())
+
+  items            SalesLog[]
+}
+
+model ReceiveLog {
+  id           String     @id @default(uuid())
+  depot_id     String
+  depot        Depot      @relation(fields: [depot_id], references: [id], onDelete: Cascade)
+  invoice_no   String
+  receive_date DateTime   @default(now())
+  product_id   String
+  product      Product    @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  lot_id       String
+  lot          LotTracker @relation(fields: [lot_id], references: [id], onDelete: Cascade)
+  quantity     Int
+  createdAt    DateTime   @default(now())
+}
+
+model SalesLog {
+  id               String         @id @default(uuid())
+  invoice_id       String?
+  invoice          Invoice?       @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  depot_id         String
+  depot            Depot          @relation(fields: [depot_id], references: [id], onDelete: Cascade)
+  invoice_no       String
+  transaction_type String         @default("SALES")
+  date             DateTime       @default(now())
+  dealer_id        String?
+  dealer           Dealer?        @relation(fields: [dealer_id], references: [id], onDelete: SetNull)
+  order_id         String?
+  order            DeliveryOrder? @relation(fields: [order_id], references: [id], onDelete: SetNull)
+  product_id       String
+  product          Product        @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  lot_id           String
+  lot              LotTracker     @relation(fields: [lot_id], references: [id], onDelete: Cascade)
+  quantity         Int
+  createdAt        DateTime       @default(now())
+}
