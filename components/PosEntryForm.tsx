@@ -5,6 +5,7 @@ import { Send, Zap, Calendar, User, Package, Layers, Hash, FileText, CheckCircle
 import { ChallanInvoice } from "@/components/ChallanModal";
 import SearchableSelect from "@/components/SearchableSelect";
 import DualQuantityInput from "@/components/DualQuantityInput";
+import { getSessionUser, SessionUser } from "@/lib/userSession";
 
 interface Depot {
   id: string;
@@ -56,11 +57,16 @@ interface PosEntryFormProps {
 export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntryFormProps) {
   const [transactionType, setTransactionType] = useState<"SALES" | "DELIVERY" | "TRANSFER_OUT" | "FACTORY_RETURN">("SALES");
 
+  const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [depots, setDepots] = useState<Depot[]>([]);
   const [depotId, setDepotId] = useState<string>("");
   const [dealers, setDealers] = useState<Dealer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<DeliveryOrder[]>([]);
+
+  // Transfer State
+  const [transferTargetType, setTransferTargetType] = useState<"DEPOT" | "FACTORY">("DEPOT");
+  const [destinationDepotId, setDestinationDepotId] = useState<string>("");
 
   // Form Header State
   const [date, setDate] = useState<string>(new Date().toISOString().split("T")[0]);
@@ -85,6 +91,9 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
 
   const fetchInitialData = async () => {
     try {
+      const user = getSessionUser();
+      setCurrentUser(user);
+
       const [depRes, pRes] = await Promise.all([
         fetch("/api/admin/depots"),
         fetch("/api/products"),
@@ -92,7 +101,11 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
       if (depRes.ok) {
         const depotList: Depot[] = await depRes.json();
         setDepots(depotList);
-        if (depotList.length > 0) setDepotId(depotList[0].id);
+        if (user && user.role !== "SUPER_ADMIN" && user.depot_id) {
+          setDepotId(user.depot_id);
+        } else if (depotList.length > 0) {
+          setDepotId(depotList[0].id);
+        }
       }
       if (pRes.ok) setProducts(await pRes.json());
     } catch (err) {
@@ -252,6 +265,42 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
     setMessage(null);
 
     try {
+      if (transactionType === "TRANSFER_OUT") {
+        if (transferTargetType === "DEPOT" && !destinationDepotId) {
+          throw new Error("Please select a receiving destination depot.");
+        }
+
+        for (const item of items) {
+          const res = await fetch("/api/transfers", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              from_depot_id: depotId,
+              to_depot_id: transferTargetType === "FACTORY" ? null : destinationDepotId,
+              product_id: item.product_id,
+              lot_id: item.lot_id,
+              quantity: Number(item.quantity),
+              notes: destination || (transferTargetType === "FACTORY" ? "Returned to Factory" : "Inter-Branch Transfer"),
+              created_by: currentUser?.name || "Depot Operator",
+            }),
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to dispatch stock transfer");
+        }
+
+        setMessage({
+          type: "success",
+          text: transferTargetType === "FACTORY"
+            ? "Stock returned to Factory successfully!"
+            : "Stock dispatched! Status is IN TRANSIT pending receiving at destination depot.",
+        });
+
+        setItems([{ id: Date.now().toString(), product_id: "", lot_id: "", quantity: "", unit_price: "", availableLots: [], fifoLot: null, selectedLotObj: null }]);
+        setInvoiceNo(`INV-${Date.now().toString().slice(-6)}`);
+        return;
+      }
+
       const payload = {
         depot_id: depotId,
         invoice_no: invoiceNo,
@@ -374,14 +423,20 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
-              <Building2 className="w-3.5 h-3.5 text-emerald-400" /> Depot *
+              <Building2 className="w-3.5 h-3.5 text-emerald-400" /> Depot
             </label>
-            <SearchableSelect
-              options={depotOptions}
-              value={depotId}
-              onChange={setDepotId}
-              placeholder="Select Depot..."
-            />
+            {currentUser?.role === "SUPER_ADMIN" ? (
+              <SearchableSelect
+                options={depotOptions}
+                value={depotId}
+                onChange={setDepotId}
+                placeholder="Select Depot..."
+              />
+            ) : (
+              <div className="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-emerald-400 font-bold truncate">
+                {depots.find(d => d.id === depotId)?.name || "Assigned Depot"}
+              </div>
+            )}
           </div>
 
           <div>
@@ -397,30 +452,51 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
-              <User className="w-3.5 h-3.5 text-emerald-400" /> Dealer
-            </label>
-            <SearchableSelect
-              options={dealerOptions}
-              value={dealerId}
-              onChange={setDealerId}
-              placeholder="Select Dealer..."
-            />
-          </div>
+          {transactionType !== "TRANSFER_OUT" ? (
+            <>
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
+                  <User className="w-3.5 h-3.5 text-emerald-400" /> Dealer
+                </label>
+                <SearchableSelect
+                  options={dealerOptions}
+                  value={dealerId}
+                  onChange={setDealerId}
+                  placeholder="Select Dealer..."
+                />
+              </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
-              <FileText className="w-3.5 h-3.5 text-emerald-400" /> Delivery Order
-            </label>
-            <SearchableSelect
-              options={orderOptions}
-              value={orderId}
-              onChange={handleSelectDeliveryOrder}
-              placeholder="Auto-Fill DO..."
-              isDisabled={loadingDO}
-            />
-          </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
+                  <FileText className="w-3.5 h-3.5 text-emerald-400" /> Delivery Order
+                </label>
+                <SearchableSelect
+                  options={orderOptions}
+                  value={orderId}
+                  onChange={handleSelectDeliveryOrder}
+                  placeholder="Auto-Fill DO..."
+                  isDisabled={loadingDO}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-semibold text-amber-300 mb-1 flex items-center gap-1">
+                <Building2 className="w-3.5 h-3.5 text-amber-400" /> Transfer Mode
+              </label>
+              <select
+                value={transferTargetType}
+                onChange={(e) => {
+                  setTransferTargetType(e.target.value as any);
+                  if (e.target.value === "FACTORY") setDestinationDepotId("");
+                }}
+                className="w-full bg-slate-900 border border-amber-900/50 rounded-lg px-3 py-2 text-xs text-amber-300 font-bold"
+              >
+                <option value="DEPOT">Depot to Depot Transfer</option>
+                <option value="FACTORY">Depot to Factory Return</option>
+              </select>
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
@@ -436,18 +512,18 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
           </div>
         </div>
 
-        {transactionType === "TRANSFER_OUT" && (
-          <div>
-            <label className="block text-xs font-semibold text-amber-300 mb-1">
-              Destination / Branch Depot Name
+        {transactionType === "TRANSFER_OUT" && transferTargetType === "DEPOT" && (
+          <div className="bg-amber-950/20 border border-amber-800/40 p-4 rounded-xl space-y-2">
+            <label className="block text-xs font-bold text-amber-300 uppercase tracking-wider">
+              Select Receiving Destination Depot *
             </label>
-            <input
-              type="text"
-              placeholder="e.g. Bogura Regional Feed Store"
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-              className="w-full bg-slate-950 border border-amber-900/50 rounded-xl px-3.5 py-2 text-sm text-white"
-              required
+            <SearchableSelect
+              options={depots
+                .filter((d) => d.id !== depotId)
+                .map((d) => ({ value: d.id, label: `${d.name} (${d.code})` }))}
+              value={destinationDepotId}
+              onChange={setDestinationDepotId}
+              placeholder="Choose Receiving Depot..."
             />
           </div>
         )}

@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import { PlusCircle, ClipboardList, ArrowDownCircle, CheckCircle, Building2 } from "lucide-react";
 import SearchableSelect from "@/components/SearchableSelect";
 import DualQuantityInput from "@/components/DualQuantityInput";
+import PendingTransfersWidget from "@/components/PendingTransfersWidget";
 
 interface Depot {
   id: string;
@@ -91,7 +92,8 @@ export default function OrdersPage() {
   // Auto-fetch Next D.O. Number
   const fetchNextDONumber = async () => {
     try {
-      const res = await fetch("/api/orders/next-number");
+      const url = selectedDepotId ? `/api/orders/next-number?depot_id=${selectedDepotId}` : "/api/orders/next-number";
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setOrderNo(data.order_no);
@@ -105,7 +107,7 @@ export default function OrdersPage() {
     if (activeTab === "orders") {
       fetchNextDONumber();
     }
-  }, [activeTab]);
+  }, [activeTab, selectedDepotId]);
 
   const fetchInitialData = async () => {
     try {
@@ -249,6 +251,13 @@ export default function OrdersPage() {
             </button>
           </div>
         </div>
+
+        {selectedDepotId && (
+          <PendingTransfersWidget
+            depotId={selectedDepotId}
+            onReceiveSuccess={() => fetchInitialData()}
+          />
+        )}
 
         {message && (
           <div

@@ -28,6 +28,8 @@ model Depot {
   receiveLogs          ReceiveLog[]
   financialTransactions FinancialTransaction[]
   depotTransactions    DepotTransaction[]
+  transfersFrom        StockTransfer[]        @relation("TransfersFrom")
+  transfersTo          StockTransfer[]        @relation("TransfersTo")
 }
 
 // ============================================================
@@ -72,6 +74,7 @@ model Product {
   orderItems    OrderItem[]
   receiveLogs   ReceiveLog[]
   salesLogs     SalesLog[]
+  stockTransfers StockTransfer[]
 }
 
 // ============================================================
@@ -117,6 +120,7 @@ model LotTracker {
 
   receiveLogs        ReceiveLog[]
   salesLogs          SalesLog[]
+  stockTransfers     StockTransfer[]
 }
 
 // ============================================================
@@ -252,3 +256,27 @@ model DepotTransaction {
   created_by       String?
   createdAt        DateTime @default(now())
 }
+
+// ============================================================
+// STOCK TRANSFER (Inter-Branch / Factory Transfers)
+// ============================================================
+model StockTransfer {
+  id            String      @id @default(uuid())
+  from_depot_id String?     // Null = Factory
+  fromDepot     Depot?      @relation("TransfersFrom", fields: [from_depot_id], references: [id], onDelete: SetNull)
+  to_depot_id   String?     // Null = Factory
+  toDepot       Depot?      @relation("TransfersTo", fields: [to_depot_id], references: [id], onDelete: SetNull)
+  product_id    String
+  product       Product     @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  lot_id        String?
+  lot           LotTracker? @relation(fields: [lot_id], references: [id], onDelete: SetNull)
+  quantity      Float       // In Kg
+  status        String      @default("IN_TRANSIT") // "IN_TRANSIT", "COMPLETED", "CANCELLED"
+  transfer_date DateTime    @default(now())
+  receive_date  DateTime?
+  created_by    String?
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+

@@ -1,16 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import PosEntryForm from "@/components/PosEntryForm";
 import PendingOrdersWidget from "@/components/PendingOrdersWidget";
+import PendingTransfersWidget from "@/components/PendingTransfersWidget";
 import { RecentSalesTable } from "@/components/RecentSalesTable";
 import ChallanModal, { ChallanInvoice } from "@/components/ChallanModal";
+import { getSessionUser, SessionUser } from "@/lib/userSession";
 
 export default function PosPage() {
+  const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [selectedDealerId, setSelectedDealerId] = useState<string>("");
   const [refreshKey, setRefreshKey] = useState<number>(0);
   const [activeChallan, setActiveChallan] = useState<ChallanInvoice | null>(null);
+
+  useEffect(() => {
+    setCurrentUser(getSessionUser());
+  }, []);
 
   const handleSaleSuccess = (invoice: ChallanInvoice) => {
     setActiveChallan(invoice); // Open printable Challan modal!
@@ -33,6 +40,14 @@ export default function PosPage() {
             </p>
           </div>
         </div>
+
+        {/* Incoming Transfers Banner (If any) */}
+        {currentUser?.depot_id && (
+          <PendingTransfersWidget
+            depotId={currentUser.depot_id}
+            onReceiveSuccess={() => setRefreshKey((prev) => prev + 1)}
+          />
+        )}
 
         {/* Split Screen Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">

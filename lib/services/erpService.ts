@@ -55,15 +55,27 @@ export class ERPService {
   /**
    * Get Next D.O Number
    */
-  static async getNextDONumber() {
+  static async getNextDONumber(depot_id?: string) {
     const today = new Date();
     const yy = String(today.getFullYear()).slice(-2);
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
-    const prefix = `${yy}${mm}${dd}`;
+
+    let depotCode = "DEP";
+    if (depot_id) {
+      const depot = await prisma.depot.findUnique({ where: { id: depot_id } });
+      if (depot && depot.code) {
+        depotCode = depot.code.toUpperCase();
+      }
+    }
+
+    const prefix = `${depotCode}-${yy}${mm}${dd}`;
 
     const lastDO = await prisma.deliveryOrder.findFirst({
-      where: { order_no: { startsWith: prefix } },
+      where: {
+        order_no: { startsWith: prefix },
+        ...(depot_id ? { depot_id } : {})
+      },
       orderBy: { order_no: 'desc' }
     });
 
@@ -376,7 +388,7 @@ export class ERPService {
    * Create Delivery Order
    */
   static async createDeliveryOrder(input: CreateOrderInput) {
-    const final_order_no = input.order_no || await ERPService.getNextDONumber();
+    const final_order_no = input.order_no || await ERPService.getNextDONumber(input.depot_id);
 
     return prisma.deliveryOrder.create({
       data: {
