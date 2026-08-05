@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
-import { PlusCircle, ClipboardList, ArrowDownCircle, CheckCircle, Building2 } from "lucide-react";
+import { PlusCircle, ClipboardList, ArrowDownCircle, CheckCircle, Building2, Calendar } from "lucide-react";
 import SearchableSelect from "@/components/SearchableSelect";
 import DualQuantityInput from "@/components/DualQuantityInput";
 import PendingTransfersWidget from "@/components/PendingTransfersWidget";
@@ -56,6 +56,7 @@ export default function OrdersPage() {
 
   // Delivery Order Form State
   const [orderNo, setOrderNo] = useState<string>("");
+  const [orderDate, setOrderDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [dealerId, setDealerId] = useState<string>("");
   const [orderItems, setOrderItems] = useState<{ product_id: string; ordered_qty: number | "" }[]>([
     { product_id: "", ordered_qty: "" },
@@ -153,6 +154,7 @@ export default function OrdersPage() {
           depot_id: selectedDepotId,
           dealer_id: dealerId,
           order_no: orderNo,
+          order_date: orderDate,
           items: orderItems.map(item => ({
             product_id: item.product_id,
             ordered_qty: Number(item.ordered_qty)
@@ -293,7 +295,7 @@ export default function OrdersPage() {
               </h2>
 
               <form onSubmit={handleCreateOrder} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1">Depot *</label>
                     <SearchableSelect
@@ -310,6 +312,18 @@ export default function OrdersPage() {
                       value={orderNo}
                       readOnly
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-400 font-mono focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-emerald-400" /> Order Date *
+                    </label>
+                    <input
+                      type="date"
+                      value={orderDate}
+                      onChange={(e) => setOrderDate(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono outline-none focus:border-emerald-500 font-bold"
+                      required
                     />
                   </div>
                 </div>
