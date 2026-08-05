@@ -27,6 +27,7 @@ model Depot {
   salesLogs            SalesLog[]
   receiveLogs          ReceiveLog[]
   financialTransactions FinancialTransaction[]
+  depotTransactions    DepotTransaction[]
 }
 
 // ============================================================
@@ -234,4 +235,20 @@ model FinancialTransaction {
   remarks           String?
   reference_invoice String?
   createdAt         DateTime @default(now())
+}
+
+// ============================================================
+// DEPOT TRANSACTION / CASH BOOK (Petty Cash Book)
+// ============================================================
+model DepotTransaction {
+  id               String   @id @default(uuid())
+  depot_id         String
+  depot            Depot    @relation(fields: [depot_id], references: [id], onDelete: Cascade)
+  transaction_type String   // "INCOME" (funds received) or "EXPENSE" (payments)
+  category         String   // Category from Chart of Accounts
+  amount           Float
+  date             DateTime @default(now())
+  remarks          String?
+  created_by       String?
+  createdAt        DateTime @default(now())
 }

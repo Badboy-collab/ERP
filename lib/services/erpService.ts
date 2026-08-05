@@ -675,4 +675,114 @@ export class ERPService {
       return transaction;
     });
   }
+
+  // Petty Cash Categories
+  static FUND_INFLOW_CATEGORIES = [
+    "Opening Balance",
+    "Received From H / O (Head Office)",
+    "LOAN"
+  ];
+
+  static EXPENSE_CATEGORIES = [
+    "Load unload Bill",
+    "Entertainment",
+    "Conveyance",
+    "Unloading Labor bill",
+    "Loading Labor bill",
+    "Electric Materials",
+    "Stationery",
+    "Internet Bill",
+    "Office Maintenance",
+    "Computer Servicing",
+    "Paper Bill",
+    "Transport Bill",
+    "Courier & Postage Bill",
+    "Electric Bill",
+    "Printing & Photocopy",
+    "Godown Rent",
+    "Misc. Expenses",
+    "Ifter Bill",
+    "Carriage Outward Cost"
+  ];
+
+  /**
+   * Record Depot Petty Cash Transaction (INCOME/EXPENSE)
+   */
+  static async recordDepotTransaction(input: {
+    depot_id: string;
+    transaction_type: "INCOME" | "EXPENSE";
+    category: string;
+    amount: number;
+    date?: string | Date;
+    remarks?: string;
+    created_by?: string;
+  }) {
+    // Validate category
+    const validInflow = ERPService.FUND_INFLOW_CATEGORIES.includes(input.category);
+    const validExpense = ERPService.EXPENSE_CATEGORIES.includes(input.category);
+
+    if (input.transaction_type === "INCOME" && !validInflow) {
+      throw new Error(`Invalid fund inflow category: ${input.category}`);
+    }
+    if (input.transaction_type === "EXPENSE" && !validExpense) {
+      throw new Error(`Invalid expense category: ${input.category}`);
+    }
+
+    const txDate = input.date ? new Date(input.date) : new Date();
+
+    return prisma.depotTransaction.create({
+      data: {
+        depot_id: input.depot_id,
+        transaction_type: input.transaction_type,
+        category: input.category,
+        amount: input.amount,
+        date: txDate,
+        remarks: input.remarks || "",
+        created_by: input.created_by || "System",
+      },
+      include: {
+        depot: true
+      }
+    });
+  }
+
+  /**
+   * Get Depot Petty Cash Transactions
+   */
+  static async getDepotTransactions(depot_id?: string) {
+    const filter = depot_id ? { depot_id } : {};
+    return prisma.depotTransaction.findMany({
+      where: filter,
+      include: { depot: true },
+      orderBy: { date: "desc" },
+    });
+  }
+
+  /**
+   * Get Depot Petty Cash Balance
+   */
+  static async getDepotCashBalance(depot_id?: string) {
+    const filter = depot_id ? { depot_id } : {};
+
+    const incomeAgg = await prisma.depotTransaction.aggregate({
+      where: { ...filter, transaction_type: "INCOME" },
+      _sum: { amount: true },
+    });
+
+    const expenseAgg = await prisma.depotTransaction.aggregate({
+      where: { ...filter, transaction_type: "EXPENSE" },
+      _sum: { amount: true },
+    });
+
+    const total_income = incomeAgg._sum.amount || 0;
+    const total_expense = expenseAgg._sum.amount || 0;
+    const balance = total_income - total_expense;
+
+    return {
+      total_income,
+      total_expense,
+      balance,
+    };
+  }
 }
+
