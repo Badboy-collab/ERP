@@ -82,10 +82,10 @@ export default function Navbar() {
               </div>
               <div>
                 <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-emerald-400 bg-clip-text text-transparent">
-                  MATBER AGRO
+                  NEXORA ERP ENTERPRISE
                 </span>
-                <span className="text-xs block text-emerald-400 font-semibold tracking-wider uppercase">
-                  Industries Ltd • Enterprise ERP
+                <span className="text-[10px] block text-emerald-400 font-semibold tracking-wider uppercase">
+                  {currentUser?.org_name || "Matber Agro Industries Ltd."}
                 </span>
               </div>
             </div>

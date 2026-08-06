@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Matber Agro Industries Ltd | ERP System",
+  title: "Nexora ERP Enterprise | Matber Agro Industries Ltd.",
   description:
     "Automated Feed Inventory, Sales POS, Lot Tracking, Delivery Orders & Expiry Control ERP System",
 };
