@@ -1,15 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import { Lock, User, AlertCircle, Loader2, Eye, EyeOff, Factory } from "lucide-react";
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import { Lock, User, AlertCircle, Loader2, Eye, EyeOff, Factory, CheckSquare, Square } from "lucide-react";
 
 export default function LoginPage() {
   const [organization, setOrganization] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const savedOrg = localStorage.getItem("erp_remembered_org");
+    const savedUser = localStorage.getItem("erp_remembered_user");
+    if (savedOrg || savedUser) {
+      if (savedOrg) setOrganization(savedOrg);
+      if (savedUser) setUsername(savedUser);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +46,15 @@ export default function LoginPage() {
         throw new Error(data.error || "Login failed. Please check your credentials.");
       }
 
+      // Handle Remember Me
+      if (rememberMe) {
+        localStorage.setItem("erp_remembered_org", organization);
+        localStorage.setItem("erp_remembered_user", username);
+      } else {
+        localStorage.removeItem("erp_remembered_org");
+        localStorage.removeItem("erp_remembered_user");
+      }
+
       // Sync with existing userSession localStorage for Navbar and client-side permissions
       localStorage.setItem("erp_active_user", JSON.stringify(data.user));
 
@@ -41,6 +62,7 @@ export default function LoginPage() {
       window.location.href = "/dashboard";
     } catch (err: any) {
       setError(err.message);
+      setPassword(""); // Clear only password on fail
     } finally {
       setLoading(false);
     }
@@ -61,7 +83,7 @@ export default function LoginPage() {
 
         <div className="space-y-4 my-auto relative z-10 max-w-lg">
           <div className="bg-white/95 p-3 rounded-2xl inline-block mb-4 w-auto shadow-2xl">
-            <img src="/logo.png" alt="NEXORA ERP ENTERPRISE" className="w-auto h-16 sm:h-20 drop-shadow-[0_0_10px_rgba(0,0,0,0.1)]" />
+            <Image src="/logo.png" alt="NEXORA ERP ENTERPRISE" width={200} height={80} priority className="w-auto h-16 sm:h-20 drop-shadow-[0_0_10px_rgba(0,0,0,0.1)] object-contain" />
           </div>
           <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
             Welcome to <span className="text-emerald-400">NEXORA ERP</span>
@@ -152,6 +174,21 @@ export default function LoginPage() {
                   {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
                 </button>
               </div>
+            </div>
+
+            <div className="flex items-center">
+              <button
+                type="button"
+                onClick={() => setRememberMe(!rememberMe)}
+                className="flex items-center space-x-2 text-slate-300 hover:text-emerald-400 transition-colors"
+              >
+                {rememberMe ? (
+                  <CheckSquare className="w-4 h-4 text-emerald-500" />
+                ) : (
+                  <Square className="w-4 h-4 text-slate-500" />
+                )}
+                <span className="text-xs font-semibold">Remember Me</span>
+              </button>
             </div>
 
             <button
