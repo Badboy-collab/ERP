@@ -5,6 +5,10 @@ import { getSession } from "@/lib/auth";
 
 export async function GET(req: Request) {
   try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const org_id = session.org_id;
+
     const { searchParams } = new URL(req.url);
     const dealerId = searchParams.get("dealer_id") || undefined;
     const depotId = searchParams.get("depot_id") || undefined;
@@ -18,6 +22,7 @@ export async function GET(req: Request) {
     const sortDirection = searchParams.get("sort_direction") === "asc" ? "asc" : "desc";
 
     const whereClause: any = {
+      org_id,
       ...(dealerId ? { dealer_id: dealerId } : {}),
       ...(depotId ? { depot_id: depotId } : {}),
       ...(status ? { status } : {}),
@@ -63,8 +68,12 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const org_id = session.org_id;
+
     const body = await req.json();
-    const result = await ERPService.createDeliveryOrder(body);
+    const result = await ERPService.createDeliveryOrder(org_id, body);
     return NextResponse.json(result, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 });

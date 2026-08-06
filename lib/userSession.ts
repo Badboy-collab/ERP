@@ -3,6 +3,8 @@ export interface SessionUser {
   name: string;
   email: string;
   role: "SUPER_ADMIN" | "ORG_ADMIN" | "DEPOT_ADMIN" | "OPERATOR";
+  org_id: string;
+  org_name: string;
   depot_id: string | null;
   depot: { id: string; name: string; code: string } | null;
   // Granular Permissions

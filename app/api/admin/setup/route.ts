@@ -1,18 +1,15 @@
 import { NextResponse } from "next/server";
 import { ERPService } from "@/lib/services/erpService";
-import { verifyJWT } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
-    const sessionToken = req.headers.get("cookie")
-      ?.split(";")
-      .find((c) => c.trim().startsWith("session="))
-      ?.split("=")[1];
+    const session = await getSession(req);
 
-    const user = sessionToken ? await verifyJWT(sessionToken) : null;
-    if (!user || user.role !== "SUPER_ADMIN") {
+    if (!session || session.role !== "SUPER_ADMIN") {
       return NextResponse.json({ error: "Forbidden: Super Admin only" }, { status: 403 });
     }
+    const org_id = session.org_id;
 
     const body = await req.json();
     const { action } = body;
@@ -23,7 +20,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Missing required fields for stock setup" }, { status: 400 });
       }
 
-      const result = await ERPService.initializeOpeningStock({
+      const result = await ERPService.initializeOpeningStock(org_id, {
         depot_id,
         product_id,
         quantity: parseFloat(quantity)
@@ -37,7 +34,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Missing required fields for petty cash setup" }, { status: 400 });
       }
 
-      const result = await ERPService.initializeOpeningPettyCash({
+      const result = await ERPService.initializeOpeningPettyCash(org_id, {
         depot_id,
         amount: parseFloat(amount)
       });

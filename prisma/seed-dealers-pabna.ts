@@ -24,14 +24,22 @@ const dealers = [
 async function main() {
   console.log("Adding Pabna Depot dealers...\n");
 
+  const org = await prisma.organization.findFirst({ where: { slug: "matber-agro" } });
+  if (!org) {
+    console.error("Organization not found. Please run backfill script first.");
+    return;
+  }
+  const org_id = org.id;
+
   // Find or create Pabna Depot
   let depot = await prisma.depot.findFirst({
-    where: { name: { contains: "Pabna" } }
+    where: { org_id, name: { contains: "Pabna" } }
   });
 
   if (!depot) {
     depot = await prisma.depot.create({
       data: {
+        org_id,
         code: "DEP-PAB",
         name: "Pabna Depot",
         address: "Pabna, Bangladesh",
@@ -41,12 +49,13 @@ async function main() {
   }
 
   for (const dealer of dealers) {
-    const existing = await prisma.dealer.findFirst({ where: { name: dealer.name } });
+    const existing = await prisma.dealer.findFirst({ where: { org_id, name: dealer.name } });
     if (existing) {
       console.log(`  ✓ Already exists: ${dealer.name}`);
     } else {
       await prisma.dealer.create({
         data: {
+          org_id,
           name: dealer.name,
           phone: dealer.phone,
           depot_id: depot.id,

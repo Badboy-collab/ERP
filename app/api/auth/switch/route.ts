@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     // Find the requested user
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: { depot: true }
+      include: { depot: true, organization: true }
     });
 
     if (!user) {
@@ -22,6 +22,8 @@ export async function POST(req: Request) {
 
     // Sign new JWT session
     const payload = {
+      org_id: user.org_id || '',
+      org_name: user.organization?.name || '',
       id: user.id,
       name: user.name,
       email: user.email,

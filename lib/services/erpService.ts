@@ -58,7 +58,7 @@ export class ERPService {
   /**
    * Get Next D.O Number
    */
-  static async getNextDONumber(depot_id?: string) {
+  static async getNextDONumber(org_id: string, depot_id?: string) {
     const today = new Date();
     const yy = String(today.getFullYear()).slice(-2);
     const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -76,6 +76,7 @@ export class ERPService {
 
     const lastDO = await prisma.deliveryOrder.findFirst({
       where: {
+        org_id,
         order_no: { startsWith: prefix },
         ...(depot_id ? { depot_id } : {})
       },
@@ -95,7 +96,7 @@ export class ERPService {
    * Record Stock Receive
    * All quantities are in Kg.
    */
-  static async recordStockReceive(input: CreateReceiveInput) {
+  static async recordStockReceive(org_id: string, input: CreateReceiveInput) {
     if (input.quantity <= 0) {
       throw new Error("Received quantity must be greater than 0.");
     }
@@ -103,6 +104,7 @@ export class ERPService {
     return prisma.$transaction(async (tx) => {
       let lot = await tx.lotTracker.findFirst({
         where: {
+          org_id,
           depot_id: input.depot_id,
           product_id: input.product_id,
           lot_no: input.lot_no,
@@ -121,6 +123,7 @@ export class ERPService {
       } else {
         lot = await tx.lotTracker.create({
           data: {
+            org_id,
             depot_id: input.depot_id,
             product_id: input.product_id,
             lot_no: input.lot_no,
@@ -138,6 +141,7 @@ export class ERPService {
 
       const receiveLog = await tx.receiveLog.create({
         data: {
+          org_id,
           depot_id: input.depot_id,
           invoice_no: input.invoice_no,
           supplier_challan_no: input.supplier_challan_no || null,
@@ -155,7 +159,7 @@ export class ERPService {
   /**
    * Record Multi-Item Invoice Transaction
    */
-  static async recordInvoiceTransaction(input: CreateInvoiceTransactionInput) {
+  static async recordInvoiceTransaction(org_id: string, input: CreateInvoiceTransactionInput) {
     if (!input.items || input.items.length === 0) {
       throw new Error("Transaction must contain at least one item.");
     }
@@ -179,6 +183,7 @@ export class ERPService {
 
       const invoice = await tx.invoice.create({
         data: {
+          org_id,
           depot_id: input.depot_id,
           invoice_no: input.invoice_no,
           transaction_type: input.transaction_type,
@@ -213,6 +218,7 @@ export class ERPService {
 
         await tx.salesLog.create({
           data: {
+            org_id,
             invoice_id: invoice.id,
             depot_id: input.depot_id,
             invoice_no: input.invoice_no,
@@ -303,6 +309,7 @@ export class ERPService {
       if (input.dealer_id && invoiceTotalAmount > 0 && input.transaction_type === "SALES") {
         await tx.financialTransaction.create({
           data: {
+            org_id,
             depot_id: input.depot_id,
             dealer_id: input.dealer_id,
             type: "DEBIT",
@@ -342,9 +349,10 @@ export class ERPService {
   /**
    * FIFO Lot Suggestion
    */
-  static async suggestFIFOLot(product_id: string, depot_id?: string) {
+  static async suggestFIFOLot(org_id: string, product_id: string, depot_id?: string) {
     return prisma.lotTracker.findFirst({
       where: {
+        org_id,
         product_id,
         ...(depot_id ? { depot_id } : {}),
         available_qty: { gt: 0 },
@@ -357,9 +365,9 @@ export class ERPService {
   /**
    * Fetch Delivery Order details for Auto-Population
    */
-  static async getDeliveryOrderForAutoPopulate(order_id: string) {
-    const order = await prisma.deliveryOrder.findUnique({
-      where: { id: order_id },
+  static async getDeliveryOrderForAutoPopulate(org_id: string, order_id: string) {
+    const order = await prisma.deliveryOrder.findFirst({
+      where: { id: order_id, org_id },
       include: {
         dealer: true,
         depot: true,
@@ -374,7 +382,7 @@ export class ERPService {
 
     const itemsWithFifoLots = await Promise.all(
       order.items.map(async (item) => {
-        const fifoLot = await ERPService.suggestFIFOLot(item.product_id, order.depot_id);
+        const fifoLot = await ERPService.suggestFIFOLot(org_id, item.product_id, order.depot_id);
         return {
           ...item,
           suggestedLot: fifoLot,
@@ -391,11 +399,12 @@ export class ERPService {
   /**
    * Create Delivery Order
    */
-  static async createDeliveryOrder(input: CreateOrderInput) {
-    const final_order_no = input.order_no || await ERPService.getNextDONumber(input.depot_id);
+  static async createDeliveryOrder(org_id: string, input: CreateOrderInput) {
+    const final_order_no = input.order_no || await ERPService.getNextDONumber(org_id, input.depot_id);
 
     return prisma.deliveryOrder.create({
       data: {
+        org_id,
         depot_id: input.depot_id,
         dealer_id: input.dealer_id,
         order_no: final_order_no,
@@ -421,6 +430,7 @@ export class ERPService {
   }
 
   static async updateDeliveryOrder(input: {
+    org_id: string;
     id: string;
     dealer_id?: string;
     order_date?: Date;
@@ -528,7 +538,7 @@ export class ERPService {
     });
   }
 
-  static async deleteDeliveryOrder(input: { id: string }) {
+  static async deleteDeliveryOrder(input: { org_id: string; id: string }) {
     return prisma.$transaction(async (tx) => {
       const order = await tx.deliveryOrder.findUnique({
         where: { id: input.id },
@@ -549,8 +559,9 @@ export class ERPService {
   /**
    * Real-Time Stock Display
    */
-  static async getRealtimeStockReport(depot_id?: string, asOfDate?: string) {
+  static async getRealtimeStockReport(org_id: string, depot_id?: string, asOfDate?: string) {
     const products = await prisma.product.findMany({
+      where: { org_id },
       orderBy: [{ sort_order: "asc" }, { category: "asc" }, { code: "asc" }],
     });
 
@@ -563,6 +574,7 @@ export class ERPService {
 
         const rxAgg = await prisma.receiveLog.aggregate({
           where: {
+            org_id,
             product_id: prod.id,
             ...depotFilter,
             ...(dateFilter ? { receive_date: dateFilter } : {}),
@@ -572,6 +584,7 @@ export class ERPService {
 
         const salesAgg = await prisma.salesLog.aggregate({
           where: {
+            org_id,
             product_id: prod.id,
             transaction_type: { in: ["SALES", "DELIVERY"] },
             ...depotFilter,
@@ -582,6 +595,7 @@ export class ERPService {
 
         const returnAgg = await prisma.salesLog.aggregate({
           where: {
+            org_id,
             product_id: prod.id,
             transaction_type: "FACTORY_RETURN",
             ...depotFilter,
@@ -594,6 +608,7 @@ export class ERPService {
         if (depot_id) {
           const openingLots = await prisma.lotTracker.aggregate({
             where: {
+              org_id,
               product_id: prod.id,
               depot_id,
               lot_no: { startsWith: "OPENING" },
@@ -605,6 +620,7 @@ export class ERPService {
         } else {
           const openingLots = await prisma.lotTracker.aggregate({
             where: {
+              org_id,
               product_id: prod.id,
               lot_no: { startsWith: "OPENING" },
               ...(dateFilter ? { createdAt: dateFilter } : {}),
@@ -659,9 +675,10 @@ export class ERPService {
   /**
    * Expiry Report Generation
    */
-  static async getDetailedExpiryReport(depot_id?: string) {
+  static async getDetailedExpiryReport(org_id: string, depot_id?: string) {
     const activeLots = await prisma.lotTracker.findMany({
       where: {
+        org_id,
         available_qty: { gt: 0 },
         lot_no: { not: { startsWith: "OPENING" } },
         ...(depot_id ? { depot_id } : {}),
@@ -714,33 +731,33 @@ export class ERPService {
   /**
    * Lot Reconciliation
    */
-  static async getLotReconciliation(depot_id?: string) {
-    const products = await prisma.product.findMany();
+  static async getLotReconciliation(org_id: string, depot_id?: string) {
+    const products = await prisma.product.findMany({ where: { org_id } });
 
     return Promise.all(
       products.map(async (prod) => {
         const depotFilter = depot_id ? { depot_id } : {};
 
         const lotAgg = await prisma.lotTracker.aggregate({
-          where: { product_id: prod.id, ...depotFilter },
+          where: { org_id, product_id: prod.id, ...depotFilter },
           _sum: { available_qty: true },
         });
         const totalLotAvailable = lotAgg._sum.available_qty || 0;
 
         const rxAgg = await prisma.receiveLog.aggregate({
-          where: { product_id: prod.id, ...depotFilter },
+          where: { org_id, product_id: prod.id, ...depotFilter },
           _sum: { quantity: true },
         });
         const salesAgg = await prisma.salesLog.aggregate({
-          where: { product_id: prod.id, transaction_type: { in: ["SALES", "DELIVERY"] }, ...depotFilter },
+          where: { org_id, product_id: prod.id, transaction_type: { in: ["SALES", "DELIVERY"] }, ...depotFilter },
           _sum: { quantity: true },
         });
         const retAgg = await prisma.salesLog.aggregate({
-          where: { product_id: prod.id, transaction_type: "FACTORY_RETURN", ...depotFilter },
+          where: { org_id, product_id: prod.id, transaction_type: "FACTORY_RETURN", ...depotFilter },
           _sum: { quantity: true },
         });
         const trfAgg = await prisma.salesLog.aggregate({
-          where: { product_id: prod.id, transaction_type: "TRANSFER_OUT", ...depotFilter },
+          where: { org_id, product_id: prod.id, transaction_type: "TRANSFER_OUT", ...depotFilter },
           _sum: { quantity: true },
         });
 
@@ -770,9 +787,9 @@ export class ERPService {
   /**
    * Get Dealer Ledger
    */
-  static async getDealerLedger(dealer_id: string) {
+  static async getDealerLedger(org_id: string, dealer_id: string) {
     const transactions = await prisma.financialTransaction.findMany({
-      where: { dealer_id },
+      where: { org_id, dealer_id },
       orderBy: { date: 'asc' },
       include: { depot: true },
     });
@@ -796,16 +813,16 @@ export class ERPService {
   /**
    * Get Depot Financial Summary
    */
-  static async getDepotFinancialSummary(depot_id?: string) {
+  static async getDepotFinancialSummary(org_id: string, depot_id?: string) {
     const filter = depot_id ? { depot_id } : {};
     
     const debitsAgg = await prisma.financialTransaction.aggregate({
-      where: { ...filter, type: 'DEBIT' },
+      where: { org_id, ...filter, type: 'DEBIT' },
       _sum: { amount: true }
     });
     
     const creditsAgg = await prisma.financialTransaction.aggregate({
-      where: { ...filter, type: 'CREDIT' },
+      where: { org_id, ...filter, type: 'CREDIT' },
       _sum: { amount: true }
     });
 
@@ -823,12 +840,13 @@ export class ERPService {
   /**
    * Record Payment (CREDIT)
    */
-  static async recordPayment(input: PaymentInput) {
+  static async recordPayment(org_id: string, input: PaymentInput) {
     return prisma.$transaction(async (tx) => {
       const txDate = input.date ? new Date(input.date) : new Date();
 
       const transaction = await tx.financialTransaction.create({
         data: {
+          org_id,
           depot_id: input.depot_id,
           dealer_id: input.dealer_id,
           type: "CREDIT",
@@ -882,7 +900,7 @@ export class ERPService {
   /**
    * Record Depot Petty Cash Transaction (INCOME/EXPENSE)
    */
-  static async recordDepotTransaction(input: {
+  static async recordDepotTransaction(org_id: string, input: {
     depot_id: string;
     transaction_type: "INCOME" | "EXPENSE";
     category: string;
@@ -906,6 +924,7 @@ export class ERPService {
 
     return prisma.depotTransaction.create({
       data: {
+        org_id,
         depot_id: input.depot_id,
         transaction_type: input.transaction_type,
         category: input.category,
@@ -923,10 +942,10 @@ export class ERPService {
   /**
    * Get Depot Petty Cash Transactions
    */
-  static async getDepotTransactions(depot_id?: string) {
+  static async getDepotTransactions(org_id: string, depot_id?: string) {
     const filter = depot_id ? { depot_id } : {};
     return prisma.depotTransaction.findMany({
-      where: filter,
+      where: { org_id, ...filter },
       include: { depot: true },
       orderBy: { date: "desc" },
     });
@@ -935,16 +954,16 @@ export class ERPService {
   /**
    * Get Depot Petty Cash Balance
    */
-  static async getDepotCashBalance(depot_id?: string) {
+  static async getDepotCashBalance(org_id: string, depot_id?: string) {
     const filter = depot_id ? { depot_id } : {};
 
     const incomeAgg = await prisma.depotTransaction.aggregate({
-      where: { ...filter, transaction_type: "INCOME" },
+      where: { org_id, ...filter, transaction_type: "INCOME" },
       _sum: { amount: true },
     });
 
     const expenseAgg = await prisma.depotTransaction.aggregate({
-      where: { ...filter, transaction_type: "EXPENSE" },
+      where: { org_id, ...filter, transaction_type: "EXPENSE" },
       _sum: { amount: true },
     });
 
@@ -962,7 +981,7 @@ export class ERPService {
   /**
    * System Setup: Initialize Depot Opening Stock
    */
-  static async initializeOpeningStock(input: { depot_id: string; product_id: string; quantity: number }) {
+  static async initializeOpeningStock(org_id: string, input: { depot_id: string; product_id: string; quantity: number }) {
     const product = await prisma.product.findUnique({ where: { id: input.product_id } });
     if (!product) throw new Error("Product not found");
 
@@ -971,6 +990,7 @@ export class ERPService {
     // Check if opening lot already exists for this depot and product
     const existing = await prisma.lotTracker.findFirst({
       where: {
+        org_id,
         depot_id: input.depot_id,
         product_id: input.product_id,
         lot_no: lotNo
@@ -994,6 +1014,7 @@ export class ERPService {
 
     return prisma.lotTracker.create({
       data: {
+        org_id,
         depot_id: input.depot_id,
         product_id: input.product_id,
         lot_no: lotNo,
@@ -1009,10 +1030,11 @@ export class ERPService {
   /**
    * System Setup: Initialize Opening Petty Cash Balance
    */
-  static async initializeOpeningPettyCash(input: { depot_id: string; amount: number }) {
+  static async initializeOpeningPettyCash(org_id: string, input: { depot_id: string; amount: number }) {
     // Check if opening cash balance already exists
     const existing = await prisma.depotTransaction.findFirst({
       where: {
+        org_id,
         depot_id: input.depot_id,
         category: "Opening Balance"
       }
@@ -1029,6 +1051,7 @@ export class ERPService {
 
     return prisma.depotTransaction.create({
       data: {
+        org_id,
         depot_id: input.depot_id,
         transaction_type: "INCOME",
         category: "Opening Balance",
@@ -1042,7 +1065,7 @@ export class ERPService {
   /**
    * TRANSACTION REVERSAL: Delete Sales Log & Restore Inventory / Ledger
    */
-  static async deleteSalesLog(salesLogId: string) {
+  static async deleteSalesLog(org_id: string, salesLogId: string) {
     return prisma.$transaction(async (tx) => {
       const salesLog = await tx.salesLog.findUnique({
         where: { id: salesLogId },
@@ -1127,7 +1150,7 @@ export class ERPService {
   /**
    * TRANSACTION REVERSAL: Delete Stock Receive Log & Deduct Inventory
    */
-  static async deleteStockReceive(receiveLogId: string) {
+  static async deleteStockReceive(org_id: string, receiveLogId: string) {
     return prisma.$transaction(async (tx) => {
       const receiveLog = await tx.receiveLog.findUnique({
         where: { id: receiveLogId },
@@ -1165,7 +1188,7 @@ export class ERPService {
   /**
    * MASTER OVERRIDE: Update Sales Log & Adjust Inventory / Order / Dealer Balance
    */
-  static async updateSalesLog(input: { id: string; quantity: number; unit_price?: number; date?: Date }) {
+  static async updateSalesLog(org_id: string, input: { id: string; quantity: number; unit_price?: number; date?: Date }) {
     return prisma.$transaction(async (tx) => {
       const salesLog = await tx.salesLog.findUnique({
         where: { id: input.id },
@@ -1257,7 +1280,7 @@ export class ERPService {
   /**
    * MASTER OVERRIDE: Update Stock Receive & Adjust Lot Inventory
    */
-  static async updateStockReceive(input: { id: string; quantity: number; supplier_challan_no?: string; receive_date?: Date }) {
+  static async updateStockReceive(org_id: string, input: { id: string; quantity: number; supplier_challan_no?: string; receive_date?: Date }) {
     return prisma.$transaction(async (tx) => {
       const receiveLog = await tx.receiveLog.findUnique({
         where: { id: input.id },

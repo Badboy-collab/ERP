@@ -3,9 +3,14 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { getSession } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const org_id = session.org_id;
+
     const users = await prisma.user.findMany({
+      where: { org_id },
       include: { depot: true },
       orderBy: { name: "asc" },
     });
@@ -17,12 +22,17 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const org_id = session.org_id;
+
     const body = await req.json();
     const plainPassword = body.password || "default_hash";
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
     const user = await prisma.user.create({
       data: {
+        org_id,
         name: body.name,
         email: body.email,
         password_hash: hashedPassword,
@@ -52,6 +62,7 @@ export async function PUT(req: Request) {
     if (!session || session.role !== "SUPER_ADMIN") {
       return NextResponse.json({ error: "Forbidden: Only Super Admin can edit user accounts." }, { status: 403 });
     }
+    const org_id = session.org_id;
 
     const body = await req.json();
     const { id, password, ...data } = body;
@@ -66,7 +77,7 @@ export async function PUT(req: Request) {
     }
 
     const user = await prisma.user.update({
-      where: { id },
+      where: { id, org_id },
       data: updateData,
       include: { depot: true },
     });
@@ -83,6 +94,7 @@ export async function DELETE(req: Request) {
     if (!session || session.role !== "SUPER_ADMIN") {
       return NextResponse.json({ error: "Forbidden: Only Super Admin can delete user accounts." }, { status: 403 });
     }
+    const org_id = session.org_id;
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
@@ -92,7 +104,7 @@ export async function DELETE(req: Request) {
     }
 
     await prisma.user.delete({
-      where: { id },
+      where: { id, org_id },
     });
     return NextResponse.json({ message: "User deleted successfully" });
   } catch (error: any) {

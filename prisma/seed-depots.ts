@@ -27,12 +27,19 @@ const depots = [
 async function main() {
   console.log("Adding depots & sections...\n");
 
+  const org = await prisma.organization.findFirst({ where: { slug: "matber-agro" } });
+  if (!org) {
+    console.error("Organization not found. Please run backfill script first.");
+    return;
+  }
+  const org_id = org.id;
+
   for (const depot of depots) {
-    const existing = await prisma.depot.findUnique({ where: { code: depot.code } });
+    const existing = await prisma.depot.findFirst({ where: { org_id, code: depot.code } });
     if (existing) {
       console.log(`  ✓ Already exists: ${depot.name} (${depot.code})`);
     } else {
-      await prisma.depot.create({ data: depot });
+      await prisma.depot.create({ data: { ...depot, org_id } });
       console.log(`  + Added: ${depot.name} (${depot.code})`);
     }
   }

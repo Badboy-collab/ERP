@@ -82,6 +82,13 @@ const products = [
 async function main() {
   console.log("=== Cleaning old product data ===\n");
 
+  const org = await prisma.organization.findFirst({ where: { slug: "matber-agro" } });
+  if (!org) {
+    console.error("Organization not found. Please run backfill script first.");
+    return;
+  }
+  const org_id = org.id;
+
   // Delete in correct order to respect foreign keys
   const salesCount = await prisma.salesLog.deleteMany({});
   console.log(`  Deleted ${salesCount.count} sales logs`);
@@ -107,7 +114,7 @@ async function main() {
   console.log("\n=== Adding new products ===\n");
 
   for (const prod of products) {
-    await prisma.product.create({ data: prod });
+    await prisma.product.create({ data: { ...prod, org_id } });
     console.log(`  + [${prod.code}] ${prod.name} (${prod.bag_size_kg}kg) — ${prod.category}`);
   }
 

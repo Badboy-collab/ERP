@@ -4,10 +4,14 @@ import { getSession } from "@/lib/auth";
 
 export async function GET(req: Request) {
   try {
+    const session = await getSession(req);
+    if (!session?.org_id) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+    const org_id = session.org_id;
+
     const { searchParams } = new URL(req.url);
     const depot_id = searchParams.get("depot_id");
 
-    const whereClause = depot_id ? { depot_id } : {};
+    const whereClause = depot_id ? { org_id, depot_id } : { org_id };
 
     const dealers = await prisma.dealer.findMany({
       where: whereClause,
@@ -22,6 +26,10 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const session = await getSession(req);
+    if (!session?.org_id) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+    const org_id = session.org_id;
+
     const body = await req.json();
     if (!body.depot_id) {
       return NextResponse.json({ error: "depot_id is required" }, { status: 400 });
@@ -29,6 +37,7 @@ export async function POST(req: Request) {
 
     const dealer = await prisma.dealer.create({
       data: {
+        org_id,
         name: body.name,
         phone: body.phone,
         address: body.address || null,
@@ -46,15 +55,16 @@ export async function PUT(req: Request) {
   try {
     // SUPER_ADMIN role guard
     const session = await getSession(req);
-    if (!session || session.role !== "SUPER_ADMIN") {
+    if (!session?.org_id || session.role !== "SUPER_ADMIN") {
       return NextResponse.json({ error: "Forbidden: Only Super Admin can edit dealer records." }, { status: 403 });
     }
+    const org_id = session.org_id;
 
     const body = await req.json();
     const { id, name, phone, address, depot_id, current_balance } = body;
 
     const updated = await prisma.dealer.update({
-      where: { id },
+      where: { id, org_id },
       data: {
         ...(name ? { name } : {}),
         ...(phone ? { phone } : {}),
@@ -77,6 +87,7 @@ export async function DELETE(req: Request) {
     if (!session || session.role !== "SUPER_ADMIN") {
       return NextResponse.json({ error: "Forbidden: Only Super Admin can delete dealer records." }, { status: 403 });
     }
+    const org_id = session.org_id;
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
@@ -86,7 +97,7 @@ export async function DELETE(req: Request) {
     }
 
     await prisma.dealer.delete({
-      where: { id },
+      where: { id, org_id },
     });
 
     return NextResponse.json({ message: "Dealer deleted successfully" });

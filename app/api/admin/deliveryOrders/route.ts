@@ -20,6 +20,7 @@ function ensureSuperAdmin(session: any) {
 export async function GET(request: Request) {
   const session = await getSession(request);
   if (!session) return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 });
+  const org_id = session.org_id;
 
   const url = new URL(request.url);
   const depotId = url.searchParams.get('depot_id') ?? undefined;
@@ -27,6 +28,7 @@ export async function GET(request: Request) {
   const { prisma } = await import('@/lib/prisma');
   const orders = await prisma.deliveryOrder.findMany({
     where: {
+      org_id,
       ...(depotId ? { depot_id: depotId } : {}),
     },
     include: {
@@ -43,12 +45,14 @@ export async function PUT(request: Request) {
   const session = await getSession(request);
   if (!session) return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 });
   try { ensureSuperAdmin(session); } catch (e) { return NextResponse.json({ error: (e as Error).message }, { status: 403 }); }
+  const org_id = session.org_id;
 
   try {
     const body = await request.json();
     if (!body.id) return NextResponse.json({ error: 'id is required' }, { status: 400 });
 
     const updated = await ERPService.updateDeliveryOrder({
+      org_id,
       id: body.id,
       ...(body.dealer_id && { dealer_id: body.dealer_id }),
       ...(body.order_date && { order_date: new Date(body.order_date) }),
@@ -66,13 +70,14 @@ export async function DELETE(request: Request) {
   const session = await getSession(request);
   if (!session) return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 });
   try { ensureSuperAdmin(session); } catch (e) { return NextResponse.json({ error: (e as Error).message }, { status: 403 }); }
+  const org_id = session.org_id;
 
   try {
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'id query parameter required' }, { status: 400 });
 
-    const result = await ERPService.deleteDeliveryOrder({ id });
+    const result = await ERPService.deleteDeliveryOrder({ org_id, id });
     return NextResponse.json(result);
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });

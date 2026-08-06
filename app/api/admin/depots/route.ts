@@ -2,9 +2,14 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const org_id = session.org_id;
+
     const depots = await prisma.depot.findMany({
+      where: { org_id },
       orderBy: { name: "asc" },
       include: {
         _count: {
@@ -20,9 +25,14 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const org_id = session.org_id;
+
     const body = await req.json();
     const depot = await prisma.depot.create({
       data: {
+        org_id,
         code: body.code,
         name: body.name,
         address: body.address || null,
@@ -42,12 +52,13 @@ export async function PUT(req: Request) {
     if (!session || session.role !== "SUPER_ADMIN") {
       return NextResponse.json({ error: "Forbidden: Only Super Admin can edit depot records." }, { status: 403 });
     }
+    const org_id = session.org_id;
 
     const body = await req.json();
     const { id, code, name, address, phone } = body;
 
     const updated = await prisma.depot.update({
-      where: { id },
+      where: { id, org_id },
       data: {
         ...(code ? { code } : {}),
         ...(name ? { name } : {}),
@@ -69,6 +80,7 @@ export async function DELETE(req: Request) {
     if (!session || session.role !== "SUPER_ADMIN") {
       return NextResponse.json({ error: "Forbidden: Only Super Admin can delete depot records." }, { status: 403 });
     }
+    const org_id = session.org_id;
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
@@ -78,7 +90,7 @@ export async function DELETE(req: Request) {
     }
 
     await prisma.depot.delete({
-      where: { id },
+      where: { id, org_id },
     });
 
     return NextResponse.json({ message: "Depot deleted successfully" });

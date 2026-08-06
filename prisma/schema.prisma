@@ -8,11 +8,132 @@ generator client {
 }
 
 // ============================================================
+// NEXORA ERP — MULTI-TENANT SAAS SCHEMA v2.0
+// Phase 1 Step 2: org_id REQUIRED + Composite Unique Constraints
+// ============================================================
+
+// ============================================================
+// ORGANIZATION (Tenant)
+// ============================================================
+model Organization {
+  id               String   @id @default(uuid())
+  name             String
+  slug             String   @unique
+  logo_url         String?
+  favicon_url      String?
+  industry_type    String   @default("Agro")
+  business_type    String   @default("Private")
+  country          String   @default("Bangladesh")
+  currency         String   @default("BDT")
+  timezone         String   @default("Asia/Dhaka")
+  language         String   @default("en")
+  phone            String?
+  email            String?
+  website          String?
+  address          String?
+  financial_year   String   @default("January")
+  theme_color      String   @default("#10b981")
+  tax_settings     Json?
+  vat_settings     Json?
+  status           String   @default("Active")
+  template         String   @default("Agro Industry")
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+  deleted_at       DateTime?
+
+  // Relations
+  subscription     Subscription?
+  users            User[]
+  depots           Depot[]
+  products         Product[]
+  dealers          Dealer[]
+  lots             LotTracker[]
+  deliveryOrders   DeliveryOrder[]
+  invoices         Invoice[]
+  salesLogs        SalesLog[]
+  receiveLogs      ReceiveLog[]
+  financialTransactions FinancialTransaction[]
+  depotTransactions     DepotTransaction[]
+  stockTransfers        StockTransfer[]
+  auditLogs        AuditLog[]
+  modules          OrganizationModule[]
+
+  @@index([status])
+  @@index([slug])
+}
+
+// ============================================================
+// SUBSCRIPTION & LICENSE
+// ============================================================
+model Subscription {
+  id               String   @id @default(uuid())
+  org_id           String   @unique
+  organization     Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
+  plan             String   @default("Trial")
+  status           String   @default("Active")
+  max_users        Int      @default(5)
+  max_branches     Int      @default(2)
+  max_warehouses   Int      @default(3)
+  max_storage_mb   Int      @default(500)
+  max_modules      Int      @default(5)
+  api_access       Boolean  @default(false)
+  ai_access        Boolean  @default(false)
+  backup_limit     Int      @default(7)
+  file_storage_mb  Int      @default(100)
+  trial_ends_at    DateTime?
+  expires_at       DateTime?
+  renewal_reminder DateTime?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+}
+
+// ============================================================
+// MODULE MANAGEMENT
+// ============================================================
+model OrganizationModule {
+  id          String   @id @default(uuid())
+  org_id      String
+  organization Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
+  module_key  String
+  is_enabled  Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@unique([org_id, module_key])
+}
+
+// ============================================================
+// AUDIT LOG
+// ============================================================
+model AuditLog {
+  id          String   @id @default(uuid())
+  org_id      String?
+  organization Organization? @relation(fields: [org_id], references: [id], onDelete: Cascade)
+  user_id     String?
+  user_name   String?
+  action      String
+  entity      String
+  entity_id   String?
+  old_values  Json?
+  new_values  Json?
+  ip_address  String?
+  user_agent  String?
+  created_at  DateTime @default(now())
+
+  @@index([org_id])
+  @@index([user_id])
+  @@index([action])
+  @@index([created_at])
+}
+
+// ============================================================
 // DEPOT (Branch / Warehouse / Section)
 // ============================================================
 model Depot {
   id        String   @id @default(uuid())
-  code      String   @unique
+  org_id    String
+  organization Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
+  code      String
   name      String
   address   String?
   phone     String?
@@ -30,6 +151,9 @@ model Depot {
   depotTransactions    DepotTransaction[]
   transfersFrom        StockTransfer[]        @relation("TransfersFrom")
   transfersTo          StockTransfer[]        @relation("TransfersTo")
+
+  @@unique([org_id, code])
+  @@index([org_id])
 }
 
 // ============================================================
@@ -37,8 +161,10 @@ model Depot {
 // ============================================================
 model User {
   id            String   @id @default(uuid())
+  org_id        String
+  organization  Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
   name          String
-  email         String   @unique
+  email         String
   password_hash String
   role          String   @default("OPERATOR")
   depot_id      String?
@@ -55,6 +181,10 @@ model User {
   can_view_reports      Boolean @default(true)
   can_view_accounting   Boolean @default(false)
   can_manage_accounting Boolean @default(false)
+
+  @@unique([org_id, email])
+  @@index([org_id])
+  @@index([email])
 }
 
 // ============================================================
@@ -62,7 +192,9 @@ model User {
 // ============================================================
 model Product {
   id            String       @id @default(uuid())
-  code          String       @unique
+  org_id        String
+  organization  Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
+  code          String
   name          String
   category      String       @default("Poultry Feed")
   bag_size_kg   Float        @default(50.0)
@@ -76,6 +208,9 @@ model Product {
   receiveLogs   ReceiveLog[]
   salesLogs     SalesLog[]
   stockTransfers StockTransfer[]
+
+  @@unique([org_id, code])
+  @@index([org_id])
 }
 
 // ============================================================
@@ -83,6 +218,8 @@ model Product {
 // ============================================================
 model Dealer {
   id              String          @id @default(uuid())
+  org_id          String
+  organization    Organization    @relation(fields: [org_id], references: [id], onDelete: Cascade)
   name            String
   phone           String
   address         String?
@@ -96,6 +233,9 @@ model Dealer {
   invoices        Invoice[]
   salesLogs       SalesLog[]
   financialTransactions FinancialTransaction[]
+
+  @@index([org_id])
+  @@index([depot_id])
 }
 
 // ============================================================
@@ -103,6 +243,8 @@ model Dealer {
 // ============================================================
 model LotTracker {
   id                 String       @id @default(uuid())
+  org_id             String
+  organization       Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
   depot_id           String
   depot              Depot        @relation(fields: [depot_id], references: [id], onDelete: Cascade)
   product_id         String
@@ -122,6 +264,10 @@ model LotTracker {
   receiveLogs        ReceiveLog[]
   salesLogs          SalesLog[]
   stockTransfers     StockTransfer[]
+
+  @@index([org_id])
+  @@index([depot_id])
+  @@index([product_id])
 }
 
 // ============================================================
@@ -129,11 +275,13 @@ model LotTracker {
 // ============================================================
 model DeliveryOrder {
   id            String      @id @default(uuid())
+  org_id        String
+  organization  Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
   depot_id      String
   depot         Depot       @relation(fields: [depot_id], references: [id], onDelete: Cascade)
   dealer_id     String
   dealer        Dealer      @relation(fields: [dealer_id], references: [id], onDelete: Cascade)
-  order_no      String      @unique
+  order_no      String
   order_date    DateTime    @default(now())
   status        String      @default("Pending")
   remarks       String?
@@ -144,6 +292,10 @@ model DeliveryOrder {
   items      OrderItem[]
   invoices   Invoice[]
   salesLogs  SalesLog[]
+
+  @@unique([org_id, order_no])
+  @@index([org_id])
+  @@index([depot_id])
 }
 
 // ============================================================
@@ -167,9 +319,11 @@ model OrderItem {
 // ============================================================
 model Invoice {
   id               String         @id @default(uuid())
+  org_id           String
+  organization     Organization   @relation(fields: [org_id], references: [id], onDelete: Cascade)
   depot_id         String
   depot            Depot          @relation(fields: [depot_id], references: [id], onDelete: Cascade)
-  invoice_no       String         @unique
+  invoice_no       String
   transaction_type String         @default("SALES")
   date             DateTime       @default(now())
   dealer_id        String?
@@ -182,6 +336,10 @@ model Invoice {
   createdAt        DateTime       @default(now())
 
   items            SalesLog[]
+
+  @@unique([org_id, invoice_no])
+  @@index([org_id])
+  @@index([depot_id])
 }
 
 // ============================================================
@@ -189,6 +347,8 @@ model Invoice {
 // ============================================================
 model ReceiveLog {
   id                  String     @id @default(uuid())
+  org_id              String
+  organization        Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
   depot_id            String
   depot               Depot      @relation(fields: [depot_id], references: [id], onDelete: Cascade)
   invoice_no          String
@@ -200,6 +360,9 @@ model ReceiveLog {
   quantity            Int
   supplier_challan_no String?
   createdAt           DateTime   @default(now())
+
+  @@index([org_id])
+  @@index([depot_id])
 }
 
 // ============================================================
@@ -207,6 +370,8 @@ model ReceiveLog {
 // ============================================================
 model SalesLog {
   id               String         @id @default(uuid())
+  org_id           String
+  organization     Organization   @relation(fields: [org_id], references: [id], onDelete: Cascade)
   invoice_id       String?
   invoice          Invoice?       @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
   depot_id         String
@@ -226,6 +391,10 @@ model SalesLog {
   unit_price       Float          @default(0)
   total_amount     Float          @default(0)
   createdAt        DateTime       @default(now())
+
+  @@index([org_id])
+  @@index([depot_id])
+  @@index([date])
 }
 
 // ============================================================
@@ -233,6 +402,8 @@ model SalesLog {
 // ============================================================
 model FinancialTransaction {
   id                String   @id @default(uuid())
+  org_id            String
+  organization      Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
   depot_id          String
   depot             Depot    @relation(fields: [depot_id], references: [id], onDelete: Cascade)
   dealer_id         String?
@@ -243,6 +414,10 @@ model FinancialTransaction {
   remarks           String?
   reference_invoice String?
   createdAt         DateTime @default(now())
+
+  @@index([org_id])
+  @@index([depot_id])
+  @@index([dealer_id])
 }
 
 // ============================================================
@@ -250,6 +425,8 @@ model FinancialTransaction {
 // ============================================================
 model DepotTransaction {
   id               String   @id @default(uuid())
+  org_id           String
+  organization     Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
   depot_id         String
   depot            Depot    @relation(fields: [depot_id], references: [id], onDelete: Cascade)
   transaction_type String
@@ -259,6 +436,9 @@ model DepotTransaction {
   remarks          String?
   created_by       String?
   createdAt        DateTime @default(now())
+
+  @@index([org_id])
+  @@index([depot_id])
 }
 
 // ============================================================
@@ -266,6 +446,8 @@ model DepotTransaction {
 // ============================================================
 model StockTransfer {
   id            String      @id @default(uuid())
+  org_id        String
+  organization  Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
   from_depot_id String?
   fromDepot     Depot?      @relation("TransfersFrom", fields: [from_depot_id], references: [id])
   to_depot_id   String?
@@ -282,4 +464,6 @@ model StockTransfer {
   notes         String?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+
+  @@index([org_id])
 }

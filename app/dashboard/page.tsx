@@ -19,6 +19,7 @@ export default async function DashboardPage() {
   const cookieStore = cookies();
   const token = cookieStore.get("session")?.value;
   const user = token ? await verifyJWT(token) : null;
+  const org_id = (user?.org_id as string) || '';
 
   // Enforce depot isolation for non-super admins
   const depotId = user && user.role !== "SUPER_ADMIN" ? user.depot_id : undefined;
@@ -51,11 +52,11 @@ export default async function DashboardPage() {
   const depotsCount = depotId ? 1 : await prisma.depot.count();
 
   // Expiry Report filtered by depot
-  const expiryReport = await ERPService.getDetailedExpiryReport(depotId || undefined);
+  const expiryReport = await ERPService.getDetailedExpiryReport(org_id, depotId || undefined);
   const criticalExpiringLots = expiryReport.filter((l) => l.status !== "ACTIVE");
 
   // Realtime Stock Report filtered by depot (hiding zero stock items)
-  const realTimeStock = (await ERPService.getRealtimeStockReport(depotId || undefined)).filter(r => r.balance_kg > 0);
+  const realTimeStock = (await ERPService.getRealtimeStockReport(org_id, depotId || undefined)).filter(r => r.balance_kg > 0);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">

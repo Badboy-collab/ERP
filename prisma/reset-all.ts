@@ -5,6 +5,13 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🗑️  Deleting ALL data from database...\n");
 
+  const org = await prisma.organization.findFirst({ where: { slug: "matber-agro" } });
+  if (!org) {
+    console.error("Organization not found. Please run backfill script first.");
+    return;
+  }
+  const org_id = org.id;
+
   // Delete in correct order (child → parent)
   const s1 = await prisma.salesLog.deleteMany({});
   console.log(`  ✓ SalesLog: ${s1.count} deleted`);

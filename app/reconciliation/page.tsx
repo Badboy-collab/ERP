@@ -2,11 +2,18 @@ import Navbar from "@/components/Navbar";
 import { ERPService } from "@/lib/services/erpService";
 import { Layers, CheckCircle2, AlertOctagon, RefreshCw } from "lucide-react";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { verifyJWT } from "@/lib/auth";
 
 export const revalidate = 0;
 
 export default async function ReconciliationPage() {
-  const reconciliation = await ERPService.getLotReconciliation();
+  const cookieStore = cookies();
+  const token = cookieStore.get("session")?.value;
+  const user = token ? await verifyJWT(token) : null;
+  const org_id = (user?.org_id as string) || '';
+
+  const reconciliation = await ERPService.getLotReconciliation(org_id);
 
   const totalDiscrepancies = reconciliation.filter((item) => !item.isBalanced).length;
 

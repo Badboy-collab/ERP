@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 
 // GET /api/transfers?to_depot_id=X&status=IN_TRANSIT
 export async function GET(req: Request) {
   try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const org_id = session.org_id;
+
     const { searchParams } = new URL(req.url);
     const to_depot_id = searchParams.get("to_depot_id") || undefined;
     const from_depot_id = searchParams.get("from_depot_id") || undefined;
@@ -11,6 +16,7 @@ export async function GET(req: Request) {
 
     const transfers = await prisma.stockTransfer.findMany({
       where: {
+        org_id,
         ...(to_depot_id ? { to_depot_id } : {}),
         ...(from_depot_id ? { from_depot_id } : {}),
         ...(status ? { status } : {}),
@@ -33,6 +39,10 @@ export async function GET(req: Request) {
 // POST /api/transfers — Dispatch Inter-Branch or Factory Transfer
 export async function POST(req: Request) {
   try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const org_id = session.org_id;
+
     const body = await req.json();
     const { from_depot_id, to_depot_id, product_id, lot_id, quantity, notes, created_by } = body;
 
@@ -80,6 +90,7 @@ export async function POST(req: Request) {
       // 3. Create StockTransfer record
       const transfer = await tx.stockTransfer.create({
         data: {
+          org_id,
           from_depot_id: from_depot_id || null,
           to_depot_id: to_depot_id || null,
           product_id,
@@ -110,6 +121,10 @@ export async function POST(req: Request) {
 // PUT /api/transfers — Receive Stock at Destination Depot
 export async function PUT(req: Request) {
   try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const org_id = session.org_id;
+
     const body = await req.json();
     const { transfer_id } = body;
 
@@ -119,7 +134,7 @@ export async function PUT(req: Request) {
 
     const result = await prisma.$transaction(async (tx) => {
       const transfer = await tx.stockTransfer.findUnique({
-        where: { id: transfer_id },
+        where: { id: transfer_id, org_id },
         include: { product: true },
       });
 
@@ -146,6 +161,7 @@ export async function PUT(req: Request) {
 
       await tx.lotTracker.create({
         data: {
+          org_id,
           depot_id: transfer.to_depot_id,
           product_id: transfer.product_id,
           lot_no: lotNo,
@@ -160,6 +176,7 @@ export async function PUT(req: Request) {
       // 3. Create a ReceiveLog for monthly stock / audit report
       await tx.receiveLog.create({
         data: {
+          org_id,
           depot_id: transfer.to_depot_id,
           product_id: transfer.product_id,
           lot_id: (await tx.lotTracker.findFirst({ where: { lot_no: lotNo, depot_id: transfer.to_depot_id } }))!.id,

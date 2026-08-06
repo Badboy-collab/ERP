@@ -19,7 +19,7 @@ export async function POST(req: Request) {
           { name: { equals: email, mode: "insensitive" } }
         ]
       },
-      include: { depot: true }
+      include: { depot: true, organization: true }
     });
 
     if (!user) {
@@ -52,6 +52,8 @@ export async function POST(req: Request) {
       name: user.name,
       email: user.email,
       role: user.role,
+      org_id: user.org_id || '',
+      org_name: user.organization?.name || '',
       depot_id: user.depot_id,
       depot: user.depot ? { id: user.depot.id, name: user.depot.name, code: user.depot.code } : null,
       can_create_do: user.can_create_do,

@@ -8,13 +8,14 @@ export async function PUT(req: Request) {
     if (!session || session.role !== "SUPER_ADMIN") {
       return NextResponse.json({ error: "Forbidden: Only Super Admin can override delivery orders." }, { status: 403 });
     }
+    const org_id = session.org_id;
 
     const { id, dealer_id, order_date, remarks } = await req.json();
     if (!id) {
       return NextResponse.json({ error: "Delivery Order ID is required" }, { status: 400 });
     }
 
-    const updated = await ERPService.updateDeliveryOrder({ id, dealer_id, order_date, remarks });
+    const updated = await ERPService.updateDeliveryOrder({ org_id, id, dealer_id, order_date, remarks });
 
     return NextResponse.json(updated);
   } catch (error: any) {
@@ -28,6 +29,7 @@ export async function DELETE(req: Request) {
     if (!session || session.role !== "SUPER_ADMIN") {
       return NextResponse.json({ error: "Forbidden: Only Super Admin can delete delivery orders." }, { status: 403 });
     }
+    const org_id = session.org_id;
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
@@ -35,7 +37,7 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "Delivery Order ID is required" }, { status: 400 });
     }
 
-    const result = await ERPService.deleteDeliveryOrder({ id });
+    const result = await ERPService.deleteDeliveryOrder({ org_id, id });
     return NextResponse.json(result);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

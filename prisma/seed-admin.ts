@@ -10,9 +10,16 @@ async function main() {
   const plainPassword = "Anwar@01744";
   const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
+  // Get organization
+  const org = await prisma.organization.findFirst({ where: { slug: "matber-agro" } });
+  if (!org) {
+    console.error("Organization not found. Please run backfill script first.");
+    return;
+  }
+
   // Check if admin already exists
-  const existing = await prisma.user.findUnique({
-    where: { email: username }
+  const existing = await prisma.user.findFirst({
+    where: { org_id: org.id, email: username }
   });
 
   if (existing) {
@@ -36,6 +43,7 @@ async function main() {
   } else {
     await prisma.user.create({
       data: {
+        org_id: org.id,
         name: "Anwar (Super Admin)",
         email: username,
         password_hash: hashedPassword,

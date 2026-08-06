@@ -5,6 +5,10 @@ import { getSession } from "@/lib/auth";
 
 export async function GET(req: Request) {
   try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const org_id = session.org_id;
+
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get("product_id");
     const depotId = searchParams.get("depot_id") || undefined;
@@ -12,12 +16,13 @@ export async function GET(req: Request) {
     const includeZero = searchParams.get("include_zero") === "true";
 
     if (productId && isFifo) {
-      const suggestedLot = await ERPService.suggestFIFOLot(productId, depotId);
+      const suggestedLot = await ERPService.suggestFIFOLot(org_id, productId, depotId);
       return NextResponse.json(suggestedLot || null);
     }
 
     const lots = await prisma.lotTracker.findMany({
       where: {
+        org_id,
         ...(productId ? { product_id: productId } : {}),
         ...(depotId ? { depot_id: depotId } : {}),
         ...(!includeZero ? { available_qty: { gt: 0 } } : {}),
@@ -42,6 +47,7 @@ export async function PUT(req: Request) {
     if (!session || session.role !== "SUPER_ADMIN") {
       return NextResponse.json({ error: "Forbidden: Only Super Admin can override lot records." }, { status: 403 });
     }
+    const org_id = session.org_id;
 
     const body = await req.json();
     const { id, initial_qty, available_qty, status } = body;
@@ -51,7 +57,7 @@ export async function PUT(req: Request) {
     }
 
     const updated = await prisma.lotTracker.update({
-      where: { id },
+      where: { id, org_id },
       data: {
         ...(initial_qty !== undefined ? { initial_qty: Number(initial_qty) } : {}),
         ...(available_qty !== undefined ? { available_qty: Number(available_qty) } : {}),
@@ -72,6 +78,7 @@ export async function DELETE(req: Request) {
     if (!session || session.role !== "SUPER_ADMIN") {
       return NextResponse.json({ error: "Forbidden: Only Super Admin can delete lot records." }, { status: 403 });
     }
+    const org_id = session.org_id;
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
@@ -81,7 +88,7 @@ export async function DELETE(req: Request) {
     }
 
     await prisma.lotTracker.delete({
-      where: { id },
+      where: { id, org_id },
     });
 
     return NextResponse.json({ message: "Lot record deleted successfully" });

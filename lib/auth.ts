@@ -9,6 +9,8 @@ export interface JWTSessionPayload {
   name: string;
   email: string;
   role: string;
+  org_id: string;
+  org_name: string;
   depot_id: string | null;
   depot?: { name: string; code: string } | null;
   // Permissions

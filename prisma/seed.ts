@@ -5,6 +5,13 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Seeding Matber Agro ERP database with Multi-Depot & RBAC Enterprise schema...");
 
+  const org = await prisma.organization.findFirst({ where: { slug: "matber-agro" } });
+  if (!org) {
+    console.error("Organization not found. Please run backfill script first.");
+    return;
+  }
+  const org_id = org.id;
+
   // Clean existing tables
   await prisma.salesLog.deleteMany();
   await prisma.invoice.deleteMany();
@@ -19,7 +26,7 @@ async function main() {
 
   // 1. Create Depots
   const depotCentral = await prisma.depot.create({
-    data: {
+    data: { org_id,
       code: "DEP-MYM",
       name: "Central Depot Mymensingh",
       address: "Depot Zone, Mymensingh Sadar",
@@ -28,7 +35,7 @@ async function main() {
   });
 
   const depotBogura = await prisma.depot.create({
-    data: {
+    data: { org_id,
       code: "DEP-BOG",
       name: "Bogura Regional Depot",
       address: "Bypass Road, Bogura",
@@ -38,7 +45,7 @@ async function main() {
 
   // 2. Create Users
   await prisma.user.create({
-    data: {
+    data: { org_id,
       name: "Pervez Hossain (Master Admin)",
       email: "admin@matberagro.com",
       password_hash: "admin123",
@@ -48,7 +55,7 @@ async function main() {
   });
 
   await prisma.user.create({
-    data: {
+    data: { org_id,
       name: "Manager Mymensingh",
       email: "mymensingh@matberagro.com",
       password_hash: "depot123",
@@ -58,7 +65,7 @@ async function main() {
   });
 
   await prisma.user.create({
-    data: {
+    data: { org_id,
       name: "Operator Bogura",
       email: "bogura@matberagro.com",
       password_hash: "op123",
@@ -69,7 +76,7 @@ async function main() {
 
   // 3. Create Products with Categories
   const prod1 = await prisma.product.create({
-    data: {
+    data: { org_id,
       code: "P-BR01",
       name: "Broiler Starter Feed",
       category: "Poultry Feed",
@@ -79,7 +86,7 @@ async function main() {
   });
 
   const prod2 = await prisma.product.create({
-    data: {
+    data: { org_id,
       code: "P-LY02",
       name: "Layer Layer-1 Feed",
       category: "Poultry Feed",
@@ -89,7 +96,7 @@ async function main() {
   });
 
   const prod3 = await prisma.product.create({
-    data: {
+    data: { org_id,
       code: "P-FS03",
       name: "Floating Fish Feed 3mm",
       category: "Fish Feed",
@@ -99,7 +106,7 @@ async function main() {
   });
 
   const prod4 = await prisma.product.create({
-    data: {
+    data: { org_id,
       code: "P-CT04",
       name: "Cattle Fattening Feed",
       category: "Cattle Feed",
@@ -110,7 +117,7 @@ async function main() {
 
   // 4. Create Dealers
   const dealer1 = await prisma.dealer.create({
-    data: {
+    data: { org_id,
       name: "Greenfield Poultry Farm",
       phone: "+8801712345678",
       address: "Mymensingh Sadar, Mymensingh",
@@ -120,7 +127,7 @@ async function main() {
   });
 
   const dealer2 = await prisma.dealer.create({
-    data: {
+    data: { org_id,
       name: "Bismillah Feed Traders",
       phone: "+8801898765432",
       address: "Bhaluka, Mymensingh",
@@ -137,7 +144,7 @@ async function main() {
   expUrgent.setDate(now.getDate() + 8);
 
   const lot1 = await prisma.lotTracker.create({
-    data: {
+    data: { org_id,
       depot_id: depotCentral.id,
       product_id: prod1.id,
       lot_no: "LOT-2026-BR-01",
@@ -157,7 +164,7 @@ async function main() {
   expWarning.setDate(now.getDate() + 18);
 
   const lot2 = await prisma.lotTracker.create({
-    data: {
+    data: { org_id,
       depot_id: depotCentral.id,
       product_id: prod2.id,
       lot_no: "LOT-2026-LY-01",
@@ -177,7 +184,7 @@ async function main() {
   expCaution.setDate(now.getDate() + 28);
 
   const lot3 = await prisma.lotTracker.create({
-    data: {
+    data: { org_id,
       depot_id: depotBogura.id,
       product_id: prod3.id,
       lot_no: "LOT-2026-FS-01",
@@ -194,7 +201,7 @@ async function main() {
 
   // 6. Create Delivery Orders
   const order1 = await prisma.deliveryOrder.create({
-    data: {
+    data: { org_id,
       depot_id: depotCentral.id,
       dealer_id: dealer1.id,
       order_no: "DO-2026-001",
@@ -221,7 +228,7 @@ async function main() {
 
   // 7. Create Sample Invoice
   await prisma.invoice.create({
-    data: {
+    data: { org_id,
       depot_id: depotCentral.id,
       invoice_no: "INV-889901",
       transaction_type: "SALES",
@@ -232,6 +239,7 @@ async function main() {
       items: {
         create: [
           {
+            org_id,
             depot_id: depotCentral.id,
             invoice_no: "INV-889901",
             transaction_type: "SALES",
@@ -242,6 +250,7 @@ async function main() {
             quantity: 20,
           },
           {
+            org_id,
             depot_id: depotCentral.id,
             invoice_no: "INV-889901",
             transaction_type: "SALES",
