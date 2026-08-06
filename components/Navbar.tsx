@@ -47,9 +47,7 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-3">
-              <div className="bg-white px-3 py-1.5 rounded-xl shadow-sm">
-                <Image src="/logo.png" alt="NEXORA ERP" width={160} height={45} className="object-contain h-8 w-auto" />
-              </div>
+              <Image src="/logo.png" alt="NEXORA ERP" width={160} height={45} className="object-contain" />
               <div className="hidden sm:block">
                 <span className="text-[10px] block text-emerald-400 font-semibold tracking-wider uppercase border-l-2 border-emerald-800 pl-2 ml-1">
                   {currentUser?.org_name || "Matber Agro Industries Ltd."}

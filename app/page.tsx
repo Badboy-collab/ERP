@@ -71,24 +71,24 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col md:flex-row font-sans">
       {/* LEFT PANEL: Branding & Welcome (Hidden on small mobile screens) */}
-      <div className="md:w-1/2 bg-gradient-to-br from-emerald-950 via-slate-900 to-slate-950 border-r border-slate-800/80 p-12 flex flex-col justify-between relative overflow-hidden">
+      <div className="md:w-1/2 bg-slate-50 border-r border-slate-200 p-12 flex flex-col justify-between relative overflow-hidden">
         {/* Subtle background overlay grids */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#022c22_1px,transparent_1px),linear-gradient(to_bottom,#022c22_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30 pointer-events-none" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#cbd5e1_1px,transparent_1px),linear-gradient(to_bottom,#cbd5e1_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30 pointer-events-none" />
 
         <div className="relative z-10">
-          <span className="text-emerald-400 font-black tracking-widest text-xs uppercase border border-emerald-500/30 bg-emerald-950/40 px-3 py-1 rounded-full">
+          <span className="text-emerald-700 font-black tracking-widest text-xs uppercase border border-emerald-500/30 bg-emerald-100/50 px-3 py-1 rounded-full">
             MULTI-TENANT ERP
           </span>
         </div>
 
         <div className="space-y-4 my-auto relative z-10 max-w-lg">
-          <div className="bg-white/95 p-3 rounded-2xl inline-block mb-4 w-auto shadow-2xl">
-            <Image src="/logo.png" alt="NEXORA ERP ENTERPRISE" width={200} height={80} priority className="w-auto h-16 sm:h-20 drop-shadow-[0_0_10px_rgba(0,0,0,0.1)] object-contain" />
+          <div className="inline-block mb-4 w-auto">
+            <img src="/logo.png" alt="NEXORA ERP ENTERPRISE" className="w-auto h-16 sm:h-20 drop-shadow-[0_0_10px_rgba(0,0,0,0.1)]" />
           </div>
-          <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-            Welcome to <span className="text-emerald-400">NEXORA ERP</span>
+          <h1 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+            Welcome to <span className="text-emerald-600">NEXORA ERP</span>
           </h1>
-          <p className="text-slate-300 text-sm lg:text-base leading-relaxed font-medium">
+          <p className="text-slate-600 text-sm lg:text-base leading-relaxed font-medium">
             Streamlining business operations, inventory, sales, and management. Experience real-time stock control, granular RBAC, and automated processing.
           </p>
         </div>
