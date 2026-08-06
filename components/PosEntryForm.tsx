@@ -298,6 +298,8 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
 
         setItems([{ id: Date.now().toString(), product_id: "", lot_id: "", quantity: "", unit_price: "", availableLots: [], fifoLot: null, selectedLotObj: null }]);
         setInvoiceNo(`INV-${Date.now().toString().slice(-6)}`);
+        setDestination("");
+        setDestinationDepotId("");
         return;
       }
 
@@ -330,6 +332,9 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
 
       setItems([{ id: Date.now().toString(), product_id: "", lot_id: "", quantity: "", unit_price: "", availableLots: [], fifoLot: null, selectedLotObj: null }]);
       setInvoiceNo(`INV-${Date.now().toString().slice(-6)}`);
+      setDealerId("");
+      setOrderId("");
+      setDestination("");
 
       if (onSaleSuccess) {
         onSaleSuccess(data);

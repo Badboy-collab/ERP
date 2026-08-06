@@ -165,6 +165,7 @@ export default function OrdersPage() {
       if (!res.ok) throw new Error("Failed to create delivery order");
 
       setMessage({ type: "success", text: `Delivery Order ${orderNo} created successfully!` });
+      setDealerId("");
       setOrderItems([{ product_id: "", ordered_qty: "" }]);
       fetchInitialData();
       fetchNextDONumber();
@@ -204,6 +205,7 @@ export default function OrdersPage() {
       });
       setReceiveInvoiceNo(`RCV-${Date.now().toString().slice(-6)}`);
       setRcvSupplierChallanNo("");
+      setRcvProductId("");
       setRcvQuantity("");
       fetchInitialData();
     } catch (err: any) {
