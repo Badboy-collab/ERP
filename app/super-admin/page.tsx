@@ -70,7 +70,8 @@ export default function SuperAdminDashboard() {
         localStorage.setItem("erp_active_user", JSON.stringify(data.user));
         window.location.href = "/dashboard";
       } else {
-        alert("Failed to enter organization");
+        const errorData = await res.json();
+        alert(`Failed to enter organization: ${errorData.error}`);
       }
     } catch (err) {
       console.error(err);

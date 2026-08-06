@@ -55,7 +55,7 @@ export default function LoginPage() {
 
         <div className="relative z-10">
           <span className="text-emerald-400 font-black tracking-widest text-xs uppercase border border-emerald-500/30 bg-emerald-950/40 px-3 py-1 rounded-full">
-            Matber Agro Industries Ltd
+            MULTI-TENANT ERP
           </span>
         </div>
 
@@ -65,12 +65,14 @@ export default function LoginPage() {
             Welcome to <span className="text-emerald-400">NEXORA ERP</span>
           </h1>
           <p className="text-slate-300 text-sm lg:text-base leading-relaxed font-medium">
-            Streamlining feed distribution, inventory, sales, and depot management for Matber Agro Industries Ltd. Experience real-time stock control, granular RBAC, and automated sales processing.
+            Streamlining business operations, inventory, sales, and management. Experience real-time stock control, granular RBAC, and automated processing.
           </p>
         </div>
 
-        <div className="relative z-10 text-xs text-slate-500 font-semibold font-mono">
-          © {new Date().getFullYear()} Matber Agro Industries Ltd. All rights reserved.
+        <div className="relative z-10">
+          <p className="text-slate-500 text-xs font-semibold">
+            &copy; {new Date().getFullYear()} Nexora ERP Enterprise. All rights reserved.
+          </p>
         </div>
       </div>
 
