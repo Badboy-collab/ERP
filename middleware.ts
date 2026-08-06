@@ -10,8 +10,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/_next") ||
     pathname.startsWith("/static") ||
     pathname === "/favicon.ico" ||
-    pathname.startsWith("/api/auth/login") ||
-    pathname.startsWith("/api/auth/logout")
+    pathname.startsWith("/api/auth/") ||
+    pathname === "/super-admin/login"
   ) {
     return NextResponse.next();
   }
@@ -46,12 +46,11 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for:
-     * - api/auth/login
-     * - api/auth/logout
+     * - super-admin/login
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
-    "/((?!api/auth/login|api/auth/logout|_next/static|_next/image|favicon.ico).*)",
+    "/((?!api/auth/|super-admin/login|_next/static|_next/image|favicon.ico).*)",
   ],
 };
