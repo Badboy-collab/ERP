@@ -452,7 +452,8 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-2 text-xs text-white"
+              onClick={(e) => "showPicker" in HTMLInputElement.prototype && (e.target as HTMLInputElement).showPicker()}
+              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-2 text-xs text-white cursor-pointer hover:border-emerald-500 hover:bg-slate-800 transition-all"
               required
             />
           </div>

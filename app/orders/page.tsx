@@ -324,7 +324,8 @@ export default function OrdersPage() {
                       type="date"
                       value={orderDate}
                       onChange={(e) => setOrderDate(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono outline-none focus:border-emerald-500 font-bold"
+                      onClick={(e) => "showPicker" in HTMLInputElement.prototype && (e.target as HTMLInputElement).showPicker()}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono outline-none focus:border-emerald-500 font-bold cursor-pointer hover:border-emerald-500 hover:bg-slate-900 transition-all"
                       required
                     />
                   </div>
@@ -533,7 +534,8 @@ export default function OrdersPage() {
                     type="date"
                     value={rcvMfgDate}
                     onChange={(e) => setRcvMfgDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white"
+                    onClick={(e) => "showPicker" in HTMLInputElement.prototype && (e.target as HTMLInputElement).showPicker()}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white cursor-pointer hover:border-emerald-500 hover:bg-slate-900 transition-all"
                     required
                   />
                 </div>
@@ -544,7 +546,8 @@ export default function OrdersPage() {
                     type="date"
                     value={rcvExpDate}
                     onChange={(e) => setRcvExpDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white"
+                    onClick={(e) => "showPicker" in HTMLInputElement.prototype && (e.target as HTMLInputElement).showPicker()}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white cursor-pointer hover:border-emerald-500 hover:bg-slate-900 transition-all"
                     required
                   />
                 </div>
