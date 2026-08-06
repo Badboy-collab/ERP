@@ -83,7 +83,7 @@ export default function LoginPage() {
 
         <div className="space-y-4 my-auto relative z-10 max-w-lg">
           <div className="inline-block mb-4 w-auto">
-            <img src="/logo.png" alt="NEXORA ERP ENTERPRISE" className="w-auto h-16 sm:h-20 drop-shadow-[0_0_10px_rgba(0,0,0,0.1)]" />
+            <img src="/logo.png?v=2" alt="NEXORA ERP ENTERPRISE" className="w-auto h-16 sm:h-20 drop-shadow-[0_0_10px_rgba(0,0,0,0.1)]" />
           </div>
           <h1 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight">
             Welcome to <span className="text-emerald-600">NEXORA ERP</span>
@@ -101,17 +101,17 @@ export default function LoginPage() {
       </div>
 
       {/* RIGHT PANEL: Form */}
-      <div className="md:w-1/2 flex items-center justify-center p-8 sm:p-12 bg-slate-950">
-        <div className="w-full max-w-md space-y-8 bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl">
+      <div className="md:w-1/2 flex items-center justify-center p-8 sm:p-12 bg-white">
+        <div className="w-full max-w-md space-y-8 bg-slate-50 border border-slate-200 p-8 rounded-3xl shadow-2xl">
           <div className="text-center md:text-left space-y-2">
-            <h2 className="text-2xl font-black text-white">Sign In to Account</h2>
-            <p className="text-xs text-slate-400 font-medium">
+            <h2 className="text-2xl font-black text-slate-900">Sign In to Account</h2>
+            <p className="text-xs text-slate-600 font-medium">
               Enter your credential keys to access depot logs & dashboard.
             </p>
           </div>
 
           {error && (
-            <div className="p-4 bg-rose-950/60 border border-rose-800 rounded-2xl flex items-center space-x-2 text-rose-300 text-xs font-semibold animate-shake">
+            <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-center space-x-2 text-rose-600 text-xs font-semibold animate-shake">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -119,9 +119,9 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-2">Organization Name</label>
+              <label className="block text-xs font-bold text-slate-700 mb-2">Organization Name</label>
               <div className="relative">
-                <span className="absolute left-3.5 top-3 text-slate-500">
+                <span className="absolute left-3.5 top-3 text-slate-400">
                   <Factory className="w-4.5 h-4.5" />
                 </span>
                 <input
@@ -129,16 +129,16 @@ export default function LoginPage() {
                   value={organization}
                   onChange={(e) => setOrganization(e.target.value)}
                   placeholder="e.g. matber-agro"
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white font-bold transition-all outline-none"
+                  className="w-full bg-white border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 font-bold transition-all outline-none"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-2">Username / Email</label>
+              <label className="block text-xs font-bold text-slate-700 mb-2">Username / Email</label>
               <div className="relative">
-                <span className="absolute left-3.5 top-3 text-slate-500">
+                <span className="absolute left-3.5 top-3 text-slate-400">
                   <User className="w-4.5 h-4.5" />
                 </span>
                 <input
@@ -146,16 +146,16 @@ export default function LoginPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="admin"
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white font-bold transition-all outline-none"
+                  className="w-full bg-white border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 font-bold transition-all outline-none"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-2">Password</label>
+              <label className="block text-xs font-bold text-slate-700 mb-2">Password</label>
               <div className="relative">
-                <span className="absolute left-3.5 top-3 text-slate-500">
+                <span className="absolute left-3.5 top-3 text-slate-400">
                   <Lock className="w-4.5 h-4.5" />
                 </span>
                 <input
@@ -163,13 +163,13 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl py-2.5 pl-11 pr-10 text-sm text-white font-bold transition-all outline-none"
+                  className="w-full bg-white border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl py-2.5 pl-11 pr-10 text-sm text-slate-900 font-bold transition-all outline-none"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-3.5 text-slate-500 hover:text-emerald-400 transition-colors"
+                  className="absolute right-3.5 top-3.5 text-slate-400 hover:text-emerald-500 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
                 </button>
@@ -180,12 +180,12 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setRememberMe(!rememberMe)}
-                className="flex items-center space-x-2 text-slate-300 hover:text-emerald-400 transition-colors"
+                className="flex items-center space-x-2 text-slate-600 hover:text-emerald-600 transition-colors"
               >
                 {rememberMe ? (
-                  <CheckSquare className="w-4 h-4 text-emerald-500" />
+                  <CheckSquare className="w-4 h-4 text-emerald-600" />
                 ) : (
-                  <Square className="w-4 h-4 text-slate-500" />
+                  <Square className="w-4 h-4 text-slate-400" />
                 )}
                 <span className="text-xs font-semibold">Remember Me</span>
               </button>
@@ -194,7 +194,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-500 hover:to-green-400 disabled:opacity-50 text-slate-950 font-black py-3 rounded-xl shadow-lg shadow-emerald-950/20 transition-all flex items-center justify-center space-x-2 text-sm"
+              className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-black py-3 rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center space-x-2 text-sm"
             >
               {loading ? (
                 <>
