@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { ShieldAlert, Package, Building2, Users, CheckCircle, Trash2, Edit, Save, Plus, DollarSign, X } from "lucide-react";
 import SearchableSelect from "@/components/SearchableSelect";
+import DualQuantityInput from "@/components/DualQuantityInput";
 import { getSessionUser, SessionUser } from "@/lib/userSession";
 
 interface Product {
@@ -193,8 +194,9 @@ export default function AdminPage() {
   const [selectedOrder, setSelectedOrder] = useState<DeliveryOrder | null>(null);
   const [viewOrder, setViewOrder] = useState<DeliveryOrder | null>(null);
   const [editOrderDealerId, setEditOrderDealerId] = useState<string>("");
-  const [editOrderDate, setEditOrderDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [editOrderDate, setEditOrderDate] = useState<string>("");
   const [editOrderRemarks, setEditOrderRemarks] = useState<string>("");
+  const [editOrderItems, setEditOrderItems] = useState<{ id?: string, product_id: string, ordered_qty: number | "" }[]>([]);
 
   // Edit Dealer State (Super Admin)
   const [editingDealer, setEditingDealer] = useState<Dealer | null>(null);
@@ -575,6 +577,7 @@ export default function AdminPage() {
     setEditOrderDealerId(order.dealer.id);
     setEditOrderDate(new Date(order.order_date).toISOString().split("T")[0]);
     setEditOrderRemarks(order.remarks || "");
+    setEditOrderItems(order.items.map(item => ({ id: item.id, product_id: item.product_id, ordered_qty: item.ordered_qty })));
   };
 
   const handleSaveDeliveryOrder = async (e: React.FormEvent) => {
@@ -590,6 +593,7 @@ export default function AdminPage() {
           dealer_id: editOrderDealerId,
           order_date: editOrderDate,
           remarks: editOrderRemarks || null,
+          items: editOrderItems.map(it => ({ id: it.id, product_id: it.product_id, ordered_qty: Number(it.ordered_qty) })),
         }),
       });
       const data = await res.json();
@@ -1553,9 +1557,66 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Remarks</label>
-                  <textarea value={editOrderRemarks} onChange={(e) => setEditOrderRemarks(e.target.value)} rows={3} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white resize-none" />
+                  <textarea value={editOrderRemarks} onChange={(e) => setEditOrderRemarks(e.target.value)} rows={2} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white resize-none" />
                 </div>
-                <p className="text-[10px] text-slate-500">Order items and delivery status remain unchanged to preserve the existing delivery and inventory rules.</p>
+                
+                <div className="space-y-3 pt-2 border-t border-slate-800">
+                  <label className="block text-xs font-semibold text-slate-300">Order Items (Override)</label>
+                  {editOrderItems.map((item, idx) => {
+                    const bagSize = products.find(p => p.id === item.product_id)?.bag_size_kg || 50;
+                    return (
+                      <div key={idx} className="flex gap-2 items-end">
+                        <div className="flex-1">
+                          <label className="block text-[10px] text-slate-400 mb-1">Product</label>
+                          <SearchableSelect
+                            options={products.map((p) => ({ value: p.id, label: `[${p.code}] ${p.name}` }))}
+                            value={item.product_id}
+                            onChange={(val) => {
+                              const updated = [...editOrderItems];
+                              updated[idx].product_id = val;
+                              setEditOrderItems(updated);
+                            }}
+                            placeholder="Select product..."
+                          />
+                        </div>
+                        <div className="w-48">
+                          <label className="block text-[10px] text-slate-400 mb-1">Ordered Qty</label>
+                          <DualQuantityInput
+                            kgValue={item.ordered_qty}
+                            onKgChange={(val) => {
+                              const updated = [...editOrderItems];
+                              updated[idx].ordered_qty = val;
+                              setEditOrderItems(updated);
+                            }}
+                            bagSizeKg={bagSize}
+                          />
+                        </div>
+                        {editOrderItems.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = [...editOrderItems];
+                              updated.splice(idx, 1);
+                              setEditOrderItems(updated);
+                            }}
+                            className="mb-1 p-2 bg-rose-950/50 text-rose-400 hover:text-white rounded border border-rose-900/50"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => setEditOrderItems([...editOrderItems, { product_id: "", ordered_qty: "" }])}
+                    className="text-xs text-emerald-400 hover:underline font-semibold"
+                  >
+                    + Add Item
+                  </button>
+                </div>
+
+                <p className="text-[10px] text-amber-500">Warning: Changing quantities manually bypasses some standard validations. Pending quantity will automatically adjust based on existing deliveries.</p>
                 <div className="flex gap-2 pt-2">
                   <button type="submit" className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2.5 rounded-xl transition-all text-xs">Save Override</button>
                   <button type="button" onClick={() => setSelectedOrder(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">Cancel</button>

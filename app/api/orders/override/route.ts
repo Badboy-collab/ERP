@@ -10,12 +10,12 @@ export async function PUT(req: Request) {
     }
     const org_id = session.org_id;
 
-    const { id, dealer_id, order_date, remarks } = await req.json();
+    const { id, dealer_id, order_date, remarks, items } = await req.json();
     if (!id) {
       return NextResponse.json({ error: "Delivery Order ID is required" }, { status: 400 });
     }
 
-    const updated = await ERPService.updateDeliveryOrder({ org_id, id, dealer_id, order_date, remarks });
+    const updated = await ERPService.updateDeliveryOrder({ org_id, id, dealer_id, order_date, remarks, items });
 
     return NextResponse.json(updated);
   } catch (error: any) {
