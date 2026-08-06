@@ -64,15 +64,15 @@ export class ERPService {
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
 
-    let depotCode = "DEP";
+    let depotCode = "";
     if (depot_id) {
       const depot = await prisma.depot.findUnique({ where: { id: depot_id } });
       if (depot && depot.code) {
-        depotCode = depot.code.toUpperCase();
+        depotCode = depot.code.toUpperCase().replace("DEP-", "").replace("DEP", "");
       }
     }
 
-    const prefix = `${depotCode}-${yy}${mm}${dd}`;
+    const prefix = depotCode ? `${depotCode}-${yy}${mm}${dd}` : `${yy}${mm}${dd}`;
 
     const lastDO = await prisma.deliveryOrder.findFirst({
       where: {

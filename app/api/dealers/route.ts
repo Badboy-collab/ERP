@@ -35,11 +35,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "depot_id is required" }, { status: 400 });
     }
 
+    let dealerCode = body.code;
+    if (!dealerCode || dealerCode.trim() === "") {
+      const count = await prisma.dealer.count({ where: { org_id } });
+      dealerCode = `DLR-${String(count + 1).padStart(3, '0')}`;
+    }
+
     const dealer = await prisma.dealer.create({
       data: {
         org_id,
         name: body.name,
-        code: body.code,
+        code: dealerCode,
         phone: body.phone,
         address: body.address || null,
         depot_id: body.depot_id,

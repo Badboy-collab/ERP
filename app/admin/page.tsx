@@ -1016,8 +1016,8 @@ export default function AdminPage() {
                 <input type="text" value={dealerName} onChange={(e) => setDealerName(e.target.value)} placeholder="e.g. Sarder Poultry" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" required />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Dealer Code *</label>
-                <input type="text" value={dealerCode} onChange={(e) => setDealerCode(e.target.value)} placeholder="e.g. DLR-001" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white uppercase" required />
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Dealer Code</label>
+                <input type="text" value={dealerCode} onChange={(e) => setDealerCode(e.target.value)} placeholder="Auto-generated if empty" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white uppercase" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">Phone Number *</label>
