@@ -34,38 +34,38 @@ export default function InvoicesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-100 flex flex-col font-sans">
       <Navbar />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-white flex items-center gap-2">
-              <Printer className="w-6 h-6 text-emerald-400" />
+            <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+              <Printer className="w-6 h-6 text-emerald-600" />
               Invoice & Delivery Challan History
             </h1>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-500">
               Search past dispatches, view multi-product invoice items, and reprint official Delivery Challans anytime.
             </p>
           </div>
         </div>
 
         {/* Search Bar */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xl">
           <form onSubmit={handleSearchSubmit} className="flex gap-3">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+              <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
               <input
                 type="text"
                 placeholder="Search by Invoice No, Dealer Name, or Depot Destination..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors"
               />
             </div>
             <button
               type="submit"
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-all shadow"
+              className="bg-emerald-600 hover:bg-emerald-500 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm transition-all shadow"
             >
               Search
             </button>
@@ -73,10 +73,10 @@ export default function InvoicesPage() {
         </div>
 
         {/* Invoices List Table */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-950 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+              <thead className="bg-slate-50 text-slate-500 text-xs font-semibold uppercase tracking-wider">
                 <tr>
                   <th className="p-4">Invoice No</th>
                   <th className="p-4">Date</th>
@@ -104,21 +104,21 @@ export default function InvoicesPage() {
                   invoices.map((inv) => {
                     const totalBags = inv.items.reduce((sum, item) => sum + item.quantity, 0);
                     return (
-                      <tr key={inv.id} className="hover:bg-slate-800/40 transition-colors">
-                        <td className="p-4 font-mono font-bold text-emerald-400">
+                      <tr key={inv.id} className="hover:bg-slate-100/40 transition-colors">
+                        <td className="p-4 font-mono font-bold text-emerald-600">
                           {inv.invoice_no}
                         </td>
-                        <td className="p-4 text-xs text-slate-400">
+                        <td className="p-4 text-xs text-slate-500">
                           {new Date(inv.date).toLocaleDateString()}
                         </td>
                         <td className="p-4">
                           <span
                             className={`px-2.5 py-0.5 rounded-full text-xs font-bold border uppercase ${
                               inv.transaction_type === "TRANSFER_OUT"
-                                ? "bg-amber-950 text-amber-400 border-amber-800"
+                                ? "bg-amber-50 text-amber-600 border-amber-800"
                                 : inv.transaction_type === "FACTORY_RETURN"
-                                ? "bg-rose-950 text-rose-400 border-rose-800"
-                                : "bg-emerald-950 text-emerald-400 border-emerald-800"
+                                ? "bg-rose-50 text-rose-600 border-rose-800"
+                                : "bg-emerald-50 text-emerald-600 border-emerald-200"
                             }`}
                           >
                             {inv.transaction_type}
@@ -128,11 +128,11 @@ export default function InvoicesPage() {
                           {inv.dealer?.name || inv.destination || "Direct Cash Sale"}
                         </td>
                         <td className="p-4 text-right font-mono">{inv.items.length} product(s)</td>
-                        <td className="p-4 text-right font-bold text-white">{totalBags} bags</td>
+                        <td className="p-4 text-right font-bold text-slate-900">{totalBags} bags</td>
                         <td className="p-4 text-center">
                           <button
                             onClick={() => setSelectedInvoice(inv)}
-                            className="bg-slate-800 hover:bg-emerald-600 hover:text-white text-emerald-400 font-bold px-3.5 py-1.5 rounded-lg border border-slate-700 text-xs transition-all flex items-center gap-1.5 mx-auto"
+                            className="bg-slate-100 hover:bg-emerald-600 hover:text-slate-900 text-emerald-600 font-bold px-3.5 py-1.5 rounded-lg border border-slate-300 text-xs transition-all flex items-center gap-1.5 mx-auto"
                           >
                             <Printer className="w-3.5 h-3.5" /> View / Print Challan
                           </button>

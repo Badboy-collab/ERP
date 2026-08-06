@@ -64,25 +64,25 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto print:p-0 print:bg-white print:static">
+    <div className="fixed inset-0 z-50 bg-slate-50/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto print:p-0 print:bg-white print:static">
       {/* Modal Box */}
       <div className="bg-white text-black w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:w-full print:max-w-none print:rounded-none print:m-0">
         {/* Action Header (Hidden during Print) */}
-        <div className="bg-slate-900 text-white p-4 flex items-center justify-between print:hidden">
+        <div className="bg-white text-slate-900 p-4 flex items-center justify-between print:hidden">
           <div className="flex items-center space-x-2">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
             <span className="font-bold text-sm">Gate Pass & Challan Document Preview</span>
           </div>
           <div className="flex items-center space-x-3">
             <button
               onClick={handlePrint}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-lg shadow flex items-center gap-1.5 transition-all"
+              className="bg-emerald-600 hover:bg-emerald-500 text-slate-900 text-xs font-bold px-4 py-2 rounded-lg shadow flex items-center gap-1.5 transition-all"
             >
               <Printer className="w-4 h-4" /> Print Challan
             </button>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+              className="text-slate-500 hover:text-slate-900 p-1 rounded-lg hover:bg-slate-100 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -96,7 +96,7 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
           <div className="flex justify-between items-center border-b border-gray-300 pb-4">
             {/* Left: Brand Logo Badge */}
             <div className="flex items-center space-x-3">
-              <div className="w-20 h-20 bg-emerald-700 text-white rounded-2xl flex flex-col items-center justify-center border-2 border-emerald-500 p-1.5 text-center shadow-md">
+              <div className="w-20 h-20 bg-emerald-700 text-slate-900 rounded-2xl flex flex-col items-center justify-center border-2 border-emerald-500 p-1.5 text-center shadow-md">
                 <span className="text-[9px] uppercase font-extrabold tracking-tighter leading-none">Matber Agro</span>
                 <span className="text-xs font-black text-amber-300 uppercase leading-tight my-0.5">LEADER</span>
                 <span className="text-[9px] uppercase font-bold tracking-tighter leading-none">FEED</span>

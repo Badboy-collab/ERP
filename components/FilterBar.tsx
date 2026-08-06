@@ -55,11 +55,11 @@ export default function FilterBar({
   );
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-inner">
+    <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-inner">
       <div className="grid gap-3 xl:grid-cols-6 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2">
         {depots.length > 0 && (
           <div>
-            <label className="block text-[10px] font-semibold text-slate-400 mb-1">Depot</label>
+            <label className="block text-[10px] font-semibold text-slate-500 mb-1">Depot</label>
             <SearchableSelect
               options={[{ value: "", label: "All Depots" }, ...depots]}
               value={filters.depotId || ""}
@@ -71,7 +71,7 @@ export default function FilterBar({
 
         {showUser && users.length > 0 && (
           <div>
-            <label className="block text-[10px] font-semibold text-slate-400 mb-1">User</label>
+            <label className="block text-[10px] font-semibold text-slate-500 mb-1">User</label>
             <SearchableSelect
               options={[{ value: "", label: "All Users" }, ...users]}
               value={filters.userId || ""}
@@ -83,7 +83,7 @@ export default function FilterBar({
 
         {dealers.length > 0 && (
           <div>
-            <label className="block text-[10px] font-semibold text-slate-400 mb-1">Dealer</label>
+            <label className="block text-[10px] font-semibold text-slate-500 mb-1">Dealer</label>
             <SearchableSelect
               options={[{ value: "", label: "All Dealers" }, ...dealers]}
               value={filters.dealerId || ""}
@@ -95,7 +95,7 @@ export default function FilterBar({
 
         {showProduct && products.length > 0 && (
           <div>
-            <label className="block text-[10px] font-semibold text-slate-400 mb-1">Product</label>
+            <label className="block text-[10px] font-semibold text-slate-500 mb-1">Product</label>
             <SearchableSelect
               options={[{ value: "", label: "All Products" }, ...products]}
               value={filters.productId || ""}
@@ -107,14 +107,14 @@ export default function FilterBar({
 
         {showStatus && (
           <div>
-            <label className="block text-[10px] font-semibold text-slate-400 mb-1">Status</label>
+            <label className="block text-[10px] font-semibold text-slate-500 mb-1">Status</label>
             <select
               value={filters.status || ""}
               onChange={(e) => onChange({ ...filters, status: e.target.value || undefined })}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-emerald-500"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:border-emerald-500"
             >
               {statusOptions.map((status) => (
-                <option key={status.value} value={status.value} className="bg-slate-950 text-white">
+                <option key={status.value} value={status.value} className="bg-slate-50 text-slate-900">
                   {status.label}
                 </option>
               ))}
@@ -124,14 +124,14 @@ export default function FilterBar({
 
         {showDateRange && (
           <div className="grid gap-2">
-            <label className="block text-[10px] font-semibold text-slate-400">Date Range</label>
+            <label className="block text-[10px] font-semibold text-slate-500">Date Range</label>
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <input
                   type="date"
                   value={filters.dateFrom || ""}
                   onChange={(e) => onChange({ ...filters, dateFrom: e.target.value || undefined })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900"
                 />
               </div>
               <div>
@@ -139,7 +139,7 @@ export default function FilterBar({
                   type="date"
                   value={filters.dateTo || ""}
                   onChange={(e) => onChange({ ...filters, dateTo: e.target.value || undefined })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900"
                 />
               </div>
             </div>
@@ -148,7 +148,7 @@ export default function FilterBar({
 
         {showGlobalSearch && (
           <div className="xl:col-span-2 lg:col-span-2 md:col-span-3 sm:col-span-2">
-            <label className="block text-[10px] font-semibold text-slate-400 mb-1">Global Search</label>
+            <label className="block text-[10px] font-semibold text-slate-500 mb-1">Global Search</label>
             <div className="relative">
               <Search className="absolute left-3 top-3.5 text-slate-500 w-4 h-4" />
               <input
@@ -156,7 +156,7 @@ export default function FilterBar({
                 value={filters.search || ""}
                 onChange={(e) => onChange({ ...filters, search: e.target.value || undefined })}
                 placeholder="Search order, dealer, product, user..."
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3 py-2 text-xs text-white focus:border-emerald-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3 py-2 text-xs text-slate-900 focus:border-emerald-500"
               />
             </div>
           </div>

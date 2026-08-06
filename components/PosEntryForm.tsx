@@ -367,24 +367,24 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
   }));
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-4 mb-6">
+    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-4 mb-6">
         <div className="flex items-center space-x-3">
-          <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl">
+          <div className="p-2.5 bg-emerald-500/10 text-emerald-600 rounded-xl">
             <Zap className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-lg font-extrabold text-white">Multi-Product POS Entry</h2>
-            <p className="text-xs text-slate-400">Strict Inventory Validation & Real-time Stock Control</p>
+            <h2 className="text-lg font-extrabold text-slate-900">Multi-Product POS Entry</h2>
+            <p className="text-xs text-slate-500">Strict Inventory Validation & Real-time Stock Control</p>
           </div>
         </div>
 
-        <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
+        <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200 text-xs font-semibold">
           <button
             type="button"
             onClick={() => setTransactionType("SALES")}
             className={`px-3 py-1.5 rounded-lg transition-all ${
-              transactionType === "SALES" ? "bg-emerald-600 text-white shadow" : "text-slate-400 hover:text-white"
+              transactionType === "SALES" ? "bg-emerald-600 text-slate-900 shadow" : "text-slate-500 hover:text-slate-900"
             }`}
           >
             Direct Sale
@@ -393,7 +393,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
             type="button"
             onClick={() => setTransactionType("DELIVERY")}
             className={`px-3 py-1.5 rounded-lg transition-all ${
-              transactionType === "DELIVERY" ? "bg-emerald-600 text-white shadow" : "text-slate-400 hover:text-white"
+              transactionType === "DELIVERY" ? "bg-emerald-600 text-slate-900 shadow" : "text-slate-500 hover:text-slate-900"
             }`}
           >
             DO Delivery
@@ -402,7 +402,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
             type="button"
             onClick={() => setTransactionType("TRANSFER_OUT")}
             className={`px-3 py-1.5 rounded-lg transition-all ${
-              transactionType === "TRANSFER_OUT" ? "bg-amber-600 text-white shadow" : "text-slate-400 hover:text-white"
+              transactionType === "TRANSFER_OUT" ? "bg-amber-600 text-slate-900 shadow" : "text-slate-500 hover:text-slate-900"
             }`}
           >
             Transfer Out
@@ -414,8 +414,8 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
         <div
           className={`p-4 rounded-xl mb-6 text-sm flex items-center space-x-2 font-medium ${
             message.type === "success"
-              ? "bg-emerald-950/80 text-emerald-300 border border-emerald-800"
-              : "bg-rose-950/80 text-rose-300 border border-rose-800"
+              ? "bg-emerald-50/80 text-emerald-300 border border-emerald-200"
+              : "bg-rose-50/80 text-rose-300 border border-rose-800"
           }`}
         >
           <AlertTriangle className="w-5 h-5 flex-shrink-0" />
@@ -425,10 +425,10 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Top Controls */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 bg-slate-50/60 p-4 rounded-xl border border-slate-200/80">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
-              <Building2 className="w-3.5 h-3.5 text-emerald-400" /> Depot
+            <label className="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1">
+              <Building2 className="w-3.5 h-3.5 text-emerald-600" /> Depot
             </label>
             {hasGlobalAccess(currentUser) ? (
               <SearchableSelect
@@ -438,22 +438,22 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
                 placeholder="Select Depot..."
               />
             ) : (
-              <div className="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-emerald-400 font-bold truncate">
+              <div className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-emerald-600 font-bold truncate">
                 {depots.find(d => d.id === depotId)?.name || "Assigned Depot"}
               </div>
             )}
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5 text-emerald-400" /> Date
+            <label className="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5 text-emerald-600" /> Date
             </label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               onClick={(e) => "showPicker" in HTMLInputElement.prototype && (e.target as HTMLInputElement).showPicker()}
-              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-2 text-xs text-white cursor-pointer hover:border-emerald-500 hover:bg-slate-800 transition-all"
+              className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-2 text-xs text-slate-900 cursor-pointer hover:border-emerald-500 hover:bg-slate-100 transition-all"
               required
             />
           </div>
@@ -461,8 +461,8 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
           {transactionType !== "TRANSFER_OUT" ? (
             <>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
-                  <User className="w-3.5 h-3.5 text-emerald-400" /> Dealer
+                <label className="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                  <User className="w-3.5 h-3.5 text-emerald-600" /> Dealer
                 </label>
                 <SearchableSelect
                   options={dealerOptions}
@@ -473,8 +473,8 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
-                  <FileText className="w-3.5 h-3.5 text-emerald-400" /> Delivery Order
+                <label className="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                  <FileText className="w-3.5 h-3.5 text-emerald-600" /> Delivery Order
                 </label>
                 <SearchableSelect
                   options={orderOptions}
@@ -488,7 +488,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
           ) : (
             <div className="sm:col-span-2">
               <label className="block text-xs font-semibold text-amber-300 mb-1 flex items-center gap-1">
-                <Building2 className="w-3.5 h-3.5 text-amber-400" /> Transfer Mode
+                <Building2 className="w-3.5 h-3.5 text-amber-600" /> Transfer Mode
               </label>
               <select
                 value={transferTargetType}
@@ -496,7 +496,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
                   setTransferTargetType(e.target.value as any);
                   if (e.target.value === "FACTORY") setDestinationDepotId("");
                 }}
-                className="w-full bg-slate-900 border border-amber-900/50 rounded-lg px-3 py-2 text-xs text-amber-300 font-bold"
+                className="w-full bg-white border border-amber-200/50 rounded-lg px-3 py-2 text-xs text-amber-300 font-bold"
               >
                 <option value="DEPOT">Depot to Depot Transfer</option>
                 <option value="FACTORY">Depot to Factory Return</option>
@@ -505,21 +505,21 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
-              <Hash className="w-3.5 h-3.5 text-emerald-400" /> Invoice No
+            <label className="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1">
+              <Hash className="w-3.5 h-3.5 text-emerald-600" /> Invoice No
             </label>
             <input
               type="text"
               value={invoiceNo}
               onChange={(e) => setInvoiceNo(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-2 text-xs text-white font-mono"
+              className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-2 text-xs text-slate-900 font-mono"
               required
             />
           </div>
         </div>
 
         {transactionType === "TRANSFER_OUT" && transferTargetType === "DEPOT" && (
-          <div className="bg-amber-950/20 border border-amber-800/40 p-4 rounded-xl space-y-2">
+          <div className="bg-amber-50/20 border border-amber-800/40 p-4 rounded-xl space-y-2">
             <label className="block text-xs font-bold text-amber-300 uppercase tracking-wider">
               Select Receiving Destination Depot *
             </label>
@@ -537,13 +537,13 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
         {/* Dynamic Multi-Product Rows */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-extrabold text-slate-300 uppercase tracking-wider">
+            <h3 className="text-xs font-extrabold text-slate-600 uppercase tracking-wider">
               Product Dispatch Items ({items.length})
             </h3>
             <button
               type="button"
               onClick={handleAddRow}
-              className="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700"
+              className="text-xs text-emerald-600 hover:text-emerald-300 font-bold flex items-center gap-1 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-300"
             >
               <Plus className="w-3.5 h-3.5" /> Add Product Row
             </button>
@@ -571,12 +571,12 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
                 key={row.id}
                 className={`grid grid-cols-1 sm:grid-cols-12 gap-3 items-end p-4 rounded-xl border relative transition-all ${
                   isOverStock
-                    ? "bg-rose-950/40 border-rose-800"
-                    : "bg-slate-950/80 border-slate-800"
+                    ? "bg-rose-50/40 border-rose-800"
+                    : "bg-slate-50/80 border-slate-200"
                 }`}
               >
                 <div className="sm:col-span-3">
-                  <label className="block text-[11px] text-slate-400 mb-1 font-semibold">Product *</label>
+                  <label className="block text-[11px] text-slate-500 mb-1 font-semibold">Product *</label>
                   <SearchableSelect
                     options={productOptions}
                     value={row.product_id}
@@ -587,9 +587,9 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
 
                 <div className="sm:col-span-4">
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-[11px] text-slate-400 font-semibold">Lot (Batch) *</label>
+                    <label className="text-[11px] text-slate-500 font-semibold">Lot (Batch) *</label>
                     {row.fifoLot && (
-                      <span className="text-[10px] text-emerald-400 font-bold">⚡ FIFO Suggested</span>
+                      <span className="text-[10px] text-emerald-600 font-bold">⚡ FIFO Suggested</span>
                     )}
                   </div>
                   <SearchableSelect
@@ -602,7 +602,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
                 </div>
 
                 <div className="sm:col-span-3">
-                  <label className="block text-[11px] text-slate-400 mb-1 font-semibold">Quantity *</label>
+                  <label className="block text-[11px] text-slate-500 mb-1 font-semibold">Quantity *</label>
                   <DualQuantityInput
                     kgValue={row.quantity}
                     onKgChange={(val) => {
@@ -615,7 +615,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
                 </div>
 
                 <div className="sm:col-span-1.5 relative">
-                  <label className="block text-[11px] text-slate-400 mb-1 font-semibold">Price/Kg *</label>
+                  <label className="block text-[11px] text-slate-500 mb-1 font-semibold">Price/Kg *</label>
                   <div className="relative">
                     <input
                       type="number"
@@ -628,7 +628,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
                         updated[idx].unit_price = e.target.value === "" ? "" : Number(e.target.value);
                         setItems(updated);
                       }}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-2 text-xs text-white font-bold"
+                      className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-2 text-xs text-slate-900 font-bold"
                       required
                     />
                   </div>
@@ -639,7 +639,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
                     type="button"
                     onClick={() => handleRemoveRow(idx)}
                     disabled={items.length <= 1}
-                    className="p-2 text-slate-500 hover:text-rose-400 disabled:opacity-30 rounded-lg hover:bg-slate-900 transition-colors"
+                    className="p-2 text-slate-500 hover:text-rose-600 disabled:opacity-30 rounded-lg hover:bg-white transition-colors"
                   >
                     <Trash2 className="w-4.5 h-4.5" />
                   </button>
@@ -647,7 +647,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
 
                 {/* Stock Warning Badge */}
                 {isOverStock && row.selectedLotObj && (
-                  <div className="col-span-12 text-xs text-rose-400 font-bold flex items-center gap-1.5 pt-1">
+                  <div className="col-span-12 text-xs text-rose-600 font-bold flex items-center gap-1.5 pt-1">
                     <AlertTriangle className="w-3.5 h-3.5" />
                     Exceeds available Lot stock! Only {row.selectedLotObj.available_qty} kg ({Math.round((row.selectedLotObj.available_qty / bagSize) * 100) / 100} bags) available.
                   </div>

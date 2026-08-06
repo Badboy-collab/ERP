@@ -818,21 +818,21 @@ export default function AdminPage() {
   const depotOptions = depots.map((d) => ({ value: d.id, label: `${d.name} (${d.code})` }));
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-100 flex flex-col font-sans">
       <Navbar />
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-          <h1 className="text-2xl font-black text-white flex items-center gap-2">
-            <ShieldAlert className="w-6 h-6 text-amber-400" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+          <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+            <ShieldAlert className="w-6 h-6 text-amber-600" />
             Master Admin Control Panel
           </h1>
-          <div className="flex bg-slate-900 border border-slate-800 rounded-xl p-1 text-xs font-bold flex-wrap gap-1">
+          <div className="flex bg-white border border-slate-200 rounded-xl p-1 text-xs font-bold flex-wrap gap-1">
             {["depots", "products", "dealers", "users", "override", "setup"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab as any)}
                 className={`px-4 py-2 rounded-lg transition-all capitalize ${
-                  activeTab === tab ? "bg-amber-600 text-white" : "text-slate-400 hover:text-white"
+                  activeTab === tab ? "bg-amber-600 text-slate-900" : "text-slate-500 hover:text-slate-900"
                 }`}
               >
                 {tab === "override" ? "Master Override" : tab === "setup" ? "System Setup" : tab}
@@ -845,8 +845,8 @@ export default function AdminPage() {
           <div
             className={`p-4 rounded-xl text-sm font-semibold border ${
               message.type === "success"
-                ? "bg-emerald-950/80 text-emerald-300 border-emerald-800"
-                : "bg-rose-950/80 text-rose-300 border-rose-800"
+                ? "bg-emerald-50/80 text-emerald-300 border-emerald-200"
+                : "bg-rose-50/80 text-rose-300 border-rose-800"
             }`}
           >
             {message.text}
@@ -856,36 +856,36 @@ export default function AdminPage() {
         {/* Tab 1: Depots */}
         {activeTab === "depots" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <form onSubmit={handleCreateDepot} className="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <h2 className="text-base font-extrabold text-white mb-2 flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-amber-400" /> Add Depot Location
+            <form onSubmit={handleCreateDepot} className="lg:col-span-4 bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-base font-extrabold text-slate-900 mb-2 flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-amber-600" /> Add Depot Location
               </h2>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Depot Code (Unique) *</label>
-                <input type="text" value={depotCode} onChange={(e) => setDepotCode(e.target.value)} placeholder="e.g. DEP-PAB" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white uppercase" required />
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Depot Code (Unique) *</label>
+                <input type="text" value={depotCode} onChange={(e) => setDepotCode(e.target.value)} placeholder="e.g. DEP-PAB" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 uppercase" required />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Depot Name *</label>
-                <input type="text" value={depotName} onChange={(e) => setDepotName(e.target.value)} placeholder="e.g. Pabna Depot" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" required />
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Depot Name *</label>
+                <input type="text" value={depotName} onChange={(e) => setDepotName(e.target.value)} placeholder="e.g. Pabna Depot" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900" required />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Address</label>
-                <input type="text" value={depotAddress} onChange={(e) => setDepotAddress(e.target.value)} placeholder="Depot location address" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" />
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Address</label>
+                <input type="text" value={depotAddress} onChange={(e) => setDepotAddress(e.target.value)} placeholder="Depot location address" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Phone Number</label>
-                <input type="text" value={depotPhone} onChange={(e) => setDepotPhone(e.target.value)} placeholder="Contact phone number" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" />
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Phone Number</label>
+                <input type="text" value={depotPhone} onChange={(e) => setDepotPhone(e.target.value)} placeholder="Contact phone number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900" />
               </div>
               <button type="submit" className="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2.5 rounded-xl shadow-lg transition-all text-xs">
                 Add Depot Location
               </button>
             </form>
 
-            <div className="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <h2 className="text-base font-extrabold text-white">Registered Depots ({depots.length})</h2>
+            <div className="lg:col-span-8 bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-base font-extrabold text-slate-900">Registered Depots ({depots.length})</h2>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border border-slate-800">
-                  <thead className="bg-slate-950 text-slate-400 font-bold uppercase">
+                <table className="w-full text-left text-xs border border-slate-200">
+                  <thead className="bg-slate-50 text-slate-500 font-bold uppercase">
                     <tr>
                       <th className="p-3">Code</th>
                       <th className="p-3">Name</th>
@@ -896,18 +896,18 @@ export default function AdminPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-800 font-medium">
                     {depots.map((d) => (
-                      <tr key={d.id} className="hover:bg-slate-800/40">
-                        <td className="p-3 font-mono font-bold text-amber-400 uppercase">{d.code}</td>
-                        <td className="p-3 text-white font-bold">{d.name}</td>
-                        <td className="p-3 text-slate-300">{d.address || "N/A"}</td>
-                        <td className="p-3 text-slate-400 font-mono">{d.phone || "N/A"}</td>
+                      <tr key={d.id} className="hover:bg-slate-100/40">
+                        <td className="p-3 font-mono font-bold text-amber-600 uppercase">{d.code}</td>
+                        <td className="p-3 text-slate-900 font-bold">{d.name}</td>
+                        <td className="p-3 text-slate-600">{d.address || "N/A"}</td>
+                        <td className="p-3 text-slate-500 font-mono">{d.phone || "N/A"}</td>
                         {currentUser?.role === "SUPER_ADMIN" && (
                           <td className="p-3 text-right">
                             <div className="flex justify-end gap-2">
-                              <button onClick={() => handleEditDepot(d)} className="p-1 text-slate-400 hover:text-emerald-400 rounded hover:bg-slate-950 transition-colors" title="Edit Depot">
+                              <button onClick={() => handleEditDepot(d)} className="p-1 text-slate-500 hover:text-emerald-600 rounded hover:bg-slate-50 transition-colors" title="Edit Depot">
                                 <Edit className="w-4 h-4" />
                               </button>
-                              <button onClick={() => handleDeleteDepot(d.id)} className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-950 transition-colors" title="Delete Depot">
+                              <button onClick={() => handleDeleteDepot(d.id)} className="p-1 text-slate-500 hover:text-rose-600 rounded hover:bg-slate-50 transition-colors" title="Delete Depot">
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
@@ -925,21 +925,21 @@ export default function AdminPage() {
         {/* Tab 2: Products */}
         {activeTab === "products" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <form onSubmit={handleCreateProduct} className="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <h2 className="text-base font-extrabold text-white mb-2 flex items-center gap-2">
-                <Package className="w-5 h-5 text-amber-400" /> Add Product Item
+            <form onSubmit={handleCreateProduct} className="lg:col-span-4 bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-base font-extrabold text-slate-900 mb-2 flex items-center gap-2">
+                <Package className="w-5 h-5 text-amber-600" /> Add Product Item
               </h2>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Product Code *</label>
-                <input type="text" value={prodCode} onChange={(e) => setProdCode(e.target.value)} placeholder="e.g. 510" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" required />
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Product Code *</label>
+                <input type="text" value={prodCode} onChange={(e) => setProdCode(e.target.value)} placeholder="e.g. 510" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900" required />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Product Name *</label>
-                <input type="text" value={prodName} onChange={(e) => setProdName(e.target.value)} placeholder="e.g. Broiler Starter (C) 510" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" required />
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Product Name *</label>
+                <input type="text" value={prodName} onChange={(e) => setProdName(e.target.value)} placeholder="e.g. Broiler Starter (C) 510" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900" required />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Category *</label>
-                <select value={prodCategory} onChange={(e) => setProdCategory(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold">
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Category *</label>
+                <select value={prodCategory} onChange={(e) => setProdCategory(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold">
                   <option value="Broiler">Broiler</option>
                   <option value="Layer">Layer</option>
                   <option value="Sonali">Sonali</option>
@@ -951,27 +951,27 @@ export default function AdminPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Sort Order (Spreadsheet Sequence #)</label>
-                <input type="number" value={prodSortOrder} onChange={(e) => setProdSortOrder(Number(e.target.value))} placeholder="e.g. 1, 2, 3..." className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" />
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Sort Order (Spreadsheet Sequence #)</label>
+                <input type="number" value={prodSortOrder} onChange={(e) => setProdSortOrder(Number(e.target.value))} placeholder="e.g. 1, 2, 3..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Bag Size (Kg) *</label>
-                <input type="number" step="any" value={prodBagSize} onChange={(e) => setProdBagSize(Number(e.target.value))} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" required />
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Bag Size (Kg) *</label>
+                <input type="number" step="any" value={prodBagSize} onChange={(e) => setProdBagSize(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold" required />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Opening Stock (Kg) *</label>
-                <input type="number" value={prodOpeningStock} onChange={(e) => setProdOpeningStock(Number(e.target.value))} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" required />
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Opening Stock (Kg) *</label>
+                <input type="number" value={prodOpeningStock} onChange={(e) => setProdOpeningStock(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold" required />
               </div>
               <button type="submit" className="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2.5 rounded-xl shadow-lg transition-all text-xs">
                 Add Product Item
               </button>
             </form>
 
-            <div className="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <h2 className="text-base font-extrabold text-white">Product Catalog ({products.length})</h2>
+            <div className="lg:col-span-8 bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-base font-extrabold text-slate-900">Product Catalog ({products.length})</h2>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border border-slate-800">
-                  <thead className="bg-slate-950 text-slate-400 font-bold uppercase">
+                <table className="w-full text-left text-xs border border-slate-200">
+                  <thead className="bg-slate-50 text-slate-500 font-bold uppercase">
                     <tr>
                       <th className="p-3">Code</th>
                       <th className="p-3">Name</th>
@@ -983,19 +983,19 @@ export default function AdminPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-800 font-medium">
                     {products.map((p) => (
-                      <tr key={p.id} className="hover:bg-slate-800/40">
-                        <td className="p-3 font-mono font-bold text-amber-400">{p.code}</td>
-                        <td className="p-3 text-white font-bold">{p.name}</td>
-                        <td className="p-3 text-slate-400 font-bold uppercase text-[10px]">{p.category}</td>
-                        <td className="p-3 text-right font-mono text-slate-300">{p.bag_size_kg} kg</td>
-                        <td className="p-3 text-right font-mono text-slate-300">{p.opening_stock} kg</td>
+                      <tr key={p.id} className="hover:bg-slate-100/40">
+                        <td className="p-3 font-mono font-bold text-amber-600">{p.code}</td>
+                        <td className="p-3 text-slate-900 font-bold">{p.name}</td>
+                        <td className="p-3 text-slate-500 font-bold uppercase text-[10px]">{p.category}</td>
+                        <td className="p-3 text-right font-mono text-slate-600">{p.bag_size_kg} kg</td>
+                        <td className="p-3 text-right font-mono text-slate-600">{p.opening_stock} kg</td>
                         {currentUser?.role === "SUPER_ADMIN" && (
                           <td className="p-3 text-right">
                             <div className="flex justify-end gap-2">
-                              <button onClick={() => handleEditProduct(p)} className="p-1 text-slate-400 hover:text-emerald-400 rounded hover:bg-slate-950 transition-colors" title="Edit Product">
+                              <button onClick={() => handleEditProduct(p)} className="p-1 text-slate-500 hover:text-emerald-600 rounded hover:bg-slate-50 transition-colors" title="Edit Product">
                                 <Edit className="w-4 h-4" />
                               </button>
-                              <button onClick={() => handleDeleteProduct(p.id)} className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-950 transition-colors" title="Delete Product">
+                              <button onClick={() => handleDeleteProduct(p.id)} className="p-1 text-slate-500 hover:text-rose-600 rounded hover:bg-slate-50 transition-colors" title="Delete Product">
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
@@ -1013,44 +1013,44 @@ export default function AdminPage() {
         {/* Tab 3: Dealers */}
         {activeTab === "dealers" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <form onSubmit={handleCreateDealer} className="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <h2 className="text-base font-extrabold text-white mb-2 flex items-center gap-2">
-                <Users className="w-5 h-5 text-amber-400" /> Register Dealer
+            <form onSubmit={handleCreateDealer} className="lg:col-span-4 bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-base font-extrabold text-slate-900 mb-2 flex items-center gap-2">
+                <Users className="w-5 h-5 text-amber-600" /> Register Dealer
               </h2>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Dealer Name *</label>
-                <input type="text" value={dealerName} onChange={(e) => setDealerName(e.target.value)} placeholder="e.g. Sarder Poultry" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" required />
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Dealer Name *</label>
+                <input type="text" value={dealerName} onChange={(e) => setDealerName(e.target.value)} placeholder="e.g. Sarder Poultry" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900" required />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Dealer Code</label>
-                <input type="text" value={dealerCode} onChange={(e) => setDealerCode(e.target.value)} placeholder="Auto-generated if empty" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white uppercase" />
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Dealer Code</label>
+                <input type="text" value={dealerCode} onChange={(e) => setDealerCode(e.target.value)} placeholder="Auto-generated if empty" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 uppercase" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Phone Number *</label>
-                <input type="text" value={dealerPhone} onChange={(e) => setDealerPhone(e.target.value)} placeholder="Dealer contact phone" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" required />
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Phone Number *</label>
+                <input type="text" value={dealerPhone} onChange={(e) => setDealerPhone(e.target.value)} placeholder="Dealer contact phone" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900" required />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Address</label>
-                <input type="text" value={dealerAddress} onChange={(e) => setDealerAddress(e.target.value)} placeholder="Dealer location" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" />
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Address</label>
+                <input type="text" value={dealerAddress} onChange={(e) => setDealerAddress(e.target.value)} placeholder="Dealer location" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Assigned Depot *</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Assigned Depot *</label>
                 <SearchableSelect options={depotOptions} value={dealerDepotId} onChange={setDealerDepotId} placeholder="Select Depot..." />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Opening Balance (Dues) *</label>
-                <input type="number" step="any" value={dealerBalance} onChange={(e) => setDealerBalance(Number(e.target.value))} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" required />
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Opening Balance (Dues) *</label>
+                <input type="number" step="any" value={dealerBalance} onChange={(e) => setDealerBalance(Number(e.target.value))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold" required />
               </div>
               <button type="submit" className="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2.5 rounded-xl shadow-lg transition-all text-xs">
                 Register Dealer
               </button>
             </form>
 
-            <div className="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <h2 className="text-base font-extrabold text-white">Registered Dealers ({dealers.length})</h2>
+            <div className="lg:col-span-8 bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-base font-extrabold text-slate-900">Registered Dealers ({dealers.length})</h2>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border border-slate-800">
-                  <thead className="bg-slate-950 text-slate-400 font-bold uppercase">
+                <table className="w-full text-left text-xs border border-slate-200">
+                  <thead className="bg-slate-50 text-slate-500 font-bold uppercase">
                     <tr>
                       <th className="p-3">Name</th>
                       <th className="p-3">Phone</th>
@@ -1062,19 +1062,19 @@ export default function AdminPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-800 font-medium">
                     {dealers.map((d) => (
-                      <tr key={d.id} className="hover:bg-slate-800/40">
-                        <td className="p-3 text-white font-bold">{d.name}</td>
-                        <td className="p-3 text-slate-400 font-mono">{d.phone}</td>
-                        <td className="p-3 text-slate-300">{d.address || "N/A"}</td>
-                        <td className="p-3 text-emerald-400">{d.depot?.name || "Unassigned"}</td>
-                        <td className="p-3 text-right font-mono font-bold text-rose-400">{d.current_balance.toLocaleString()} Tk</td>
+                      <tr key={d.id} className="hover:bg-slate-100/40">
+                        <td className="p-3 text-slate-900 font-bold">{d.name}</td>
+                        <td className="p-3 text-slate-500 font-mono">{d.phone}</td>
+                        <td className="p-3 text-slate-600">{d.address || "N/A"}</td>
+                        <td className="p-3 text-emerald-600">{d.depot?.name || "Unassigned"}</td>
+                        <td className="p-3 text-right font-mono font-bold text-rose-600">{d.current_balance.toLocaleString()} Tk</td>
                         {currentUser?.role === "SUPER_ADMIN" && (
                           <td className="p-3 text-right">
                             <div className="flex justify-end gap-2">
-                              <button onClick={() => handleEditDealer(d)} className="p-1 text-slate-400 hover:text-emerald-400 rounded hover:bg-slate-950 transition-colors" title="Edit Dealer">
+                              <button onClick={() => handleEditDealer(d)} className="p-1 text-slate-500 hover:text-emerald-600 rounded hover:bg-slate-50 transition-colors" title="Edit Dealer">
                                 <Edit className="w-4 h-4" />
                               </button>
-                              <button onClick={() => handleDeleteDealer(d.id)} className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-950 transition-colors" title="Delete Dealer">
+                              <button onClick={() => handleDeleteDealer(d.id)} className="p-1 text-slate-500 hover:text-rose-600 rounded hover:bg-slate-50 transition-colors" title="Delete Dealer">
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
@@ -1092,34 +1092,34 @@ export default function AdminPage() {
         {/* Tab 4: Users & RBAC */}
         {activeTab === "users" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <h2 className="text-base font-extrabold text-white flex items-center gap-2">
-                <Users className="w-5 h-5 text-amber-400" /> {editingUserId ? "Edit User Account" : "Register User Account"}
+            <div className="lg:col-span-4 bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                <Users className="w-5 h-5 text-amber-600" /> {editingUserId ? "Edit User Account" : "Register User Account"}
               </h2>
               
               {!editingUserId ? (
                 <>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">User Name *</label>
-                    <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="User's Full Name" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" required />
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">User Name *</label>
+                    <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="User's Full Name" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900" required />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Email Address *</label>
-                    <input type="email" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} placeholder="user@company.com" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" required />
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">Email Address *</label>
+                    <input type="email" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} placeholder="user@company.com" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900" required />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Password *</label>
-                    <input type="password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)} placeholder="••••••••" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" required />
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">Password *</label>
+                    <input type="password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)} placeholder="••••••••" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900" required />
                   </div>
                 </>
               ) : (
                 <div className="space-y-3">
-                  <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs">
-                    <p className="font-bold text-slate-300">Modifying Role & Permissions for User:</p>
-                    <p className="text-emerald-400 font-black mt-1">{users.find(u => u.id === editingUserId)?.name}</p>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                    <p className="font-bold text-slate-600">Modifying Role & Permissions for User:</p>
+                    <p className="text-emerald-600 font-black mt-1">{users.find(u => u.id === editingUserId)?.name}</p>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">
                       Change Password (Leave blank to keep current)
                     </label>
                     <input
@@ -1127,15 +1127,15 @@ export default function AdminPage() {
                       value={userPassword}
                       onChange={(e) => setUserPassword(e.target.value)}
                       placeholder="New Password (optional)"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900"
                     />
                   </div>
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">User Role *</label>
-                <select value={userRole} onChange={(e) => setUserRole(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold">
+                <label className="block text-xs font-semibold text-slate-600 mb-1">User Role *</label>
+                <select value={userRole} onChange={(e) => setUserRole(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold">
                   <option value="OPERATOR">Operator (Level 4 - Local Depot Entry)</option>
                   <option value="DEPOT_ADMIN">Depot Admin (Level 3 - Local Depot Admin)</option>
                   <option value="ORG_ADMIN">Organization Admin (Level 2 - Global Visibility)</option>
@@ -1145,20 +1145,20 @@ export default function AdminPage() {
 
               {userRole !== "SUPER_ADMIN" && userRole !== "ORG_ADMIN" && (
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Assign Depot *</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Assign Depot *</label>
                   <SearchableSelect options={depotOptions} value={userDepotId} onChange={setUserDepotId} placeholder="Assign Depot..." />
                 </div>
               )}
 
-              <div className="space-y-2 pt-2 border-t border-slate-800">
-                <label className="block text-xs font-bold text-amber-400">Granular Permissions</label>
+              <div className="space-y-2 pt-2 border-t border-slate-200">
+                <label className="block text-xs font-bold text-amber-600">Granular Permissions</label>
                 {Object.keys(userPermissions).map((perm) => (
-                  <label key={perm} className="flex items-center space-x-2 text-xs text-slate-300 font-semibold cursor-pointer">
+                  <label key={perm} className="flex items-center space-x-2 text-xs text-slate-600 font-semibold cursor-pointer">
                     <input
                       type="checkbox"
                       checked={(userPermissions as any)[perm]}
                       onChange={(e) => setUserPermissions({ ...userPermissions, [perm]: e.target.checked })}
-                      className="rounded border-slate-800 text-emerald-600 focus:ring-emerald-500 bg-slate-950"
+                      className="rounded border-slate-200 text-emerald-600 focus:ring-emerald-500 bg-slate-50"
                     />
                     <span className="capitalize">{perm.replace(/_/g, " ")}</span>
                   </label>
@@ -1170,7 +1170,7 @@ export default function AdminPage() {
                   <button onClick={() => handleSaveUserPermissions(editingUserId)} className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold py-2.5 rounded-xl transition-all text-xs flex items-center justify-center gap-1">
                     <Save className="w-4 h-4" /> Save User
                   </button>
-                  <button onClick={() => setEditingUserId(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">
+                  <button onClick={() => setEditingUserId(null)} className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">
                     Cancel
                   </button>
                 </div>
@@ -1181,11 +1181,11 @@ export default function AdminPage() {
               )}
             </div>
 
-            <div className="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <h2 className="text-base font-extrabold text-white font-black">User Directory ({users.length})</h2>
+            <div className="lg:col-span-8 bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-base font-extrabold text-slate-900 font-black">User Directory ({users.length})</h2>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border border-slate-800">
-                  <thead className="bg-slate-950 text-slate-400 font-bold uppercase">
+                <table className="w-full text-left text-xs border border-slate-200">
+                  <thead className="bg-slate-50 text-slate-500 font-bold uppercase">
                     <tr>
                       <th className="p-3">User</th>
                       <th className="p-3">Role</th>
@@ -1195,27 +1195,27 @@ export default function AdminPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-800 font-medium">
                     {users.map((u) => (
-                      <tr key={u.id} className="hover:bg-slate-800/40">
+                      <tr key={u.id} className="hover:bg-slate-100/40">
                         <td className="p-3">
-                          <p className="text-white font-bold">{u.name}</p>
-                          <p className="text-slate-400 font-mono text-[10px]">{u.email}</p>
+                          <p className="text-slate-900 font-bold">{u.name}</p>
+                          <p className="text-slate-500 font-mono text-[10px]">{u.email}</p>
                         </td>
                         <td className="p-3">
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                            u.role === "SUPER_ADMIN" ? "bg-rose-950/80 text-rose-300 border-rose-800" :
-                            u.role === "DEPOT_ADMIN" ? "bg-emerald-950/80 text-emerald-300 border-emerald-800" :
-                            "bg-slate-800 text-slate-400 border-slate-700"
+                            u.role === "SUPER_ADMIN" ? "bg-rose-50/80 text-rose-300 border-rose-800" :
+                            u.role === "DEPOT_ADMIN" ? "bg-emerald-50/80 text-emerald-300 border-emerald-200" :
+                            "bg-slate-100 text-slate-500 border-slate-300"
                           }`}>
                             {u.role}
                           </span>
                         </td>
-                        <td className="p-3 text-slate-300">{u.depot?.name || "Global Master"}</td>
+                        <td className="p-3 text-slate-600">{u.depot?.name || "Global Master"}</td>
                         <td className="p-3 text-right">
                           <div className="flex justify-end gap-2">
-                            <button onClick={() => handleEditUserPermissions(u)} className="p-1 text-slate-400 hover:text-emerald-400 rounded hover:bg-slate-950 transition-colors">
+                            <button onClick={() => handleEditUserPermissions(u)} className="p-1 text-slate-500 hover:text-emerald-600 rounded hover:bg-slate-50 transition-colors">
                               <Edit className="w-4 h-4" />
                             </button>
-                            <button onClick={() => handleDeleteUser(u.id)} className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-950 transition-colors">
+                            <button onClick={() => handleDeleteUser(u.id)} className="p-1 text-slate-500 hover:text-rose-600 rounded hover:bg-slate-50 transition-colors">
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
@@ -1232,13 +1232,13 @@ export default function AdminPage() {
         {/* Tab 5: Master Override */}
         {activeTab === "override" && (
           <div className="space-y-8">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <h2 className="text-base font-extrabold text-emerald-400 flex items-center gap-2">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-base font-extrabold text-emerald-600 flex items-center gap-2">
                 <Package className="w-5 h-5" /> Master Delivery Orders (Direct Override)
               </h2>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border border-slate-800">
-                  <thead className="bg-slate-950 text-slate-400 font-bold uppercase">
+                <table className="w-full text-left text-xs border border-slate-200">
+                  <thead className="bg-slate-50 text-slate-500 font-bold uppercase">
                     <tr>
                       <th className="p-3">Order No</th>
                       <th className="p-3">Delivery Date</th>
@@ -1253,30 +1253,30 @@ export default function AdminPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-800 font-medium">
                     {deliveryOrders.map((order) => (
-                      <tr key={order.id} className="hover:bg-slate-800/40">
-                        <td className="p-3 font-mono font-bold text-emerald-400">{order.order_no}</td>
-                        <td className="p-3 text-slate-400">{new Date(order.order_date).toLocaleDateString()}</td>
-                        <td className="p-3 text-white">{order.dealer?.name}</td>
-                        <td className="p-3 text-slate-300">{order.depot?.name}</td>
-                        <td className="p-3 text-right font-mono text-slate-300">{order.items.length}</td>
+                      <tr key={order.id} className="hover:bg-slate-100/40">
+                        <td className="p-3 font-mono font-bold text-emerald-600">{order.order_no}</td>
+                        <td className="p-3 text-slate-500">{new Date(order.order_date).toLocaleDateString()}</td>
+                        <td className="p-3 text-slate-900">{order.dealer?.name}</td>
+                        <td className="p-3 text-slate-600">{order.depot?.name}</td>
+                        <td className="p-3 text-right font-mono text-slate-600">{order.items.length}</td>
                         <td className="p-3">
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                             order.status === "Complete"
-                              ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                              ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
                               : order.status === "Partial"
-                                ? "bg-amber-950 text-amber-400 border border-amber-800"
-                                : "bg-slate-800 text-slate-300 border border-slate-700"
+                                ? "bg-amber-50 text-amber-600 border border-amber-800"
+                                : "bg-slate-100 text-slate-600 border border-slate-300"
                           }`}>
                             {order.status}
                           </span>
                         </td>
-                        <td className="p-3 text-slate-300">{order.created_by || "System"}</td>
-                        <td className="p-3 text-slate-400">{new Date(order.createdAt).toLocaleString()}</td>
+                        <td className="p-3 text-slate-600">{order.created_by || "System"}</td>
+                        <td className="p-3 text-slate-500">{new Date(order.createdAt).toLocaleString()}</td>
                         <td className="p-3 text-right">
                           <div className="flex justify-end gap-2">
                             <button
                               onClick={() => setViewOrder(order)}
-                              className="text-slate-400 hover:text-white transition-colors"
+                              className="text-slate-500 hover:text-slate-900 transition-colors"
                               title="View Delivery Order"
                             >
                               View
@@ -1285,14 +1285,14 @@ export default function AdminPage() {
                               <>
                                 <button
                                   onClick={() => handleEditDeliveryOrder(order)}
-                                  className="text-slate-400 hover:text-emerald-400 transition-colors"
+                                  className="text-slate-500 hover:text-emerald-600 transition-colors"
                                   title="Edit Delivery Order"
                                 >
                                   Edit
                                 </button>
                                 <button
                                   onClick={() => handleDeleteDeliveryOrder(order)}
-                                  className="text-slate-400 hover:text-rose-400 transition-colors"
+                                  className="text-slate-500 hover:text-rose-600 transition-colors"
                                   title="Delete Delivery Order"
                                 >
                                   Delete
@@ -1313,13 +1313,13 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
               <h2 className="text-base font-extrabold text-red-400 flex items-center gap-2">
                 <ShieldAlert className="w-5 h-5" /> Master Sales Dispatches List (Direct Override)
               </h2>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border border-slate-800">
-                  <thead className="bg-slate-950 text-slate-400 font-bold uppercase">
+                <table className="w-full text-left text-xs border border-slate-200">
+                  <thead className="bg-slate-50 text-slate-500 font-bold uppercase">
                     <tr>
                       <th className="p-3">Invoice No</th>
                       <th className="p-3">Date</th>
@@ -1331,10 +1331,10 @@ export default function AdminPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-800 font-medium">
                     {salesLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-slate-800/40">
-                        <td className="p-3 font-mono font-bold text-white">{log.invoice_no}</td>
-                        <td className="p-3 text-slate-400">{new Date(log.date).toLocaleDateString()}</td>
-                        <td className="p-3 text-slate-300">{log.depot?.name}</td>
+                      <tr key={log.id} className="hover:bg-slate-100/40">
+                        <td className="p-3 font-mono font-bold text-slate-900">{log.invoice_no}</td>
+                        <td className="p-3 text-slate-500">{new Date(log.date).toLocaleDateString()}</td>
+                        <td className="p-3 text-slate-600">{log.depot?.name}</td>
                         <td className="p-3 text-slate-100">{log.product?.name}</td>
                         <td className="p-3 text-right font-mono">{log.quantity.toLocaleString()} kg</td>
                         <td className="p-3 text-right">
@@ -1345,14 +1345,14 @@ export default function AdminPage() {
                                 setEditSaleQty(String(log.quantity));
                                 setEditSalePrice(String(log.unit_price || 0));
                               }}
-                              className="p-1 text-slate-400 hover:text-emerald-400 rounded hover:bg-slate-950 transition-colors"
+                              className="p-1 text-slate-500 hover:text-emerald-600 rounded hover:bg-slate-50 transition-colors"
                               title="Edit & Override Sales Dispatch"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteSalesRecord(log.id)}
-                              className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-950 transition-colors"
+                              className="p-1 text-slate-500 hover:text-rose-600 rounded hover:bg-slate-50 transition-colors"
                               title="Reverse & Delete Sales Dispatch"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -1366,13 +1366,13 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
               <h2 className="text-base font-extrabold text-blue-400 flex items-center gap-2">
                 <Building2 className="w-5 h-5" /> Master Stock Receives List (Direct Override)
               </h2>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border border-slate-800">
-                  <thead className="bg-slate-950 text-slate-400 font-bold uppercase">
+                <table className="w-full text-left text-xs border border-slate-200">
+                  <thead className="bg-slate-50 text-slate-500 font-bold uppercase">
                     <tr>
                       <th className="p-3">Receive ID / Invoice No</th>
                       <th className="p-3">Date</th>
@@ -1384,10 +1384,10 @@ export default function AdminPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-800 font-medium">
                     {receiveLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-slate-800/40">
-                        <td className="p-3 font-mono font-bold text-white">{log.invoice_no}</td>
-                        <td className="p-3 text-slate-400">{new Date(log.date).toLocaleDateString()}</td>
-                        <td className="p-3 text-slate-300">{log.depot?.name}</td>
+                      <tr key={log.id} className="hover:bg-slate-100/40">
+                        <td className="p-3 font-mono font-bold text-slate-900">{log.invoice_no}</td>
+                        <td className="p-3 text-slate-500">{new Date(log.date).toLocaleDateString()}</td>
+                        <td className="p-3 text-slate-600">{log.depot?.name}</td>
                         <td className="p-3 text-slate-100">{log.product?.name}</td>
                         <td className="p-3 text-right font-mono">+{log.quantity.toLocaleString()} kg</td>
                         <td className="p-3 text-right">
@@ -1398,14 +1398,14 @@ export default function AdminPage() {
                                 setEditReceiveQty(String(log.quantity));
                                 setEditReceiveChallan(log.supplier_challan_no || "");
                               }}
-                              className="p-1 text-slate-400 hover:text-emerald-400 rounded hover:bg-slate-950 transition-colors"
+                              className="p-1 text-slate-500 hover:text-emerald-600 rounded hover:bg-slate-50 transition-colors"
                               title="Edit & Override Stock Receive"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteReceiveRecord(log.id)}
-                              className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-950 transition-colors"
+                              className="p-1 text-slate-500 hover:text-rose-600 rounded hover:bg-slate-50 transition-colors"
                               title="Reverse & Delete Stock Receive"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -1420,13 +1420,13 @@ export default function AdminPage() {
             </div>
 
             {/* Table 3: Master Opening Stock & Inventory Lots */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <h2 className="text-base font-extrabold text-amber-400 flex items-center gap-2">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-base font-extrabold text-amber-600 flex items-center gap-2">
                 <Package className="w-5 h-5" /> Master Opening Stock & Inventory Lots (Direct Override)
               </h2>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border border-slate-800">
-                  <thead className="bg-slate-950 text-slate-400 font-bold uppercase">
+                <table className="w-full text-left text-xs border border-slate-200">
+                  <thead className="bg-slate-50 text-slate-500 font-bold uppercase">
                     <tr>
                       <th className="p-3">Lot No</th>
                       <th className="p-3">Depot</th>
@@ -1439,14 +1439,14 @@ export default function AdminPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-800 font-medium">
                     {lots.map((lot) => (
-                      <tr key={lot.id} className="hover:bg-slate-800/40">
-                        <td className="p-3 font-mono font-bold text-amber-400">{lot.lot_no}</td>
-                        <td className="p-3 text-slate-300">{lot.depot?.name || "Depot"}</td>
+                      <tr key={lot.id} className="hover:bg-slate-100/40">
+                        <td className="p-3 font-mono font-bold text-amber-600">{lot.lot_no}</td>
+                        <td className="p-3 text-slate-600">{lot.depot?.name || "Depot"}</td>
                         <td className="p-3 text-slate-100">[{lot.product?.code}] {lot.product?.name}</td>
-                        <td className="p-3 text-right font-mono text-slate-300">{lot.initial_qty.toLocaleString()} kg</td>
-                        <td className="p-3 text-right font-mono font-bold text-emerald-400">{lot.available_qty.toLocaleString()} kg</td>
+                        <td className="p-3 text-right font-mono text-slate-600">{lot.initial_qty.toLocaleString()} kg</td>
+                        <td className="p-3 text-right font-mono font-bold text-emerald-600">{lot.available_qty.toLocaleString()} kg</td>
                         <td className="p-3">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${lot.status === 'Active' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-rose-950 text-rose-400 border border-rose-800'}`}>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${lot.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-800'}`}>
                             {lot.status}
                           </span>
                         </td>
@@ -1458,14 +1458,14 @@ export default function AdminPage() {
                                 setEditLotInitQty(String(lot.initial_qty));
                                 setEditLotAvailQty(String(lot.available_qty));
                               }}
-                              className="p-1 text-slate-400 hover:text-emerald-400 rounded hover:bg-slate-950 transition-colors"
+                              className="p-1 text-slate-500 hover:text-emerald-600 rounded hover:bg-slate-50 transition-colors"
                               title="Edit & Override Opening Stock / Lot Qty"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteLot(lot.id)}
-                              className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-950 transition-colors"
+                              className="p-1 text-slate-500 hover:text-rose-600 rounded hover:bg-slate-50 transition-colors"
                               title="Delete Opening Stock / Lot Entry"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -1490,38 +1490,38 @@ export default function AdminPage() {
 
         {/* Modal: View Delivery Order */}
         {viewOrder && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
-                  <Package className="w-4 h-4 text-emerald-400" /> Delivery Order: {viewOrder.order_no}
+          <div className="fixed inset-0 bg-slate-50/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white border border-slate-200 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <Package className="w-4 h-4 text-emerald-600" /> Delivery Order: {viewOrder.order_no}
                 </h3>
-                <button onClick={() => setViewOrder(null)} className="text-slate-400 hover:text-white" aria-label="Close delivery order details">
+                <button onClick={() => setViewOrder(null)} className="text-slate-500 hover:text-slate-900" aria-label="Close delivery order details">
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div><span className="text-slate-500">Delivery Date</span><p className="text-white font-semibold mt-1">{new Date(viewOrder.order_date).toLocaleDateString()}</p></div>
-                <div><span className="text-slate-500">Delivery Status</span><p className="text-white font-semibold mt-1">{viewOrder.status}</p></div>
-                <div><span className="text-slate-500">Dealer</span><p className="text-white font-semibold mt-1">{viewOrder.dealer?.name} <span className="text-slate-400 font-normal">{viewOrder.dealer?.phone}</span></p></div>
-                <div><span className="text-slate-500">Depot</span><p className="text-white font-semibold mt-1">{viewOrder.depot?.name} <span className="text-slate-400 font-normal">({viewOrder.depot?.code})</span></p></div>
-                <div><span className="text-slate-500">Created By</span><p className="text-white font-semibold mt-1">{viewOrder.created_by || "System"}</p></div>
-                <div><span className="text-slate-500">Created At</span><p className="text-white font-semibold mt-1">{new Date(viewOrder.createdAt).toLocaleString()}</p></div>
+                <div><span className="text-slate-500">Delivery Date</span><p className="text-slate-900 font-semibold mt-1">{new Date(viewOrder.order_date).toLocaleDateString()}</p></div>
+                <div><span className="text-slate-500">Delivery Status</span><p className="text-slate-900 font-semibold mt-1">{viewOrder.status}</p></div>
+                <div><span className="text-slate-500">Dealer</span><p className="text-slate-900 font-semibold mt-1">{viewOrder.dealer?.name} <span className="text-slate-500 font-normal">{viewOrder.dealer?.phone}</span></p></div>
+                <div><span className="text-slate-500">Depot</span><p className="text-slate-900 font-semibold mt-1">{viewOrder.depot?.name} <span className="text-slate-500 font-normal">({viewOrder.depot?.code})</span></p></div>
+                <div><span className="text-slate-500">Created By</span><p className="text-slate-900 font-semibold mt-1">{viewOrder.created_by || "System"}</p></div>
+                <div><span className="text-slate-500">Created At</span><p className="text-slate-900 font-semibold mt-1">{new Date(viewOrder.createdAt).toLocaleString()}</p></div>
               </div>
               <div>
-                <h4 className="text-xs font-bold text-slate-300 mb-2">Order Items</h4>
-                <div className="border border-slate-800 rounded-xl divide-y divide-slate-800">
+                <h4 className="text-xs font-bold text-slate-600 mb-2">Order Items</h4>
+                <div className="border border-slate-200 rounded-xl divide-y divide-slate-800">
                   {viewOrder.items.map((item) => (
                     <div key={item.id} className="px-3 py-2 flex items-center justify-between gap-3 text-xs">
-                      <span className="text-white">[{item.product.code}] {item.product.name}</span>
-                      <span className="font-mono text-slate-400 whitespace-nowrap">Ordered: {item.ordered_qty} kg · Delivered: {item.delivered_qty} kg · Pending: {item.pending_qty} kg</span>
+                      <span className="text-slate-900">[{item.product.code}] {item.product.name}</span>
+                      <span className="font-mono text-slate-500 whitespace-nowrap">Ordered: {item.ordered_qty} kg · Delivered: {item.delivered_qty} kg · Pending: {item.pending_qty} kg</span>
                     </div>
                   ))}
                 </div>
               </div>
-              {viewOrder.remarks && <div><span className="text-xs text-slate-500">Remarks</span><p className="text-xs text-slate-300 mt-1">{viewOrder.remarks}</p></div>}
+              {viewOrder.remarks && <div><span className="text-xs text-slate-500">Remarks</span><p className="text-xs text-slate-600 mt-1">{viewOrder.remarks}</p></div>}
               <div className="flex justify-end pt-2">
-                <button type="button" onClick={() => setViewOrder(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">Close</button>
+                <button type="button" onClick={() => setViewOrder(null)} className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">Close</button>
               </div>
             </div>
           </div>
@@ -1529,23 +1529,23 @@ export default function AdminPage() {
 
         {/* Modal: Edit Delivery Order */}
         {selectedOrder && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
-                  <Edit className="w-4 h-4 text-emerald-400" /> Override Delivery Order: {selectedOrder.order_no}
+          <div className="fixed inset-0 bg-slate-50/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <Edit className="w-4 h-4 text-emerald-600" /> Override Delivery Order: {selectedOrder.order_no}
                 </h3>
-                <button onClick={() => setSelectedOrder(null)} className="text-slate-400 hover:text-white" aria-label="Close delivery order editor">
+                <button onClick={() => setSelectedOrder(null)} className="text-slate-500 hover:text-slate-900" aria-label="Close delivery order editor">
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <form onSubmit={handleSaveDeliveryOrder} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Order No</label>
-                  <input type="text" value={selectedOrder.order_no} disabled className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-400 font-mono" />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Order No</label>
+                  <input type="text" value={selectedOrder.order_no} disabled className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-500 font-mono" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Dealer *</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Dealer *</label>
                   <SearchableSelect
                     options={dealers.filter((dealer) => dealer.depot_id === selectedOrder.depot.id).map((dealer) => ({ value: dealer.id, label: `${dealer.name} (${dealer.phone})` }))}
                     value={editOrderDealerId}
@@ -1554,22 +1554,22 @@ export default function AdminPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Delivery Date *</label>
-                  <input type="date" value={editOrderDate} onChange={(e) => setEditOrderDate(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" required />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Delivery Date *</label>
+                  <input type="date" value={editOrderDate} onChange={(e) => setEditOrderDate(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Remarks</label>
-                  <textarea value={editOrderRemarks} onChange={(e) => setEditOrderRemarks(e.target.value)} rows={2} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white resize-none" />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Remarks</label>
+                  <textarea value={editOrderRemarks} onChange={(e) => setEditOrderRemarks(e.target.value)} rows={2} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 resize-none" />
                 </div>
                 
-                <div className="space-y-3 pt-2 border-t border-slate-800">
-                  <label className="block text-xs font-semibold text-slate-300">Order Items (Override)</label>
+                <div className="space-y-3 pt-2 border-t border-slate-200">
+                  <label className="block text-xs font-semibold text-slate-600">Order Items (Override)</label>
                   {editOrderItems.map((item, idx) => {
                     const bagSize = products.find(p => p.id === item.product_id)?.bag_size_kg || 50;
                     return (
                       <div key={idx} className="flex gap-2 items-end">
                         <div className="flex-1">
-                          <label className="block text-[10px] text-slate-400 mb-1">Product</label>
+                          <label className="block text-[10px] text-slate-500 mb-1">Product</label>
                           <SearchableSelect
                             options={products.map((p) => ({ value: p.id, label: `[${p.code}] ${p.name}` }))}
                             value={item.product_id}
@@ -1582,7 +1582,7 @@ export default function AdminPage() {
                           />
                         </div>
                         <div className="w-48">
-                          <label className="block text-[10px] text-slate-400 mb-1">Ordered Qty</label>
+                          <label className="block text-[10px] text-slate-500 mb-1">Ordered Qty</label>
                           <DualQuantityInput
                             kgValue={item.ordered_qty}
                             onKgChange={(val) => {
@@ -1601,7 +1601,7 @@ export default function AdminPage() {
                               updated.splice(idx, 1);
                               setEditOrderItems(updated);
                             }}
-                            className="mb-1 p-2 bg-rose-950/50 text-rose-400 hover:text-white rounded border border-rose-900/50"
+                            className="mb-1 p-2 bg-rose-50/50 text-rose-600 hover:text-slate-900 rounded border border-rose-200/50"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -1612,16 +1612,16 @@ export default function AdminPage() {
                   <button
                     type="button"
                     onClick={() => setEditOrderItems([...editOrderItems, { product_id: "", ordered_qty: "" }])}
-                    className="text-xs text-emerald-400 hover:underline font-semibold"
+                    className="text-xs text-emerald-600 hover:underline font-semibold"
                   >
                     + Add Item
                   </button>
                 </div>
 
-                <p className="text-[10px] text-amber-500">Warning: Changing quantities manually bypasses some standard validations. Pending quantity will automatically adjust based on existing deliveries.</p>
+                <p className="text-[10px] text-amber-600">Warning: Changing quantities manually bypasses some standard validations. Pending quantity will automatically adjust based on existing deliveries.</p>
                 <div className="flex gap-2 pt-2">
                   <button type="submit" className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2.5 rounded-xl transition-all text-xs">Save Override</button>
-                  <button type="button" onClick={() => setSelectedOrder(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">Cancel</button>
+                  <button type="button" onClick={() => setSelectedOrder(null)} className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">Cancel</button>
                 </div>
               </form>
             </div>
@@ -1630,46 +1630,46 @@ export default function AdminPage() {
 
         {/* Modal: Edit Sales Dispatch */}
         {editingSale && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
-                  <Edit className="w-4 h-4 text-emerald-400" /> Override Sale: {editingSale.invoice_no}
+          <div className="fixed inset-0 bg-slate-50/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <Edit className="w-4 h-4 text-emerald-600" /> Override Sale: {editingSale.invoice_no}
                 </h3>
-                <button onClick={() => setEditingSale(null)} className="text-slate-400 hover:text-white">
+                <button onClick={() => setEditingSale(null)} className="text-slate-500 hover:text-slate-900">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <form onSubmit={handleSaveEditSale} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Product</label>
-                  <input type="text" value={editingSale.product?.name || ""} disabled className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-400" />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Product</label>
+                  <input type="text" value={editingSale.product?.name || ""} disabled className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-500" />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Quantity (Kg) *</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Quantity (Kg) *</label>
                   <input
                     type="number"
                     min="1"
                     step="any"
                     value={editSaleQty}
                     onChange={(e) => setEditSaleQty(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold"
                     required
                   />
-                  <p className="text-[10px] text-slate-400 mt-1">Changing quantity will automatically adjust lot stock and order pending qty.</p>
+                  <p className="text-[10px] text-slate-500 mt-1">Changing quantity will automatically adjust lot stock and order pending qty.</p>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Unit Price (৳/Kg)</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Unit Price (৳/Kg)</label>
                   <input
                     type="number"
                     min="0"
                     step="any"
                     value={editSalePrice}
                     onChange={(e) => setEditSalePrice(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold"
                   />
                 </div>
 
@@ -1677,7 +1677,7 @@ export default function AdminPage() {
                   <button type="submit" className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2.5 rounded-xl transition-all text-xs">
                     Save Override
                   </button>
-                  <button type="button" onClick={() => setEditingSale(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">
+                  <button type="button" onClick={() => setEditingSale(null)} className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">
                     Cancel
                   </button>
                 </div>
@@ -1688,52 +1688,52 @@ export default function AdminPage() {
 
         {/* Modal: Edit Stock Receive */}
         {editingReceive && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+          <div className="fixed inset-0 bg-slate-50/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
                   <Edit className="w-4 h-4 text-blue-400" /> Override Stock Receive: {editingReceive.invoice_no}
                 </h3>
-                <button onClick={() => setEditingReceive(null)} className="text-slate-400 hover:text-white">
+                <button onClick={() => setEditingReceive(null)} className="text-slate-500 hover:text-slate-900">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <form onSubmit={handleSaveEditReceive} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Product</label>
-                  <input type="text" value={editingReceive.product?.name || ""} disabled className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-400" />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Product</label>
+                  <input type="text" value={editingReceive.product?.name || ""} disabled className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-500" />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Received Quantity (Kg) *</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Received Quantity (Kg) *</label>
                   <input
                     type="number"
                     min="1"
                     step="any"
                     value={editReceiveQty}
                     onChange={(e) => setEditReceiveQty(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold"
                     required
                   />
-                  <p className="text-[10px] text-slate-400 mt-1">Changing received quantity will automatically adjust lot initial and available stock.</p>
+                  <p className="text-[10px] text-slate-500 mt-1">Changing received quantity will automatically adjust lot initial and available stock.</p>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Supplier Challan No</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Supplier Challan No</label>
                   <input
                     type="text"
                     value={editReceiveChallan}
                     onChange={(e) => setEditReceiveChallan(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-mono"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-mono"
                   />
                 </div>
 
                 <div className="flex gap-2 pt-2">
-                  <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl transition-all text-xs">
+                  <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-500 text-slate-900 font-bold py-2.5 rounded-xl transition-all text-xs">
                     Save Override
                   </button>
-                  <button type="button" onClick={() => setEditingReceive(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">
+                  <button type="button" onClick={() => setEditingReceive(null)} className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">
                     Cancel
                   </button>
                 </div>
@@ -1744,45 +1744,45 @@ export default function AdminPage() {
 
         {/* Modal: Edit Opening Stock / Lot */}
         {editingLot && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
-                  <Edit className="w-4 h-4 text-amber-400" /> Override Lot / Opening Stock: {editingLot.lot_no}
+          <div className="fixed inset-0 bg-slate-50/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <Edit className="w-4 h-4 text-amber-600" /> Override Lot / Opening Stock: {editingLot.lot_no}
                 </h3>
-                <button onClick={() => setEditingLot(null)} className="text-slate-400 hover:text-white">
+                <button onClick={() => setEditingLot(null)} className="text-slate-500 hover:text-slate-900">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <form onSubmit={handleSaveEditLot} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Product</label>
-                  <input type="text" value={`[${editingLot.product?.code || ""}] ${editingLot.product?.name || ""}`} disabled className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-400" />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Product</label>
+                  <input type="text" value={`[${editingLot.product?.code || ""}] ${editingLot.product?.name || ""}`} disabled className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-500" />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Initial Quantity (Kg) *</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Initial Quantity (Kg) *</label>
                   <input
                     type="number"
                     min="0"
                     step="any"
                     value={editLotInitQty}
                     onChange={(e) => setEditLotInitQty(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Available Quantity (Kg) *</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Available Quantity (Kg) *</label>
                   <input
                     type="number"
                     min="0"
                     step="any"
                     value={editLotAvailQty}
                     onChange={(e) => setEditLotAvailQty(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold"
                     required
                   />
                 </div>
@@ -1791,7 +1791,7 @@ export default function AdminPage() {
                   <button type="submit" className="flex-1 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2.5 rounded-xl transition-all text-xs">
                     Save Override
                   </button>
-                  <button type="button" onClick={() => setEditingLot(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">
+                  <button type="button" onClick={() => setEditingLot(null)} className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">
                     Cancel
                   </button>
                 </div>
@@ -1802,36 +1802,36 @@ export default function AdminPage() {
 
         {/* Modal: Edit Depot */}
         {editingDepot && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
-                  <Edit className="w-4 h-4 text-amber-400" /> Edit Depot: {editingDepot.name}
+          <div className="fixed inset-0 bg-slate-50/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <Edit className="w-4 h-4 text-amber-600" /> Edit Depot: {editingDepot.name}
                 </h3>
-                <button onClick={() => setEditingDepot(null)} className="text-slate-400 hover:text-white">
+                <button onClick={() => setEditingDepot(null)} className="text-slate-500 hover:text-slate-900">
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <form onSubmit={handleSaveEditDepot} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Depot Code *</label>
-                  <input type="text" value={editDepotCode} onChange={(e) => setEditDepotCode(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white uppercase font-bold" required />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Depot Code *</label>
+                  <input type="text" value={editDepotCode} onChange={(e) => setEditDepotCode(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 uppercase font-bold" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Depot Name *</label>
-                  <input type="text" value={editDepotName} onChange={(e) => setEditDepotName(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" required />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Depot Name *</label>
+                  <input type="text" value={editDepotName} onChange={(e) => setEditDepotName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Address</label>
-                  <input type="text" value={editDepotAddress} onChange={(e) => setEditDepotAddress(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Address</label>
+                  <input type="text" value={editDepotAddress} onChange={(e) => setEditDepotAddress(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Phone</label>
-                  <input type="text" value={editDepotPhone} onChange={(e) => setEditDepotPhone(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Phone</label>
+                  <input type="text" value={editDepotPhone} onChange={(e) => setEditDepotPhone(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900" />
                 </div>
                 <div className="flex gap-2 pt-2">
                   <button type="submit" className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2.5 rounded-xl transition-all text-xs">Save Depot</button>
-                  <button type="button" onClick={() => setEditingDepot(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">Cancel</button>
+                  <button type="button" onClick={() => setEditingDepot(null)} className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">Cancel</button>
                 </div>
               </form>
             </div>
@@ -1840,28 +1840,28 @@ export default function AdminPage() {
 
         {/* Modal: Edit Product */}
         {editingProduct && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
-                  <Edit className="w-4 h-4 text-amber-400" /> Edit Product: [{editingProduct.code}] {editingProduct.name}
+          <div className="fixed inset-0 bg-slate-50/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <Edit className="w-4 h-4 text-amber-600" /> Edit Product: [{editingProduct.code}] {editingProduct.name}
                 </h3>
-                <button onClick={() => setEditingProduct(null)} className="text-slate-400 hover:text-white">
+                <button onClick={() => setEditingProduct(null)} className="text-slate-500 hover:text-slate-900">
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <form onSubmit={handleSaveEditProduct} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Product Code *</label>
-                  <input type="text" value={editProdCode} onChange={(e) => setEditProdCode(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" required />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Product Code *</label>
+                  <input type="text" value={editProdCode} onChange={(e) => setEditProdCode(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Product Name *</label>
-                  <input type="text" value={editProdName} onChange={(e) => setEditProdName(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" required />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Product Name *</label>
+                  <input type="text" value={editProdName} onChange={(e) => setEditProdName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Category</label>
-                  <select value={editProdCategory} onChange={(e) => setEditProdCategory(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold">
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Category</label>
+                  <select value={editProdCategory} onChange={(e) => setEditProdCategory(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold">
                     <option value="Broiler">Broiler</option>
                     <option value="Layer">Layer</option>
                     <option value="Sonali">Sonali</option>
@@ -1873,20 +1873,20 @@ export default function AdminPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Bag Size (Kg)</label>
-                  <input type="number" step="any" value={editProdBagSize} onChange={(e) => setEditProdBagSize(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" required />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Bag Size (Kg)</label>
+                  <input type="number" step="any" value={editProdBagSize} onChange={(e) => setEditProdBagSize(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Opening Stock (Kg)</label>
-                  <input type="number" step="any" value={editProdOpeningStock} onChange={(e) => setEditProdOpeningStock(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Opening Stock (Kg)</label>
+                  <input type="number" step="any" value={editProdOpeningStock} onChange={(e) => setEditProdOpeningStock(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Sort Order</label>
-                  <input type="number" value={editProdSortOrder} onChange={(e) => setEditProdSortOrder(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Sort Order</label>
+                  <input type="number" value={editProdSortOrder} onChange={(e) => setEditProdSortOrder(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold" />
                 </div>
                 <div className="flex gap-2 pt-2">
                   <button type="submit" className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2.5 rounded-xl transition-all text-xs">Save Product</button>
-                  <button type="button" onClick={() => setEditingProduct(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">Cancel</button>
+                  <button type="button" onClick={() => setEditingProduct(null)} className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">Cancel</button>
                 </div>
               </form>
             </div>
@@ -1895,44 +1895,44 @@ export default function AdminPage() {
 
         {/* Modal: Edit Dealer */}
         {editingDealer && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
-                  <Edit className="w-4 h-4 text-amber-400" /> Edit Dealer: {editingDealer.name}
+          <div className="fixed inset-0 bg-slate-50/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <Edit className="w-4 h-4 text-amber-600" /> Edit Dealer: {editingDealer.name}
                 </h3>
-                <button onClick={() => setEditingDealer(null)} className="text-slate-400 hover:text-white">
+                <button onClick={() => setEditingDealer(null)} className="text-slate-500 hover:text-slate-900">
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <form onSubmit={handleSaveEditDealer} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Dealer Name *</label>
-                  <input type="text" value={editDealerName} onChange={(e) => setEditDealerName(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" required />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Dealer Name *</label>
+                  <input type="text" value={editDealerName} onChange={(e) => setEditDealerName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Dealer Code *</label>
-                  <input type="text" value={editDealerCode} onChange={(e) => setEditDealerCode(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold uppercase" required />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Dealer Code *</label>
+                  <input type="text" value={editDealerCode} onChange={(e) => setEditDealerCode(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold uppercase" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Phone *</label>
-                  <input type="text" value={editDealerPhone} onChange={(e) => setEditDealerPhone(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" required />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Phone *</label>
+                  <input type="text" value={editDealerPhone} onChange={(e) => setEditDealerPhone(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Address</label>
-                  <input type="text" value={editDealerAddress} onChange={(e) => setEditDealerAddress(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Address</label>
+                  <input type="text" value={editDealerAddress} onChange={(e) => setEditDealerAddress(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Assigned Depot</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Assigned Depot</label>
                   <SearchableSelect options={depotOptions} value={editDealerDepotId} onChange={setEditDealerDepotId} placeholder="Select Depot..." />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Current Balance (৳)</label>
-                  <input type="number" step="any" value={editDealerBalance} onChange={(e) => setEditDealerBalance(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Current Balance (৳)</label>
+                  <input type="number" step="any" value={editDealerBalance} onChange={(e) => setEditDealerBalance(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold" />
                 </div>
                 <div className="flex gap-2 pt-2">
                   <button type="submit" className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2.5 rounded-xl transition-all text-xs">Save Dealer</button>
-                  <button type="button" onClick={() => setEditingDealer(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">Cancel</button>
+                  <button type="button" onClick={() => setEditingDealer(null)} className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">Cancel</button>
                 </div>
               </form>
             </div>
@@ -1943,15 +1943,15 @@ export default function AdminPage() {
         {activeTab === "setup" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Form 1: Opening Stock Setup */}
-            <form onSubmit={handleSetupStock} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <h2 className="text-base font-extrabold text-white mb-2 flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-amber-400" /> Initialize Depot Opening Stock
+            <form onSubmit={handleSetupStock} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-base font-extrabold text-slate-900 mb-2 flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-amber-600" /> Initialize Depot Opening Stock
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500">
                 Setup the starting stock level for a product in a specific depot. This will create an opening stock entry that acts as the baseline inventory.
               </p>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Select Depot *</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Select Depot *</label>
                 <SearchableSelect
                   options={depotOptions}
                   value={setupDepotId}
@@ -1960,7 +1960,7 @@ export default function AdminPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Select Product *</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Select Product *</label>
                 <SearchableSelect
                   options={products.map((p) => ({ value: p.id, label: `[${p.code}] ${p.name}` }))}
                   value={setupProductId}
@@ -1969,7 +1969,7 @@ export default function AdminPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Opening Quantity (in Kg) *</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Opening Quantity (in Kg) *</label>
                 <input
                   type="number"
                   min="0"
@@ -1977,11 +1977,11 @@ export default function AdminPage() {
                   value={setupQuantity}
                   onChange={(e) => setSetupQuantity(e.target.value === "" ? "" : Number(e.target.value))}
                   placeholder="e.g. 5000"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-bold"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 font-bold"
                   required
                 />
                 {setupQuantity !== "" && setupProductId && (
-                  <p className="text-[10px] text-emerald-400 mt-1 font-semibold">
+                  <p className="text-[10px] text-emerald-600 mt-1 font-semibold">
                     Equivalent to approximately {(Number(setupQuantity) / (products.find(p => p.id === setupProductId)?.bag_size_kg || 50.0)).toFixed(2)} Bags (based on {(products.find(p => p.id === setupProductId)?.bag_size_kg || 50.0)}kg bag size)
                   </p>
                 )}
@@ -1992,15 +1992,15 @@ export default function AdminPage() {
             </form>
 
             {/* Form 2: Opening Cash Balance Setup */}
-            <form onSubmit={handleSetupCash} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <h2 className="text-base font-extrabold text-white mb-2 flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-amber-400" /> Initialize Opening Cash Balance
+            <form onSubmit={handleSetupCash} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-base font-extrabold text-slate-900 mb-2 flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-amber-600" /> Initialize Opening Cash Balance
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500">
                 Setup the starting cash balance for the depot's Petty Cash Book. This creates a transaction with category 'Opening Balance' and type 'INCOME'.
               </p>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Select Depot *</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Select Depot *</label>
                 <SearchableSelect
                   options={depotOptions}
                   value={setupDepotId}
@@ -2009,7 +2009,7 @@ export default function AdminPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Opening Cash Balance (৳) *</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Opening Cash Balance (৳) *</label>
                 <input
                   type="number"
                   min="0"
@@ -2017,7 +2017,7 @@ export default function AdminPage() {
                   value={setupCashAmount}
                   onChange={(e) => setSetupCashAmount(e.target.value === "" ? "" : Number(e.target.value))}
                   placeholder="0.00"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-bold"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 font-bold"
                   required
                 />
               </div>

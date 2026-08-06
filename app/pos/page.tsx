@@ -25,17 +25,17 @@ export default function PosPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-100 flex flex-col font-sans">
       <Navbar />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
               Sales Dispatch POS & Order Sync
             </h1>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-500">
               Multi-Product Single-Invoice Entry, Delivery Order Auto-Population, FIFO Lotting, and Immediate Delivery Challan Printing.
             </p>
           </div>

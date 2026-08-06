@@ -67,36 +67,36 @@ export default function ExpiryReportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-100 flex flex-col font-sans">
       <div className="print:hidden">
         <Navbar />
       </div>
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 print:p-0 print:max-w-none">
         {/* Title Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
           <div>
-            <h1 className="text-2xl font-black text-white flex items-center gap-2">
-              <AlertTriangle className="w-6 h-6 text-rose-400" />
+            <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+              <AlertTriangle className="w-6 h-6 text-rose-600" />
               Depot Lot Expiry Report Generation
             </h1>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-500">
               Sorted by nearest expiration dates (Ascending). Printable warehouse checking sheet with URGENT (&le;10d) alerts.
             </p>
           </div>
 
           {/* Controls */}
           <div className="flex items-center space-x-3 print:hidden">
-            <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
-              <Filter className="w-3.5 h-3.5 text-emerald-400" />
+            <div className="flex items-center space-x-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs">
+              <Filter className="w-3.5 h-3.5 text-emerald-600" />
               <select
                 value={selectedDepotId}
                 onChange={(e) => setSelectedDepotId(e.target.value)}
-                className="bg-transparent text-white font-semibold focus:outline-none"
+                className="bg-transparent text-slate-900 font-semibold focus:outline-none"
               >
-                <option value="" className="bg-slate-900">All Depots Consolidated</option>
+                <option value="" className="bg-white">All Depots Consolidated</option>
                 {depots.map((d) => (
-                  <option key={d.id} value={d.id} className="bg-slate-900">
+                  <option key={d.id} value={d.id} className="bg-white">
                     {d.name} ({d.code})
                   </option>
                 ))}
@@ -105,7 +105,7 @@ export default function ExpiryReportPage() {
 
             <button
               onClick={fetchExpiryData}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-200 p-2 rounded-xl border border-slate-700 transition-colors"
+              className="bg-slate-100 hover:bg-slate-200 text-slate-200 p-2 rounded-xl border border-slate-300 transition-colors"
               title="Refresh Expiry Data"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
@@ -113,7 +113,7 @@ export default function ExpiryReportPage() {
 
             <button
               onClick={handlePrint}
-              className="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold px-4 py-2 rounded-xl shadow flex items-center gap-1.5 transition-all"
+              className="bg-rose-600 hover:bg-rose-500 text-slate-900 text-xs font-bold px-4 py-2 rounded-xl shadow flex items-center gap-1.5 transition-all"
             >
               <Printer className="w-4 h-4" /> Generate / Print Report
             </button>
@@ -130,18 +130,18 @@ export default function ExpiryReportPage() {
         </div>
 
         {/* Expiry Table */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl print:p-0 print:border-none print:shadow-none">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl print:p-0 print:border-none print:shadow-none">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs print:text-slate-900 print:border print:border-slate-300">
-              <thead className="bg-slate-950 text-slate-400 font-bold uppercase tracking-wider print:bg-slate-100 print:text-slate-900">
+              <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider print:bg-slate-100 print:text-slate-900">
                 <tr>
-                  <th className="p-3 border-r border-slate-800 print:border-slate-300">Product Name</th>
-                  <th className="p-3 border-r border-slate-800 print:border-slate-300">Lot No</th>
-                  <th className="p-3 border-r border-slate-800 print:border-slate-300 text-right">Avail Qty (Kg)</th>
-                  <th className="p-3 border-r border-slate-800 print:border-slate-300 text-right">Avail Bag</th>
-                  <th className="p-3 border-r border-slate-800 print:border-slate-300">MFG Date</th>
-                  <th className="p-3 border-r border-slate-800 print:border-slate-300">EXP Date</th>
-                  <th className="p-3 border-r border-slate-800 print:border-slate-300 text-center">Days To Expiry</th>
+                  <th className="p-3 border-r border-slate-200 print:border-slate-300">Product Name</th>
+                  <th className="p-3 border-r border-slate-200 print:border-slate-300">Lot No</th>
+                  <th className="p-3 border-r border-slate-200 print:border-slate-300 text-right">Avail Qty (Kg)</th>
+                  <th className="p-3 border-r border-slate-200 print:border-slate-300 text-right">Avail Bag</th>
+                  <th className="p-3 border-r border-slate-200 print:border-slate-300">MFG Date</th>
+                  <th className="p-3 border-r border-slate-200 print:border-slate-300">EXP Date</th>
+                  <th className="p-3 border-r border-slate-200 print:border-slate-300 text-center">Days To Expiry</th>
                   <th className="p-3 text-center">Status</th>
                 </tr>
               </thead>
@@ -160,26 +160,26 @@ export default function ExpiryReportPage() {
                   </tr>
                 ) : (
                   expiryData.map((item) => (
-                    <tr key={item.lot_id} className="hover:bg-slate-800/40 transition-colors">
+                    <tr key={item.lot_id} className="hover:bg-slate-100/40 transition-colors">
                       <td className="p-3 font-semibold text-slate-100 print:text-slate-900">
                         <div>{item.product_name}</div>
                         <span className="text-[10px] text-slate-500 font-mono print:text-slate-600">
                           [{item.product_code}] • {item.depot_name}
                         </span>
                       </td>
-                      <td className="p-3 font-mono font-bold text-emerald-400 print:text-slate-900">
+                      <td className="p-3 font-mono font-bold text-emerald-600 print:text-slate-900">
                         {item.lot_no}
                       </td>
                       <td className="p-3 text-right font-mono text-slate-200 print:text-slate-900 font-bold">
                         {item.available_kg.toLocaleString()} kg
                       </td>
-                      <td className="p-3 text-right font-mono text-white font-extrabold print:text-slate-900">
+                      <td className="p-3 text-right font-mono text-slate-900 font-extrabold print:text-slate-900">
                         {item.available_kg} Kg ({item.available_bag} bags)
                       </td>
-                      <td className="p-3 font-mono text-slate-400 print:text-slate-800">
+                      <td className="p-3 font-mono text-slate-500 print:text-slate-800">
                         {new Date(item.mfg_date).toLocaleDateString()}
                       </td>
-                      <td className="p-3 font-mono text-slate-400 print:text-slate-800">
+                      <td className="p-3 font-mono text-slate-500 print:text-slate-800">
                         {new Date(item.exp_date).toLocaleDateString()}
                       </td>
                       <td className="p-3 text-center font-mono font-bold text-sm">
@@ -191,12 +191,12 @@ export default function ExpiryReportPage() {
                       </td>
                       <td className="p-3 text-center">
                         {item.status === "URGENT" && (
-                          <span className="px-2.5 py-1 rounded-full text-xs font-black bg-rose-950 text-rose-400 border border-rose-800 animate-pulse print:border-rose-900">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-black bg-rose-50 text-rose-600 border border-rose-800 animate-pulse print:border-rose-200">
                             🚨 URGENT (&le;10d)
                           </span>
                         )}
                         {item.status === "WARNING" && (
-                          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-950 text-amber-400 border border-amber-800 print:border-amber-900">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-600 border border-amber-800 print:border-amber-200">
                             ⚠️ WARNING (&le;20d)
                           </span>
                         )}
@@ -206,12 +206,12 @@ export default function ExpiryReportPage() {
                           </span>
                         )}
                         {item.status === "ACTIVE" && (
-                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200">
                             ACTIVE
                           </span>
                         )}
                         {item.status === "EXPIRED" && (
-                          <span className="px-2.5 py-1 rounded-full text-xs font-black bg-rose-950 text-rose-500 border border-rose-800">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-black bg-rose-50 text-rose-500 border border-rose-800">
                             EXPIRED
                           </span>
                         )}

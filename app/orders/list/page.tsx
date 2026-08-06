@@ -92,17 +92,17 @@ export default function DeliveryOrderListPage() {
 
   const statusBadge = (status: string) => {
     if (status === "Complete")
-      return <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">✓ COMPLETE</span>;
+      return <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">✓ COMPLETE</span>;
     if (status === "Partial")
-      return <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-950 text-amber-400 border border-amber-800 animate-pulse">◑ PARTIAL</span>;
-    return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">○ PENDING</span>;
+      return <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-600 border border-amber-800 animate-pulse">◑ PARTIAL</span>;
+    return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-300">○ PENDING</span>;
   };
 
   const userHasGlobal = hasGlobalAccess(currentUser);
   const userIsSuper = isSuperAdmin(currentUser);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-100 flex flex-col font-sans">
       <Navbar />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
@@ -110,11 +110,11 @@ export default function DeliveryOrderListPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-white flex items-center gap-2">
-              <ClipboardList className="w-6 h-6 text-emerald-400" />
+            <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+              <ClipboardList className="w-6 h-6 text-emerald-600" />
               Delivery Orders (D.O) List
             </h1>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-slate-500 mt-1">
               {userIsSuper
                 ? "Super Admin View — All depots visible with full filter control."
                 : currentUser
@@ -128,7 +128,7 @@ export default function DeliveryOrderListPage() {
             {currentUser ? (
               <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold ${
                 userIsSuper
-                  ? "bg-amber-950 text-amber-400 border-amber-800"
+                  ? "bg-amber-50 text-amber-600 border-amber-800"
                   : "bg-sky-950 text-sky-400 border-sky-800"
               }`}>
                 <ShieldCheck className="w-3.5 h-3.5" />
@@ -136,7 +136,7 @@ export default function DeliveryOrderListPage() {
                 {!userIsSuper && currentUser.depot && ` • ${currentUser.depot.code}`}
               </div>
             ) : (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold bg-rose-950 text-rose-400 border-rose-800">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold bg-rose-50 text-rose-600 border-rose-800">
                 <AlertCircle className="w-3.5 h-3.5" />
                 No Active Session
               </div>
@@ -146,7 +146,7 @@ export default function DeliveryOrderListPage() {
 
         {/* No session warning */}
         {!currentUser && (
-          <div className="bg-amber-950/40 border border-amber-800 rounded-xl px-4 py-3 flex items-center gap-3 text-amber-300 text-sm">
+          <div className="bg-amber-50/40 border border-amber-800 rounded-xl px-4 py-3 flex items-center gap-3 text-amber-300 text-sm">
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
             <span>
               <strong>Role not set!</strong> Click the <strong>"Switch User"</strong> button in the top-right navbar to select your account. Data is showing unfiltered.
@@ -158,16 +158,16 @@ export default function DeliveryOrderListPage() {
         <div className="flex flex-wrap items-center gap-3">
           {/* Depot Filter — Global visibility for SUPER_ADMIN & ORG_ADMIN */}
           {userHasGlobal && (
-            <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs">
-              <Building2 className="w-3.5 h-3.5 text-amber-400" />
+            <div className="flex items-center space-x-2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+              <Building2 className="w-3.5 h-3.5 text-amber-600" />
               <select
                 value={selectedDepotId}
                 onChange={(e) => setSelectedDepotId(e.target.value)}
-                className="bg-transparent text-white font-semibold focus:outline-none"
+                className="bg-transparent text-slate-900 font-semibold focus:outline-none"
               >
-                <option value="" className="bg-slate-900">All Depots (Consolidated)</option>
+                <option value="" className="bg-white">All Depots (Consolidated)</option>
                 {depots.map((d) => (
-                  <option key={d.id} value={d.id} className="bg-slate-900">
+                  <option key={d.id} value={d.id} className="bg-white">
                     {d.name} ({d.code})
                   </option>
                 ))}
@@ -177,10 +177,10 @@ export default function DeliveryOrderListPage() {
 
           {/* Depot label for non-admin */}
           {!userIsSuper && currentUser?.depot && (
-            <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs">
+            <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
               <Building2 className="w-3.5 h-3.5 text-sky-400" />
-              <span className="text-white font-bold">{currentUser.depot.name}</span>
-              <span className="text-slate-400">({currentUser.depot.code})</span>
+              <span className="text-slate-900 font-bold">{currentUser.depot.name}</span>
+              <span className="text-slate-500">({currentUser.depot.code})</span>
               <span className="text-[10px] text-sky-400 border border-sky-800 bg-sky-950 px-1.5 py-0.5 rounded-full font-bold ml-1">
                 🔒 Locked
               </span>
@@ -188,41 +188,41 @@ export default function DeliveryOrderListPage() {
           )}
 
           {/* Status Filter */}
-          <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs">
-            <Filter className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="flex items-center space-x-2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+            <Filter className="w-3.5 h-3.5 text-emerald-600" />
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-transparent text-white font-semibold focus:outline-none"
+              className="bg-transparent text-slate-900 font-semibold focus:outline-none"
             >
-              <option value="" className="bg-slate-900">All Statuses</option>
-              <option value="Pending" className="bg-slate-900">Pending Only</option>
-              <option value="Partial" className="bg-slate-900">Partial Only</option>
-              <option value="Complete" className="bg-slate-900">Complete Only</option>
+              <option value="" className="bg-white">All Statuses</option>
+              <option value="Pending" className="bg-white">Pending Only</option>
+              <option value="Partial" className="bg-white">Partial Only</option>
+              <option value="Complete" className="bg-white">Complete Only</option>
             </select>
           </div>
 
           {/* Refresh */}
           <button
             onClick={fetchOrders}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-200 p-2 rounded-xl border border-slate-700 transition-colors"
+            className="bg-slate-100 hover:bg-slate-200 text-slate-200 p-2 rounded-xl border border-slate-300 transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </button>
 
           {/* Count badge */}
           {!loading && (
-            <span className="text-xs text-slate-400 ml-auto">
-              <strong className="text-white">{orders.length}</strong> order{orders.length !== 1 ? "s" : ""} found
+            <span className="text-xs text-slate-500 ml-auto">
+              <strong className="text-slate-900">{orders.length}</strong> order{orders.length !== 1 ? "s" : ""} found
             </span>
           )}
         </div>
 
         {/* D.O Table */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-950 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+              <thead className="bg-slate-50 text-slate-500 text-xs font-semibold uppercase tracking-wider">
                 <tr>
                   <th className="p-4">D.O Ref No</th>
                   <th className="p-4">Order Date</th>
@@ -247,23 +247,23 @@ export default function DeliveryOrderListPage() {
                   </tr>
                 ) : (
                   orders.map((ord) => (
-                    <tr key={ord.id} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="p-4 font-mono font-bold text-emerald-400">{ord.order_no}</td>
-                      <td className="p-4 text-xs text-slate-400">
+                    <tr key={ord.id} className="hover:bg-slate-100/40 transition-colors">
+                      <td className="p-4 font-mono font-bold text-emerald-600">{ord.order_no}</td>
+                      <td className="p-4 text-xs text-slate-500">
                         {new Date(ord.order_date).toLocaleDateString("en-BD", {
                           day: "2-digit", month: "short", year: "numeric"
                         })}
                       </td>
                       {(userIsSuper || !currentUser) && (
-                        <td className="p-4 text-xs font-semibold text-slate-300">
-                          <span className="px-2 py-0.5 bg-slate-800 rounded-lg border border-slate-700">
+                        <td className="p-4 text-xs font-semibold text-slate-600">
+                          <span className="px-2 py-0.5 bg-slate-100 rounded-lg border border-slate-300">
                             {ord.depot?.name} <span className="text-slate-500">({ord.depot?.code})</span>
                           </span>
                         </td>
                       )}
-                      <td className="p-4 font-semibold text-white">
+                      <td className="p-4 font-semibold text-slate-900">
                         {ord.dealer?.name}
-                        <span className="text-xs text-slate-400 block font-normal font-mono">
+                        <span className="text-xs text-slate-500 block font-normal font-mono">
                           {ord.dealer?.phone}
                         </span>
                       </td>
@@ -276,12 +276,12 @@ export default function DeliveryOrderListPage() {
                             const pndBags = Math.round((it.pending_qty / bagSize) * 100) / 100;
                             return (
                               <div key={it.id} className="text-[11px] flex justify-between gap-4 font-mono">
-                                <span className="text-slate-300">[{it.product.code}] {it.product.name}</span>
-                                <span className="text-slate-400 whitespace-nowrap">
-                                  Ord: <strong className="text-white">{it.ordered_qty} kg ({ordBags} b)</strong> |
-                                  Del: <strong className="text-emerald-400">{it.delivered_qty} kg ({delBags} b)</strong> |
+                                <span className="text-slate-600">[{it.product.code}] {it.product.name}</span>
+                                <span className="text-slate-500 whitespace-nowrap">
+                                  Ord: <strong className="text-slate-900">{it.ordered_qty} kg ({ordBags} b)</strong> |
+                                  Del: <strong className="text-emerald-600">{it.delivered_qty} kg ({delBags} b)</strong> |
                                   Pnd:{" "}
-                                  <strong className={it.pending_qty > 0 ? "text-amber-400" : "text-emerald-400"}>
+                                  <strong className={it.pending_qty > 0 ? "text-amber-600" : "text-emerald-600"}>
                                     {it.pending_qty} kg ({pndBags} b)
                                   </strong>
                                 </span>

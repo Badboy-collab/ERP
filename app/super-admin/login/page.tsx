@@ -43,24 +43,24 @@ export default function SuperAdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans relative overflow-hidden">
       {/* Background elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-amber-900/20 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-slate-800/40 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-slate-100/40 blur-[120px] pointer-events-none" />
       
-      <div className="w-full max-w-md space-y-8 bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-8 sm:p-10 rounded-[2rem] shadow-2xl relative z-10">
+      <div className="w-full max-w-md space-y-8 bg-white/80 backdrop-blur-xl border border-slate-200 p-8 sm:p-10 rounded-[2rem] shadow-2xl relative z-10">
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 mb-2 shadow-inner">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 mb-2 shadow-inner">
             <ShieldCheck className="w-8 h-8" />
           </div>
-          <h2 className="text-3xl font-black text-white tracking-tight">Master Control</h2>
-          <p className="text-sm text-slate-400 font-medium">
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Master Control</h2>
+          <p className="text-sm text-slate-500 font-medium">
             Restricted access. Super Admin credentials required.
           </p>
         </div>
 
         {error && (
-          <div className="p-4 bg-rose-950/60 border border-rose-800/80 rounded-2xl flex items-center space-x-3 text-rose-300 text-sm font-semibold animate-shake shadow-lg">
+          <div className="p-4 bg-rose-50/60 border border-rose-800/80 rounded-2xl flex items-center space-x-3 text-rose-300 text-sm font-semibold animate-shake shadow-lg">
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
             <span>{error}</span>
           </div>
@@ -68,9 +68,9 @@ export default function SuperAdminLogin() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">Master ID</label>
+            <label className="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-wider">Master ID</label>
             <div className="relative group">
-              <span className="absolute left-4 top-3.5 text-slate-500 group-focus-within:text-amber-500 transition-colors">
+              <span className="absolute left-4 top-3.5 text-slate-500 group-focus-within:text-amber-600 transition-colors">
                 <User className="w-5 h-5" />
               </span>
               <input
@@ -78,16 +78,16 @@ export default function SuperAdminLogin() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="admin"
-                className="w-full bg-slate-950/50 border border-slate-800 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-2xl py-3 pl-12 pr-4 text-sm text-white font-bold transition-all outline-none"
+                className="w-full bg-slate-50/50 border border-slate-200 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-2xl py-3 pl-12 pr-4 text-sm text-slate-900 font-bold transition-all outline-none"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">Access Key</label>
+            <label className="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-wider">Access Key</label>
             <div className="relative group">
-              <span className="absolute left-4 top-3.5 text-slate-500 group-focus-within:text-amber-500 transition-colors">
+              <span className="absolute left-4 top-3.5 text-slate-500 group-focus-within:text-amber-600 transition-colors">
                 <Lock className="w-5 h-5" />
               </span>
               <input
@@ -95,13 +95,13 @@ export default function SuperAdminLogin() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-slate-950/50 border border-slate-800 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-2xl py-3 pl-12 pr-12 text-sm text-white font-bold transition-all outline-none"
+                className="w-full bg-slate-50/50 border border-slate-200 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-2xl py-3 pl-12 pr-12 text-sm text-slate-900 font-bold transition-all outline-none"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-3.5 text-slate-500 hover:text-amber-500 transition-colors"
+                className="absolute right-4 top-3.5 text-slate-500 hover:text-amber-600 transition-colors"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>

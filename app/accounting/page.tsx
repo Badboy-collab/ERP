@@ -362,25 +362,25 @@ export default function AccountingPage() {
   const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-100 flex flex-col font-sans">
       <Navbar />
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
         {/* Top Title Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
           <div>
-            <h1 className="text-2xl font-black text-white flex items-center gap-2">
-              <DollarSign className="w-6 h-6 text-emerald-400" />
+            <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+              <DollarSign className="w-6 h-6 text-emerald-600" />
               Financial Accounting & Ledgers
             </h1>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-500">
               Manage dealer ledgers, collection credits, and depot expense accounts (Petty Cash Book).
             </p>
           </div>
 
           {/* Depot Filter: Restricted if non-SuperAdmin */}
           <div className="w-64">
-            <label className="block text-[10px] text-slate-400 mb-1 font-semibold uppercase tracking-wider">
+            <label className="block text-[10px] text-slate-500 mb-1 font-semibold uppercase tracking-wider">
               Selected Depot / Unit
             </label>
             <SearchableSelect
@@ -394,7 +394,7 @@ export default function AccountingPage() {
         </div>
 
         {/* Tab Buttons */}
-        <div className="flex border-b border-slate-800">
+        <div className="flex border-b border-slate-200">
           {(isSuperAdmin || currentUser?.can_view_accounting) && (
             <button
               onClick={() => {
@@ -403,8 +403,8 @@ export default function AccountingPage() {
               }}
               className={`px-6 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
                 activeTab === "dealer"
-                  ? "border-emerald-500 text-emerald-400"
-                  : "border-transparent text-slate-400 hover:text-white"
+                  ? "border-emerald-500 text-emerald-600"
+                  : "border-transparent text-slate-500 hover:text-slate-900"
               }`}
             >
               <DollarSign className="w-4 h-4" />
@@ -418,8 +418,8 @@ export default function AccountingPage() {
             }}
             className={`px-6 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
               activeTab === "cashbook"
-                ? "border-emerald-500 text-emerald-400"
-                : "border-transparent text-slate-400 hover:text-white"
+                ? "border-emerald-500 text-emerald-600"
+                : "border-transparent text-slate-500 hover:text-slate-900"
             }`}
           >
             <BookOpen className="w-4 h-4" />
@@ -428,7 +428,7 @@ export default function AccountingPage() {
         </div>
 
         {message && (
-          <div className={`p-4 rounded-xl text-sm flex items-center space-x-2 font-medium ${message.type === "success" ? "bg-emerald-950/80 text-emerald-300 border border-emerald-800" : "bg-rose-950/80 text-rose-300 border border-rose-800"}`}>
+          <div className={`p-4 rounded-xl text-sm flex items-center space-x-2 font-medium ${message.type === "success" ? "bg-emerald-50/80 text-emerald-300 border border-emerald-200" : "bg-rose-50/80 text-rose-300 border border-rose-800"}`}>
             <CheckCircle className="w-5 h-5 flex-shrink-0" />
             <span>{message.text}</span>
           </div>
@@ -439,8 +439,8 @@ export default function AccountingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left Side: Select Dealer & Collect Payment */}
             <div className="lg:col-span-4 space-y-6">
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                <h2 className="text-base font-extrabold text-white mb-4">Select Dealer Ledger</h2>
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl">
+                <h2 className="text-base font-extrabold text-slate-900 mb-4">Select Dealer Ledger</h2>
                 <SearchableSelect
                   options={dealerOptions}
                   value={selectedDealerId}
@@ -450,40 +450,40 @@ export default function AccountingPage() {
               </div>
 
               {selectedDealerId && (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                  <h2 className="text-base font-extrabold text-white">Record Payment Collection</h2>
+                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+                  <h2 className="text-base font-extrabold text-slate-900">Record Payment Collection</h2>
                   <form onSubmit={handleRecordPayment} className="space-y-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">Collection Amount (৳) *</label>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Collection Amount (৳) *</label>
                       <input
                         type="number"
                         min="1"
                         step="any"
                         value={paymentAmount}
                         onChange={(e) => setPaymentAmount(e.target.value === "" ? "" : Number(e.target.value))}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white font-bold"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-900 font-bold"
                         placeholder="0.00"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">Payment Date *</label>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Payment Date *</label>
                       <input
                         type="date"
                         value={paymentDate}
                         onChange={(e) => setPaymentDate(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-900"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">Remarks / Reference</label>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Remarks / Reference</label>
                       <input
                         type="text"
                         value={paymentRemarks}
                         onChange={(e) => setPaymentRemarks(e.target.value)}
                         placeholder="e.g. Bank deposit, Cash"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-900"
                       />
                     </div>
                     <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold py-3 rounded-xl shadow-lg transition-all text-xs">
@@ -497,36 +497,36 @@ export default function AccountingPage() {
             {/* Right Side: Ledger Statement & Metrics */}
             <div className="lg:col-span-8 space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+                <div className="bg-white border border-slate-200 p-4 rounded-xl flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Total Sales (Debit)</p>
+                    <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Total Sales (Debit)</p>
                     <p className="text-lg font-bold text-blue-400">৳ {summary.total_sales.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
                   </div>
                   <ArrowUpCircle className="text-blue-400/50 w-8 h-8" />
                 </div>
-                <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+                <div className="bg-white border border-slate-200 p-4 rounded-xl flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Payments Collected</p>
-                    <p className="text-lg font-bold text-emerald-400">৳ {summary.total_received.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+                    <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Payments Collected</p>
+                    <p className="text-lg font-bold text-emerald-600">৳ {summary.total_received.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
                   </div>
-                  <ArrowDownCircle className="text-emerald-400/50 w-8 h-8" />
+                  <ArrowDownCircle className="text-emerald-600/50 w-8 h-8" />
                 </div>
-                <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+                <div className="bg-white border border-slate-200 p-4 rounded-xl flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Net Outstanding Dues</p>
-                    <p className={`text-lg font-bold ${summary.total_due > 0 ? "text-amber-400" : "text-emerald-400"}`}>
+                    <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Net Outstanding Dues</p>
+                    <p className={`text-lg font-bold ${summary.total_due > 0 ? "text-amber-600" : "text-emerald-600"}`}>
                       ৳ {summary.total_due.toLocaleString(undefined, {minimumFractionDigits: 2})}
                     </p>
                   </div>
-                  <DollarSign className={`w-8 h-8 ${summary.total_due > 0 ? "text-amber-400/50" : "text-emerald-400/50"}`} />
+                  <DollarSign className={`w-8 h-8 ${summary.total_due > 0 ? "text-amber-600/50" : "text-emerald-600/50"}`} />
                 </div>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                <h2 className="text-base font-extrabold text-white mb-4">Dealer Ledger Statement</h2>
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl">
+                <h2 className="text-base font-extrabold text-slate-900 mb-4">Dealer Ledger Statement</h2>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border border-slate-800">
-                    <thead className="bg-slate-950 text-slate-400 font-semibold uppercase">
+                  <table className="w-full text-left text-xs border border-slate-200">
+                    <thead className="bg-slate-50 text-slate-500 font-semibold uppercase">
                       <tr>
                         <th className="p-3">Date</th>
                         <th className="p-3">Transaction Type</th>
@@ -538,21 +538,21 @@ export default function AccountingPage() {
                     </thead>
                     <tbody className="divide-y divide-slate-800 font-medium">
                       {transactions.map((t) => (
-                        <tr key={t.id} className="hover:bg-slate-800/40">
-                          <td className="p-3 text-slate-300 font-mono">{new Date(t.date).toLocaleDateString()}</td>
+                        <tr key={t.id} className="hover:bg-slate-100/40">
+                          <td className="p-3 text-slate-600 font-mono">{new Date(t.date).toLocaleDateString()}</td>
                           <td className="p-3">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${t.type === 'DEBIT' ? 'bg-blue-950 text-blue-400 border border-blue-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'}`}>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${t.type === 'DEBIT' ? 'bg-blue-950 text-blue-400 border border-blue-800' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
                               {t.type}
                             </span>
                           </td>
-                          <td className="p-3 text-slate-400">{t.reference_invoice || t.remarks || '-'}</td>
+                          <td className="p-3 text-slate-500">{t.reference_invoice || t.remarks || '-'}</td>
                           <td className="p-3 text-right font-mono text-blue-400">
                             {t.type === 'DEBIT' ? `৳ ${t.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}` : '-'}
                           </td>
-                          <td className="p-3 text-right font-mono text-emerald-400">
+                          <td className="p-3 text-right font-mono text-emerald-600">
                             {t.type === 'CREDIT' ? `৳ ${t.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}` : '-'}
                           </td>
-                          <td className="p-3 text-right font-mono font-bold text-white">
+                          <td className="p-3 text-right font-mono font-bold text-slate-900">
                             ৳ {t.running_balance?.toLocaleString(undefined, {minimumFractionDigits: 2}) || '-'}
                           </td>
                         </tr>
@@ -577,50 +577,50 @@ export default function AccountingPage() {
           <div className="space-y-6">
             {/* Cash Balance Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between shadow-xl">
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl flex items-center justify-between shadow-xl">
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Fund Inflows</p>
-                  <p className="text-xl font-black text-emerald-400 mt-1">৳ {cashSummary.total_income.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Total Fund Inflows</p>
+                  <p className="text-xl font-black text-emerald-600 mt-1">৳ {cashSummary.total_income.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
                 </div>
-                <ArrowDownCircle className="text-emerald-400/30 w-9 h-9" />
+                <ArrowDownCircle className="text-emerald-600/30 w-9 h-9" />
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between shadow-xl">
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl flex items-center justify-between shadow-xl">
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Expenses</p>
-                  <p className="text-xl font-black text-rose-400 mt-1">৳ {cashSummary.total_expense.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Total Expenses</p>
+                  <p className="text-xl font-black text-rose-600 mt-1">৳ {cashSummary.total_expense.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
                 </div>
-                <ArrowUpCircle className="text-rose-400/30 w-9 h-9" />
+                <ArrowUpCircle className="text-rose-600/30 w-9 h-9" />
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-bl-xl text-[9px] font-bold uppercase">Petty Cash</div>
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl flex items-center justify-between shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-emerald-500/10 text-emerald-600 px-3 py-1 rounded-bl-xl text-[9px] font-bold uppercase">Petty Cash</div>
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Current Cash Balance</p>
-                  <p className={`text-xl font-black mt-1 ${cashSummary.balance >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Current Cash Balance</p>
+                  <p className={`text-xl font-black mt-1 ${cashSummary.balance >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                     ৳ {cashSummary.balance.toLocaleString(undefined, {minimumFractionDigits: 2})}
                   </p>
                 </div>
-                <Wallet className={`w-9 h-9 ${cashSummary.balance >= 0 ? "text-emerald-400/30" : "text-rose-400/30"}`} />
+                <Wallet className={`w-9 h-9 ${cashSummary.balance >= 0 ? "text-emerald-600/30" : "text-rose-600/30"}`} />
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               {/* Left Column: Transaction Log Entry Forms */}
               <div className="lg:col-span-4 space-y-6">
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <h2 className="text-base font-extrabold text-white flex items-center gap-1.5">
-                      {cashType === "EXPENSE" ? <MinusCircle className="w-5 h-5 text-rose-400" /> : <PlusCircle className="w-5 h-5 text-emerald-400" />}
+                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                    <h2 className="text-base font-extrabold text-slate-900 flex items-center gap-1.5">
+                      {cashType === "EXPENSE" ? <MinusCircle className="w-5 h-5 text-rose-600" /> : <PlusCircle className="w-5 h-5 text-emerald-600" />}
                       Log Cash Book Record
                     </h2>
                     {/* Toggle Type */}
-                    <div className="flex bg-slate-950 p-1 rounded-lg border border-slate-800">
+                    <div className="flex bg-slate-50 p-1 rounded-lg border border-slate-200">
                       <button
                         type="button"
                         onClick={() => setCashType("EXPENSE")}
                         className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${
-                          cashType === "EXPENSE" ? "bg-rose-950/80 text-rose-300 border border-rose-800" : "text-slate-400"
+                          cashType === "EXPENSE" ? "bg-rose-50/80 text-rose-300 border border-rose-800" : "text-slate-500"
                         }`}
                       >
                         Expense
@@ -629,7 +629,7 @@ export default function AccountingPage() {
                         type="button"
                         onClick={() => setCashType("INCOME")}
                         className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${
-                          cashType === "INCOME" ? "bg-emerald-950/80 text-emerald-300 border border-emerald-800" : "text-slate-400"
+                          cashType === "INCOME" ? "bg-emerald-50/80 text-emerald-300 border border-emerald-200" : "text-slate-500"
                         }`}
                       >
                         Fund In
@@ -639,13 +639,13 @@ export default function AccountingPage() {
 
                   <form onSubmit={handleRecordCashTransaction} className="space-y-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">
                         Category *
                       </label>
                       <select
                         value={cashCategory}
                         onChange={(e) => setCashCategory(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-bold font-sans outline-none focus:border-emerald-500"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 font-bold font-sans outline-none focus:border-emerald-500"
                         required
                       >
                         {cashType === "INCOME"
@@ -659,38 +659,38 @@ export default function AccountingPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">Amount (৳) *</label>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Amount (৳) *</label>
                       <input
                         type="number"
                         min="1"
                         step="any"
                         value={cashAmount}
                         onChange={(e) => setCashAmount(e.target.value === "" ? "" : Number(e.target.value))}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-bold"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 font-bold"
                         placeholder="0.00"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">Transaction Date *</label>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Transaction Date *</label>
                       <input
                         type="date"
                         value={cashDate}
                         onChange={(e) => setCashDate(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">Remarks / Reference</label>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Remarks / Reference</label>
                       <textarea
                         rows={2}
                         value={cashRemarks}
                         onChange={(e) => setCashRemarks(e.target.value)}
                         placeholder="Additional details..."
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-sans outline-none focus:border-emerald-500"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 font-sans outline-none focus:border-emerald-500"
                       />
                     </div>
 
@@ -700,7 +700,7 @@ export default function AccountingPage() {
                       className={`w-full py-3 rounded-xl shadow-lg transition-all font-black text-xs ${
                         selectedDepotId
                           ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
-                          : "bg-slate-800 text-slate-500 cursor-not-allowed"
+                          : "bg-slate-100 text-slate-500 cursor-not-allowed"
                       }`}
                     >
                       {!selectedDepotId ? "Select Depot/Unit first" : cashType === "INCOME" ? "Record Cash Inflow" : "Record Expense Voucher"}
@@ -711,19 +711,19 @@ export default function AccountingPage() {
 
               {/* Right Column: Ledger Table View */}
               <div className="lg:col-span-8 space-y-6">
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                  <h2 className="text-base font-extrabold text-white mb-4 flex items-center justify-between">
+                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl">
+                  <h2 className="text-base font-extrabold text-slate-900 mb-4 flex items-center justify-between">
                     <span>Petty Cash Book Ledger</span>
                     {selectedDepotId && (
-                      <span className="text-xs bg-slate-800 px-3 py-1 rounded-full text-slate-400 font-mono uppercase font-bold border border-slate-700">
+                      <span className="text-xs bg-slate-100 px-3 py-1 rounded-full text-slate-500 font-mono uppercase font-bold border border-slate-300">
                         {depots.find(d => d.id === selectedDepotId)?.name || "Isolated Depot"}
                       </span>
                     )}
                   </h2>
 
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border border-slate-800">
-                      <thead className="bg-slate-950 text-slate-400 font-semibold uppercase">
+                    <table className="w-full text-left text-xs border border-slate-200">
+                      <thead className="bg-slate-50 text-slate-500 font-semibold uppercase">
                         <tr>
                           <th className="p-3">Date</th>
                           <th className="p-3">Category</th>
@@ -737,20 +737,20 @@ export default function AccountingPage() {
                       </thead>
                       <tbody className="divide-y divide-slate-800 font-medium">
                         {cashTransactions.map((t) => (
-                          <tr key={t.id} className="hover:bg-slate-800/40">
-                            <td className="p-3 text-slate-300 font-mono">{new Date(t.date).toLocaleDateString()}</td>
-                            <td className="p-3 text-white font-bold">{t.category}</td>
-                            <td className="p-3 text-slate-400 max-w-xs truncate">{t.remarks || "-"}</td>
-                            <td className="p-3 text-right font-mono text-emerald-400">
+                          <tr key={t.id} className="hover:bg-slate-100/40">
+                            <td className="p-3 text-slate-600 font-mono">{new Date(t.date).toLocaleDateString()}</td>
+                            <td className="p-3 text-slate-900 font-bold">{t.category}</td>
+                            <td className="p-3 text-slate-500 max-w-xs truncate">{t.remarks || "-"}</td>
+                            <td className="p-3 text-right font-mono text-emerald-600">
                               {t.transaction_type === "INCOME" ? `৳ ${t.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}` : "-"}
                             </td>
-                            <td className="p-3 text-right font-mono text-rose-400">
+                            <td className="p-3 text-right font-mono text-rose-600">
                               {t.transaction_type === "EXPENSE" ? `৳ ${t.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}` : "-"}
                             </td>
-                            <td className="p-3 text-right font-mono font-bold text-white">
+                            <td className="p-3 text-right font-mono font-bold text-slate-900">
                               ৳ {t.running_balance?.toLocaleString(undefined, {minimumFractionDigits: 2}) || "-"}
                             </td>
-                            <td className="p-3 text-slate-400 font-mono text-[10px]">{t.created_by || "System"}</td>
+                            <td className="p-3 text-slate-500 font-mono text-[10px]">{t.created_by || "System"}</td>
                             {isSuperAdmin && (
                               <td className="p-3 text-right">
                                 <div className="flex justify-end gap-2">
@@ -761,14 +761,14 @@ export default function AccountingPage() {
                                       setEditCategory(t.category);
                                       setEditRemarks(t.remarks || "");
                                     }}
-                                    className="p-1 text-slate-400 hover:text-emerald-400 rounded hover:bg-slate-950 transition-colors"
+                                    className="p-1 text-slate-500 hover:text-emerald-600 rounded hover:bg-slate-50 transition-colors"
                                     title="Edit Petty Cash Entry"
                                   >
                                     <Edit className="w-4 h-4" />
                                   </button>
                                   <button
                                     onClick={() => handleDeleteCashTx(t.id)}
-                                    className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-950 transition-colors"
+                                    className="p-1 text-slate-500 hover:text-rose-600 rounded hover:bg-slate-50 transition-colors"
                                     title="Delete Petty Cash Entry"
                                   >
                                     <Trash2 className="w-4 h-4" />
@@ -796,24 +796,24 @@ export default function AccountingPage() {
 
         {/* Modal: Edit Petty Cash Transaction */}
         {editingTx && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
-                  <Edit className="w-4 h-4 text-emerald-400" /> Edit & Override Petty Cash Entry
+          <div className="fixed inset-0 bg-slate-50/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <Edit className="w-4 h-4 text-emerald-600" /> Edit & Override Petty Cash Entry
                 </h3>
-                <button onClick={() => setEditingTx(null)} className="text-slate-400 hover:text-white">
+                <button onClick={() => setEditingTx(null)} className="text-slate-500 hover:text-slate-900">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <form onSubmit={handleSaveEditCashTx} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Category</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Category</label>
                   <select
                     value={editCategory}
                     onChange={(e) => setEditCategory(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold"
                   >
                     {editingTx.transaction_type === "INCOME"
                       ? inflowCategories.map((c) => <option key={c} value={c}>{c}</option>)
@@ -822,25 +822,25 @@ export default function AccountingPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Amount (৳)</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Amount (৳)</label>
                   <input
                     type="number"
                     min="1"
                     step="any"
                     value={editAmount}
                     onChange={(e) => setEditAmount(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Remarks</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Remarks</label>
                   <textarea
                     rows={2}
                     value={editRemarks}
                     onChange={(e) => setEditRemarks(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900"
                   />
                 </div>
 
@@ -848,7 +848,7 @@ export default function AccountingPage() {
                   <button type="submit" className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2.5 rounded-xl transition-all text-xs">
                     Save Override
                   </button>
-                  <button type="button" onClick={() => setEditingTx(null)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">
+                  <button type="button" onClick={() => setEditingTx(null)} className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">
                     Cancel
                   </button>
                 </div>

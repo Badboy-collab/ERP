@@ -93,35 +93,35 @@ export default function SuperAdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-amber-600 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-200 font-sans">
       {/* Topbar */}
-      <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <div className="bg-amber-500/10 p-2 rounded-xl border border-amber-500/20">
-                <ShieldCheck className="w-6 h-6 text-amber-500" />
+                <ShieldCheck className="w-6 h-6 text-amber-600" />
               </div>
               <div>
-                <h1 className="font-black text-white text-lg tracking-tight">MASTER ADMIN</h1>
-                <p className="text-[10px] text-amber-500 uppercase tracking-widest font-bold">Nexora Control Center</p>
+                <h1 className="font-black text-slate-900 text-lg tracking-tight">MASTER ADMIN</h1>
+                <p className="text-[10px] text-amber-600 uppercase tracking-widest font-bold">Nexora Control Center</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
               <div className="hidden sm:block text-right">
-                <div className="text-sm font-bold text-white">{currentUser?.name}</div>
-                <div className="text-xs text-slate-400">{currentUser?.email}</div>
+                <div className="text-sm font-bold text-slate-900">{currentUser?.name}</div>
+                <div className="text-xs text-slate-500">{currentUser?.email}</div>
               </div>
               <button 
                 onClick={handleLogout}
-                className="bg-slate-800 hover:bg-rose-950/40 text-slate-300 hover:text-rose-400 border border-slate-700 hover:border-rose-900/50 transition-all p-2 rounded-xl"
+                className="bg-slate-100 hover:bg-rose-50/40 text-slate-600 hover:text-rose-600 border border-slate-300 hover:border-rose-200/50 transition-all p-2 rounded-xl"
                 title="Secure Logout"
               >
                 <PowerOff className="w-5 h-5" />
@@ -136,48 +136,48 @@ export default function SuperAdminDashboard() {
         {/* Statistics */}
         {stats && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 relative overflow-hidden group">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110" />
               <div className="flex items-center justify-between mb-4">
-                <div className="text-slate-400 text-sm font-semibold uppercase tracking-wider">Total Orgs</div>
+                <div className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Total Orgs</div>
                 <Building2 className="w-5 h-5 text-blue-400" />
               </div>
-              <div className="text-3xl font-black text-white">{stats.total}</div>
+              <div className="text-3xl font-black text-slate-900">{stats.total}</div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 relative overflow-hidden group">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110" />
               <div className="flex items-center justify-between mb-4">
-                <div className="text-slate-400 text-sm font-semibold uppercase tracking-wider">Active Orgs</div>
-                <Activity className="w-5 h-5 text-emerald-400" />
+                <div className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Active Orgs</div>
+                <Activity className="w-5 h-5 text-emerald-600" />
               </div>
-              <div className="text-3xl font-black text-white">{stats.active}</div>
+              <div className="text-3xl font-black text-slate-900">{stats.active}</div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 relative overflow-hidden group">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110" />
               <div className="flex items-center justify-between mb-4">
-                <div className="text-slate-400 text-sm font-semibold uppercase tracking-wider">Suspended</div>
-                <Power className="w-5 h-5 text-rose-400" />
+                <div className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Suspended</div>
+                <Power className="w-5 h-5 text-rose-600" />
               </div>
-              <div className="text-3xl font-black text-white">{stats.suspended}</div>
+              <div className="text-3xl font-black text-slate-900">{stats.suspended}</div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 relative overflow-hidden group">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110" />
               <div className="flex items-center justify-between mb-4">
-                <div className="text-slate-400 text-sm font-semibold uppercase tracking-wider">Total Users</div>
+                <div className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Total Users</div>
                 <Users className="w-5 h-5 text-purple-400" />
               </div>
-              <div className="text-3xl font-black text-white">{stats.totalUsers}</div>
+              <div className="text-3xl font-black text-slate-900">{stats.totalUsers}</div>
             </div>
           </div>
         )}
 
         {/* Organizations List */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden flex flex-col">
-          <div className="p-6 border-b border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <h2 className="text-xl font-bold text-white">Registered Organizations</h2>
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden flex flex-col">
+          <div className="p-6 border-b border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <h2 className="text-xl font-bold text-slate-900">Registered Organizations</h2>
             <div className="relative w-full sm:w-72">
               <span className="absolute left-3 top-2.5 text-slate-500">
                 <Search className="w-4 h-4" />
@@ -185,7 +185,7 @@ export default function SuperAdminDashboard() {
               <input
                 type="text"
                 placeholder="Search organizations..."
-                className="w-full bg-slate-950 border border-slate-700 focus:border-amber-500 rounded-lg py-2 pl-9 pr-4 text-sm text-slate-200 outline-none transition-colors"
+                className="w-full bg-slate-50 border border-slate-300 focus:border-amber-500 rounded-lg py-2 pl-9 pr-4 text-sm text-slate-200 outline-none transition-colors"
               />
             </div>
           </div>
@@ -193,7 +193,7 @@ export default function SuperAdminDashboard() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-800/50 border-b border-slate-700/50 text-xs uppercase tracking-wider text-slate-400 font-semibold">
+                <tr className="bg-slate-100/50 border-b border-slate-300/50 text-xs uppercase tracking-wider text-slate-500 font-semibold">
                   <th className="px-6 py-4">Organization</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Main Admin</th>
@@ -203,10 +203,10 @@ export default function SuperAdminDashboard() {
               </thead>
               <tbody className="divide-y divide-slate-800/50">
                 {organizations.map((org) => (
-                  <tr key={org.id} className="hover:bg-slate-800/30 transition-colors">
+                  <tr key={org.id} className="hover:bg-slate-100/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center flex-shrink-0 text-slate-400 font-bold overflow-hidden">
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-300 flex items-center justify-center flex-shrink-0 text-slate-500 font-bold overflow-hidden">
                           {org.logo_url ? (
                             <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
                           ) : (
@@ -214,7 +214,7 @@ export default function SuperAdminDashboard() {
                           )}
                         </div>
                         <div>
-                          <div className="font-bold text-white">{org.name}</div>
+                          <div className="font-bold text-slate-900">{org.name}</div>
                           <div className="text-xs text-slate-500 font-mono mt-0.5">{org.slug}</div>
                         </div>
                       </div>
@@ -222,30 +222,30 @@ export default function SuperAdminDashboard() {
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                         org.status === 'Active' 
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                          : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                          ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' 
+                          : 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
                       }`}>
                         {org.status}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-slate-300">{org.main_admin}</div>
+                      <div className="text-sm font-medium text-slate-600">{org.main_admin}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-800/50 text-slate-300 text-xs font-semibold">
+                      <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-100/50 text-slate-600 text-xs font-semibold">
                         <Users className="w-3.5 h-3.5 text-slate-500" />
                         {org.total_users}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
-                        <button className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors" title="Settings">
+                        <button className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-200 rounded-lg transition-colors" title="Settings">
                           <Settings className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => handleEnterOrg(org.id)}
                           disabled={enteringOrgId === org.id}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-500 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-600 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
                         >
                           {enteringOrgId === org.id ? (
                             <Loader2 className="w-4 h-4 animate-spin" />

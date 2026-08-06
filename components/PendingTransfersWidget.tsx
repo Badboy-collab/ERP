@@ -76,10 +76,10 @@ export default function PendingTransfersWidget({ depotId, onReceiveSuccess }: Pe
   if (!depotId || transfers.length === 0) return null;
 
   return (
-    <div className="bg-amber-950/20 border border-amber-800/60 rounded-2xl p-6 shadow-xl space-y-4">
-      <div className="flex items-center justify-between border-b border-amber-900/40 pb-3">
+    <div className="bg-amber-50/20 border border-amber-800/60 rounded-2xl p-6 shadow-xl space-y-4">
+      <div className="flex items-center justify-between border-b border-amber-200/40 pb-3">
         <h3 className="text-sm font-extrabold text-amber-300 uppercase tracking-wider flex items-center gap-2">
-          <Truck className="w-5 h-5 text-amber-400 animate-pulse" />
+          <Truck className="w-5 h-5 text-amber-600 animate-pulse" />
           Pending Incoming Transfers ({transfers.length})
         </h3>
         <span className="text-[10px] bg-amber-900/60 text-amber-200 border border-amber-700 px-2 py-0.5 rounded-full font-bold">
@@ -88,7 +88,7 @@ export default function PendingTransfersWidget({ depotId, onReceiveSuccess }: Pe
       </div>
 
       {message && (
-        <div className={`p-3 rounded-xl text-xs font-semibold ${message.type === "success" ? "bg-emerald-950/80 text-emerald-300 border border-emerald-800" : "bg-rose-950/80 text-rose-300 border border-rose-800"}`}>
+        <div className={`p-3 rounded-xl text-xs font-semibold ${message.type === "success" ? "bg-emerald-50/80 text-emerald-300 border border-emerald-200" : "bg-rose-50/80 text-rose-300 border border-rose-800"}`}>
           {message.text}
         </div>
       )}
@@ -97,25 +97,25 @@ export default function PendingTransfersWidget({ depotId, onReceiveSuccess }: Pe
         {transfers.map((t) => {
           const bags = Math.round((t.quantity / (t.product.bag_size_kg || 50)) * 100) / 100;
           return (
-            <div key={t.id} className="bg-slate-900/90 border border-amber-900/30 rounded-xl p-4 space-y-3 shadow-lg hover:border-amber-700 transition-all">
+            <div key={t.id} className="bg-white/90 border border-amber-200/30 rounded-xl p-4 space-y-3 shadow-lg hover:border-amber-700 transition-all">
               <div className="flex justify-between items-start text-xs">
                 <div>
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Dispatched From</span>
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Dispatched From</span>
                   <span className="font-black text-amber-300">{t.fromDepot?.name || "Central Depot / Factory"}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-slate-400 font-mono block">Date</span>
-                  <span className="text-slate-300 font-medium">{new Date(t.transfer_date).toLocaleDateString()}</span>
+                  <span className="text-[10px] text-slate-500 font-mono block">Date</span>
+                  <span className="text-slate-600 font-medium">{new Date(t.transfer_date).toLocaleDateString()}</span>
                 </div>
               </div>
 
-              <div className="p-2.5 bg-slate-950 rounded-lg border border-slate-800 text-xs flex justify-between items-center">
+              <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 text-xs flex justify-between items-center">
                 <div className="space-y-0.5">
-                  <p className="font-bold text-white">[{t.product.code}] {t.product.name}</p>
-                  <p className="text-[10px] text-slate-400 font-mono">Bag Size: {t.product.bag_size_kg} kg</p>
+                  <p className="font-bold text-slate-900">[{t.product.code}] {t.product.name}</p>
+                  <p className="text-[10px] text-slate-500 font-mono">Bag Size: {t.product.bag_size_kg} kg</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-black text-emerald-400 text-sm font-mono">{t.quantity.toLocaleString()} Kg</p>
+                  <p className="font-black text-emerald-600 text-sm font-mono">{t.quantity.toLocaleString()} Kg</p>
                   <p className="text-[10px] text-amber-300 font-bold">{bags} Bags</p>
                 </div>
               </div>

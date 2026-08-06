@@ -56,9 +56,9 @@ export default function DualQuantityInput({
           value={kgValue}
           onChange={handleKgChange}
           placeholder="0"
-          className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white font-bold pr-8"
+          className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 font-bold pr-8"
         />
-        <span className="absolute right-3 top-2 text-xs text-slate-400 pointer-events-none">Kg</span>
+        <span className="absolute right-3 top-2 text-xs text-slate-500 pointer-events-none">Kg</span>
       </div>
       <div className="flex-1 relative">
         <input
@@ -68,9 +68,9 @@ export default function DualQuantityInput({
           value={bagsValue}
           onChange={handleBagsChange}
           placeholder="0"
-          className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white font-bold pr-10"
+          className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 font-bold pr-10"
         />
-        <span className="absolute right-3 top-2 text-xs text-slate-400 pointer-events-none">Bags</span>
+        <span className="absolute right-3 top-2 text-xs text-slate-500 pointer-events-none">Bags</span>
       </div>
     </div>
   );

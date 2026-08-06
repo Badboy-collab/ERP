@@ -98,20 +98,20 @@ export default function StockReportPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-100 flex flex-col font-sans">
       <div className="print:hidden">
         <Navbar />
       </div>
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 print:p-0 print:max-w-none">
         {/* Title Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
           <div>
-            <h1 className="text-2xl font-black text-white flex items-center gap-2">
-              <Package className="w-6 h-6 text-emerald-400" />
+            <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+              <Package className="w-6 h-6 text-emerald-600" />
               Real-Time Stock Display Ledger
             </h1>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-500">
               Live automated feed inventory tracking in Kilograms (Kg) and 50kg Bags as per spreadsheet formulas.
             </p>
           </div>
@@ -119,13 +119,13 @@ export default function StockReportPage() {
           {/* Controls (Hidden in Print) */}
           <div className="flex flex-wrap items-center gap-3 print:hidden">
             {/* Date Selection Filter */}
-            <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
-              <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+            <div className="flex items-center space-x-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs">
+              <Calendar className="w-3.5 h-3.5 text-emerald-600" />
               <input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="bg-transparent text-white font-semibold focus:outline-none"
+                className="bg-transparent text-slate-900 font-semibold focus:outline-none"
               />
             </div>
 
@@ -134,40 +134,40 @@ export default function StockReportPage() {
               onClick={() => setShowZeroStock(!showZeroStock)}
               className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${
                 showZeroStock
-                  ? "bg-amber-950/60 border-amber-800 text-amber-300"
-                  : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
+                  ? "bg-amber-50/60 border-amber-800 text-amber-300"
+                  : "bg-white border-slate-200 text-slate-500 hover:text-slate-900"
               }`}
             >
-              {showZeroStock ? <Eye className="w-3.5 h-3.5 text-amber-400" /> : <EyeOff className="w-3.5 h-3.5 text-slate-400" />}
+              {showZeroStock ? <Eye className="w-3.5 h-3.5 text-amber-600" /> : <EyeOff className="w-3.5 h-3.5 text-slate-500" />}
               <span>{showZeroStock ? "Showing Out of Stock" : "Hide Out of Stock"}</span>
             </button>
 
             {/* Depot Selector (Global Visibility for SUPER_ADMIN & ORG_ADMIN) */}
             {hasGlobalAccess(currentUser) ? (
-              <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
-                <Filter className="w-3.5 h-3.5 text-emerald-400" />
+              <div className="flex items-center space-x-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs">
+                <Filter className="w-3.5 h-3.5 text-emerald-600" />
                 <select
                   value={selectedDepotId}
                   onChange={(e) => setSelectedDepotId(e.target.value)}
-                  className="bg-transparent text-white font-semibold focus:outline-none"
+                  className="bg-transparent text-slate-900 font-semibold focus:outline-none"
                 >
-                  <option value="" className="bg-slate-900">All Depots Consolidated</option>
+                  <option value="" className="bg-white">All Depots Consolidated</option>
                   {depots.map((d) => (
-                    <option key={d.id} value={d.id} className="bg-slate-900">
+                    <option key={d.id} value={d.id} className="bg-white">
                       {d.name} ({d.code})
                     </option>
                   ))}
                 </select>
               </div>
             ) : (
-              <div className="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-400">
+              <div className="bg-white border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-600">
                 {depots.find(d => d.id === selectedDepotId)?.name || "Assigned Depot"}
               </div>
             )}
 
             <button
               onClick={fetchStockData}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-200 p-2 rounded-xl border border-slate-700 transition-colors"
+              className="bg-slate-100 hover:bg-slate-200 text-slate-200 p-2 rounded-xl border border-slate-300 transition-colors"
               title="Refresh Stock Data"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
@@ -175,7 +175,7 @@ export default function StockReportPage() {
 
             <button
               onClick={handlePrint}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-xl shadow flex items-center gap-1.5 transition-all"
+              className="bg-emerald-600 hover:bg-emerald-500 text-slate-900 text-xs font-bold px-4 py-2 rounded-xl shadow flex items-center gap-1.5 transition-all"
             >
               <Printer className="w-4 h-4" /> Print Stock Sheet
             </button>
@@ -190,29 +190,29 @@ export default function StockReportPage() {
         </div>
 
         {/* Stock Ledger Table */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl print:p-0 print:border-none print:shadow-none">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl print:p-0 print:border-none print:shadow-none">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs print:text-slate-900 print:border print:border-slate-300">
-              <thead className="bg-slate-950 text-slate-400 font-bold uppercase tracking-wider print:bg-slate-100 print:text-slate-900">
+              <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider print:bg-slate-100 print:text-slate-900">
                 <tr>
-                  <th className="p-3 border-r border-slate-800 print:border-slate-300">Category & Product Name</th>
-                  <th className="p-3 border-r border-slate-800 print:border-slate-300">Code</th>
-                  <th className="p-3 border-r border-slate-800 print:border-slate-300 text-right">Bag Size</th>
-                  <th className="p-3 border-r border-slate-800 print:border-slate-300 text-right">Opening (Kg)</th>
-                  <th className="p-3 border-r border-slate-800 print:border-slate-300 text-right">Received (Kg)</th>
-                  <th className="p-3 border-r border-slate-800 print:border-slate-300 text-right font-extrabold text-blue-400 print:text-slate-900">
+                  <th className="p-3 border-r border-slate-200 print:border-slate-300">Category & Product Name</th>
+                  <th className="p-3 border-r border-slate-200 print:border-slate-300">Code</th>
+                  <th className="p-3 border-r border-slate-200 print:border-slate-300 text-right">Bag Size</th>
+                  <th className="p-3 border-r border-slate-200 print:border-slate-300 text-right">Opening (Kg)</th>
+                  <th className="p-3 border-r border-slate-200 print:border-slate-300 text-right">Received (Kg)</th>
+                  <th className="p-3 border-r border-slate-200 print:border-slate-300 text-right font-extrabold text-blue-400 print:text-slate-900">
                     Total (Kg)
                   </th>
-                  <th className="p-3 border-r border-slate-800 print:border-slate-300 text-right text-rose-400 print:text-slate-900">
+                  <th className="p-3 border-r border-slate-200 print:border-slate-300 text-right text-rose-600 print:text-slate-900">
                     Sales (Kg)
                   </th>
-                  <th className="p-3 border-r border-slate-800 print:border-slate-300 text-right text-amber-400 print:text-slate-900">
+                  <th className="p-3 border-r border-slate-200 print:border-slate-300 text-right text-amber-600 print:text-slate-900">
                     Return (Kg)
                   </th>
-                  <th className="p-3 border-r border-slate-800 print:border-slate-300 text-right font-extrabold text-emerald-400 print:text-slate-900">
+                  <th className="p-3 border-r border-slate-200 print:border-slate-300 text-right font-extrabold text-emerald-600 print:text-slate-900">
                     Balance (Kg)
                   </th>
-                  <th className="p-3 text-right font-extrabold text-emerald-400 print:text-slate-900">
+                  <th className="p-3 text-right font-extrabold text-emerald-600 print:text-slate-900">
                     Balance (Bags)
                   </th>
                 </tr>
@@ -232,15 +232,15 @@ export default function StockReportPage() {
                   </tr>
                 ) : (
                   displayedStock.map((row) => (
-                    <tr key={row.product_id} className="hover:bg-slate-800/40 transition-colors">
+                    <tr key={row.product_id} className="hover:bg-slate-100/40 transition-colors">
                       <td className="p-3 font-semibold text-slate-100 print:text-slate-900">
-                        <span className="text-[10px] text-emerald-400 block font-normal uppercase print:text-slate-600">
+                        <span className="text-[10px] text-emerald-600 block font-normal uppercase print:text-slate-600">
                           {row.category}
                         </span>
                         {row.name}
                       </td>
-                      <td className="p-3 font-mono text-slate-400 print:text-slate-800">{row.code}</td>
-                      <td className="p-3 text-right font-mono text-slate-400 print:text-slate-800">
+                      <td className="p-3 font-mono text-slate-500 print:text-slate-800">{row.code}</td>
+                      <td className="p-3 text-right font-mono text-slate-500 print:text-slate-800">
                         {row.bag_size_kg} kg
                       </td>
                       <td className="p-3 text-right font-mono">{row.opening_kg.toLocaleString()}</td>
@@ -250,13 +250,13 @@ export default function StockReportPage() {
                       <td className="p-3 text-right font-mono font-bold text-blue-300 print:text-slate-900">
                         {row.total_kg.toLocaleString()}
                       </td>
-                      <td className="p-3 text-right font-mono text-rose-400 print:text-slate-900">
+                      <td className="p-3 text-right font-mono text-rose-600 print:text-slate-900">
                         -{row.sales_kg.toLocaleString()}
                       </td>
-                      <td className="p-3 text-right font-mono text-amber-400 print:text-slate-900">
+                      <td className="p-3 text-right font-mono text-amber-600 print:text-slate-900">
                         -{row.return_kg.toLocaleString()}
                       </td>
-                      <td className="p-3 text-right font-mono font-extrabold text-emerald-400 print:text-slate-900 text-sm">
+                      <td className="p-3 text-right font-mono font-extrabold text-emerald-600 print:text-slate-900 text-sm">
                         {row.balance_kg.toLocaleString()} kg
                       </td>
                       <td className="p-3 text-right font-mono font-extrabold text-emerald-300 print:text-slate-900 text-sm">
@@ -266,7 +266,7 @@ export default function StockReportPage() {
                   ))
                 )}
               </tbody>
-              <tfoot className="bg-slate-950 font-bold border-t-2 border-slate-800 text-slate-100 print:bg-slate-100 print:text-slate-900">
+              <tfoot className="bg-slate-50 font-bold border-t-2 border-slate-200 text-slate-100 print:bg-slate-100 print:text-slate-900">
                 <tr>
                   <td colSpan={3} className="p-3 uppercase tracking-wider text-right">
                     Total Consolidated Stock:
@@ -278,13 +278,13 @@ export default function StockReportPage() {
                   <td className="p-3 text-right font-mono text-blue-300 print:text-slate-900">
                     {totals.total_kg.toLocaleString()} kg
                   </td>
-                  <td className="p-3 text-right font-mono text-rose-400 print:text-slate-900">
+                  <td className="p-3 text-right font-mono text-rose-600 print:text-slate-900">
                     -{totals.sales_kg.toLocaleString()} kg
                   </td>
-                  <td className="p-3 text-right font-mono text-amber-400 print:text-slate-900">
+                  <td className="p-3 text-right font-mono text-amber-600 print:text-slate-900">
                     -{totals.return_kg.toLocaleString()} kg
                   </td>
-                  <td className="p-3 text-right font-mono text-emerald-400 print:text-slate-900 text-sm">
+                  <td className="p-3 text-right font-mono text-emerald-600 print:text-slate-900 text-sm">
                     {totals.balance_kg.toLocaleString()} kg
                   </td>
                   <td className="p-3 text-right font-mono text-emerald-300 print:text-slate-900 text-sm">

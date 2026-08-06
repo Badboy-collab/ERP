@@ -69,7 +69,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col md:flex-row font-sans">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans">
       {/* LEFT PANEL: Branding & Welcome (Hidden on small mobile screens) */}
       <div className="md:w-1/2 bg-slate-50 border-r border-slate-200 p-12 flex flex-col justify-between relative overflow-hidden">
         {/* Subtle background overlay grids */}
@@ -121,7 +121,7 @@ export default function LoginPage() {
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-2">Organization Name</label>
               <div className="relative">
-                <span className="absolute left-3.5 top-3 text-slate-400">
+                <span className="absolute left-3.5 top-3 text-slate-500">
                   <Factory className="w-4.5 h-4.5" />
                 </span>
                 <input
@@ -138,7 +138,7 @@ export default function LoginPage() {
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-2">Username / Email</label>
               <div className="relative">
-                <span className="absolute left-3.5 top-3 text-slate-400">
+                <span className="absolute left-3.5 top-3 text-slate-500">
                   <User className="w-4.5 h-4.5" />
                 </span>
                 <input
@@ -155,7 +155,7 @@ export default function LoginPage() {
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-2">Password</label>
               <div className="relative">
-                <span className="absolute left-3.5 top-3 text-slate-400">
+                <span className="absolute left-3.5 top-3 text-slate-500">
                   <Lock className="w-4.5 h-4.5" />
                 </span>
                 <input
@@ -169,7 +169,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-3.5 text-slate-400 hover:text-emerald-500 transition-colors"
+                  className="absolute right-3.5 top-3.5 text-slate-500 hover:text-emerald-600 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
                 </button>
@@ -185,7 +185,7 @@ export default function LoginPage() {
                 {rememberMe ? (
                   <CheckSquare className="w-4 h-4 text-emerald-600" />
                 ) : (
-                  <Square className="w-4 h-4 text-slate-400" />
+                  <Square className="w-4 h-4 text-slate-500" />
                 )}
                 <span className="text-xs font-semibold">Remember Me</span>
               </button>
@@ -194,7 +194,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-black py-3 rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center space-x-2 text-sm"
+              className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-slate-900 font-black py-3 rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center space-x-2 text-sm"
             >
               {loading ? (
                 <>
