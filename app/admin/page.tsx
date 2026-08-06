@@ -579,7 +579,7 @@ export default function AdminPage() {
     setEditOrderDealerId(order.dealer.id);
     setEditOrderDate(new Date(order.order_date).toISOString().split("T")[0]);
     setEditOrderRemarks(order.remarks || "");
-    setEditOrderItems(order.items.map(item => ({ id: item.id, product_id: item.product_id, ordered_qty: item.ordered_qty })));
+    setEditOrderItems(order.items.map(item => ({ id: item.id, product_id: item.product.id, ordered_qty: item.ordered_qty })));
   };
 
   const handleSaveDeliveryOrder = async (e: React.FormEvent) => {
