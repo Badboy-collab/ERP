@@ -39,6 +39,7 @@ export async function POST(req: Request) {
       data: {
         org_id,
         name: body.name,
+        code: body.code,
         phone: body.phone,
         address: body.address || null,
         depot_id: body.depot_id,
@@ -61,12 +62,13 @@ export async function PUT(req: Request) {
     const org_id = session.org_id;
 
     const body = await req.json();
-    const { id, name, phone, address, depot_id, current_balance } = body;
+    const { id, name, code, phone, address, depot_id, current_balance } = body;
 
     const updated = await prisma.dealer.update({
       where: { id, org_id },
       data: {
         ...(name ? { name } : {}),
+        ...(code ? { code } : {}),
         ...(phone ? { phone } : {}),
         ...(address !== undefined ? { address } : {}),
         ...(depot_id ? { depot_id } : {}),

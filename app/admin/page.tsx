@@ -26,6 +26,7 @@ interface Depot {
 interface Dealer {
   id: string;
   name: string;
+  code: string;
   phone: string;
   address: string | null;
   depot_id: string;
@@ -124,6 +125,7 @@ export default function AdminPage() {
 
   // Dealer Form State
   const [dealerName, setDealerName] = useState("");
+  const [dealerCode, setDealerCode] = useState("");
   const [dealerPhone, setDealerPhone] = useState("");
   const [dealerAddress, setDealerAddress] = useState("");
   const [dealerDepotId, setDealerDepotId] = useState("");
@@ -197,6 +199,7 @@ export default function AdminPage() {
   // Edit Dealer State (Super Admin)
   const [editingDealer, setEditingDealer] = useState<Dealer | null>(null);
   const [editDealerName, setEditDealerName] = useState("");
+  const [editDealerCode, setEditDealerCode] = useState("");
   const [editDealerPhone, setEditDealerPhone] = useState("");
   const [editDealerAddress, setEditDealerAddress] = useState("");
   const [editDealerDepotId, setEditDealerDepotId] = useState("");
@@ -329,6 +332,7 @@ export default function AdminPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: dealerName,
+          code: dealerCode,
           phone: dealerPhone,
           address: dealerAddress,
           depot_id: dealerDepotId,
@@ -338,6 +342,7 @@ export default function AdminPage() {
       if (!res.ok) throw new Error("Failed to create dealer");
       setMessage({ type: "success", text: "Dealer created successfully!" });
       setDealerName("");
+      setDealerCode("");
       setDealerPhone("");
       setDealerAddress("");
       setDealerDepotId("");
@@ -709,6 +714,7 @@ export default function AdminPage() {
   const handleEditDealer = (dealer: Dealer) => {
     setEditingDealer(dealer);
     setEditDealerName(dealer.name);
+    setEditDealerCode(dealer.code);
     setEditDealerPhone(dealer.phone);
     setEditDealerAddress(dealer.address || "");
     setEditDealerDepotId(dealer.depot_id);
@@ -725,6 +731,7 @@ export default function AdminPage() {
         body: JSON.stringify({
           id: editingDealer.id,
           name: editDealerName,
+          code: editDealerCode,
           phone: editDealerPhone,
           address: editDealerAddress,
           depot_id: editDealerDepotId,
@@ -1007,6 +1014,10 @@ export default function AdminPage() {
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">Dealer Name *</label>
                 <input type="text" value={dealerName} onChange={(e) => setDealerName(e.target.value)} placeholder="e.g. Sarder Poultry" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white" required />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Dealer Code *</label>
+                <input type="text" value={dealerCode} onChange={(e) => setDealerCode(e.target.value)} placeholder="e.g. DLR-001" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white uppercase" required />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">Phone Number *</label>
@@ -1835,6 +1846,10 @@ export default function AdminPage() {
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Dealer Name *</label>
                   <input type="text" value={editDealerName} onChange={(e) => setEditDealerName(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Dealer Code *</label>
+                  <input type="text" value={editDealerCode} onChange={(e) => setEditDealerCode(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white font-bold uppercase" required />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Phone *</label>

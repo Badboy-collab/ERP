@@ -221,6 +221,7 @@ model Dealer {
   org_id          String
   organization    Organization    @relation(fields: [org_id], references: [id], onDelete: Cascade)
   name            String
+  code            String
   phone           String
   address         String?
   depot_id        String
