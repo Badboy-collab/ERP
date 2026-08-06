@@ -119,6 +119,7 @@ async function main() {
   const dealer1 = await prisma.dealer.create({
     data: { org_id,
       name: "Greenfield Poultry Farm",
+      code: "DLR-SEED-1",
       phone: "+8801712345678",
       address: "Mymensingh Sadar, Mymensingh",
       current_balance: 150000.0,
@@ -128,9 +129,10 @@ async function main() {
 
   const dealer2 = await prisma.dealer.create({
     data: { org_id,
-      name: "Bismillah Feed Traders",
-      phone: "+8801898765432",
-      address: "Bhaluka, Mymensingh",
+      name: "Sunrise Agro Feed",
+      code: "DLR-SEED-2",
+      phone: "+8801998765432",
+      address: "Bogura Sadar, Bogura",
       current_balance: 75000.0,
       depot_id: depotCentral.id,
     },
