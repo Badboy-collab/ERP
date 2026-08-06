@@ -12,45 +12,14 @@ import { getSessionUser, setSessionUser, clearSessionUser, SessionUser, hasPermi
 
 export default function Navbar() {
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
-  const [showSwitcher, setShowSwitcher] = useState(false);
-  const [users, setUsers] = useState<SessionUser[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   useEffect(() => {
     setCurrentUser(getSessionUser());
   }, []);
 
-  const openSwitcher = async () => {
-    setShowSwitcher(true);
-    if (users.length === 0) {
-      setLoadingUsers(true);
-      try {
-        const res = await fetch("/api/auth/users");
-        if (res.ok) setUsers(await res.json());
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoadingUsers(false);
-      }
-    }
-  };
-
-  const handleSelectUser = async (user: SessionUser) => {
-    try {
-      const res = await fetch("/api/auth/switch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id }),
-      });
-      if (res.ok) {
-        setSessionUser(user);
-        setCurrentUser(user);
-        setShowSwitcher(false);
-        window.location.href = "/dashboard";
-      }
-    } catch (err) {
-      console.error("Failed to switch user", err);
-    }
+  const toggleProfile = () => {
+    setShowProfile(!showProfile);
   };
 
   const handleLogout = async () => {
@@ -61,7 +30,7 @@ export default function Navbar() {
     }
     clearSessionUser();
     setCurrentUser(null);
-    setShowSwitcher(false);
+    setShowProfile(false);
     window.location.href = "/";
   };
 
@@ -145,9 +114,9 @@ export default function Navbar() {
             </nav>
 
             {/* Active User Badge */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 relative">
               <button
-                onClick={openSwitcher}
+                onClick={toggleProfile}
                 className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl px-3 py-1.5 transition-colors group"
               >
                 <UserCircle className="w-4 h-4 text-slate-400 group-hover:text-emerald-400 transition-colors" />
@@ -157,11 +126,10 @@ export default function Navbar() {
                       <div className="text-xs font-bold text-white leading-none">{currentUser.name}</div>
                       <div className={`text-[10px] font-semibold mt-0.5 px-1.5 py-0.5 rounded-full inline-block border ${roleColor(currentUser.role)}`}>
                         {currentUser.role.replace("_", " ")}
-                        {currentUser.depot && ` • ${currentUser.depot.code}`}
                       </div>
                     </>
                   ) : (
-                    <div className="text-xs font-semibold text-slate-400">Switch User</div>
+                    <div className="text-xs font-semibold text-slate-400">Profile</div>
                   )}
                 </div>
                 <ChevronDown className="w-3 h-3 text-slate-400" />
@@ -171,77 +139,55 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* User Switcher Modal */}
-      {showSwitcher && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-emerald-400" />
-                <h2 className="text-base font-bold text-white">Switch Active User</h2>
+      {/* User Profile Dropdown */}
+      {showProfile && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setShowProfile(false)}></div>
+          <div className="absolute top-16 right-4 sm:right-8 w-72 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in slide-in-from-top-2 fade-in duration-200">
+            {currentUser ? (
+              <div className="p-4 border-b border-slate-800 flex items-start gap-3 bg-slate-800/30">
+                <div className={`p-2 rounded-xl mt-0.5 ${currentUser.role === "SUPER_ADMIN" ? "bg-amber-950/50 text-amber-400 border border-amber-900/50" : "bg-sky-950/50 text-sky-400 border border-sky-900/50"}`}>
+                  <UserCircle className="w-8 h-8" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-white text-base truncate">{currentUser.name}</div>
+                  <div className="text-xs text-slate-400 font-mono truncate mb-2">{currentUser.email}</div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${roleColor(currentUser.role)}`}>
+                    {currentUser.role.replace("_", " ")}
+                  </span>
+                  {currentUser.depot && (
+                    <div className="text-[11px] font-medium text-slate-300 mt-2 bg-slate-950/50 px-2 py-1 rounded border border-slate-800">
+                      Depot: {currentUser.depot.name}
+                    </div>
+                  )}
+                </div>
               </div>
-              <button onClick={() => setShowSwitcher(false)} className="text-slate-400 hover:text-white transition-colors">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-4 space-y-2 max-h-80 overflow-y-auto">
-              {loadingUsers ? (
-                <p className="text-slate-400 text-sm text-center py-6 animate-pulse">Loading users...</p>
-              ) : users.length === 0 ? (
-                <p className="text-slate-400 text-sm text-center py-6">No users found. Add users in Admin Panel.</p>
-              ) : (
-                users.map((u) => (
-                  <button
-                    key={u.id}
-                    onClick={() => handleSelectUser(u)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left hover:scale-[1.01] ${
-                      currentUser?.id === u.id
-                        ? "bg-emerald-950/60 border-emerald-700"
-                        : "bg-slate-800/60 border-slate-700 hover:border-slate-600"
-                    }`}
-                  >
-                    <div className={`p-2 rounded-lg ${u.role === "SUPER_ADMIN" ? "bg-amber-950 text-amber-400" : "bg-sky-950 text-sky-400"}`}>
-                      <ShieldCheck className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-bold text-white text-sm">{u.name}</div>
-                      <div className="text-xs text-slate-400 font-mono">{u.email}</div>
-                    </div>
-                    <div className="text-right">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${roleColor(u.role)}`}>
-                        {u.role.replace("_", " ")}
-                      </span>
-                      {u.depot && (
-                        <div className="text-[10px] text-slate-400 mt-0.5">{u.depot.name}</div>
-                      )}
-                    </div>
-                  </button>
-                ))
-              )}
-            </div>
-
-            {currentUser && (
-              <div className="px-4 pb-4 space-y-2">
-                {currentUser.role === "SUPER_ADMIN" && (
-                  <button
-                    onClick={() => { window.location.href = "/super-admin"; }}
-                    className="w-full py-2 text-sm text-amber-500 hover:text-amber-400 border border-amber-900/50 hover:bg-amber-950/40 rounded-xl transition-colors font-semibold flex items-center justify-center gap-2"
-                  >
-                    <ShieldCheck className="w-4 h-4" />
-                    Exit to Master Dashboard
-                  </button>
-                )}
-                <button
-                  onClick={handleLogout}
-                  className="w-full py-2 text-sm text-rose-400 hover:text-rose-300 border border-rose-900 hover:bg-rose-950/40 rounded-xl transition-colors font-semibold"
-                >
-                  Sign Out (Clear Session)
-                </button>
+            ) : (
+              <div className="p-6 text-center text-slate-400 text-sm border-b border-slate-800">
+                Not logged in
               </div>
             )}
+
+            <div className="p-3 space-y-2 bg-slate-900">
+              {currentUser?.role === "SUPER_ADMIN" && (
+                <button
+                  onClick={() => { window.location.href = "/super-admin"; }}
+                  className="w-full py-2.5 px-4 text-sm text-amber-500 hover:text-amber-400 bg-amber-950/10 hover:bg-amber-950/40 border border-amber-900/20 hover:border-amber-900/50 rounded-xl transition-all font-semibold flex items-center gap-3"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  Exit to Master Dashboard
+                </button>
+              )}
+              <button
+                onClick={handleLogout}
+                className="w-full py-2.5 px-4 text-sm text-rose-400 hover:text-rose-300 bg-rose-950/10 hover:bg-rose-950/40 border border-rose-900/20 hover:border-rose-900/50 rounded-xl transition-all font-semibold flex items-center gap-3"
+              >
+                <X className="w-4 h-4" />
+                Sign Out
+              </button>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </>
   );
