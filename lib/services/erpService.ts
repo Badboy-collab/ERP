@@ -68,7 +68,7 @@ export class ERPService {
     if (depot_id) {
       const depot = await prisma.depot.findUnique({ where: { id: depot_id } });
       if (depot && depot.code) {
-        depotCode = depot.code.toUpperCase().replace("DEP-", "").replace("DEP", "");
+        depotCode = depot.code.toUpperCase().replace(/DEP-?/g, "");
       }
     }
 

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { ERPService } from "@/lib/services/erpService";
 import { getSession } from "@/lib/auth";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: Request) {
   try {
     const session = await getSession(req);
