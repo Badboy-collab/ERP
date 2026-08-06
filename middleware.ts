@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/static") ||
     pathname === "/favicon.ico" ||
     pathname.startsWith("/api/auth/") ||
-    pathname === "/super-admin/login"
+    pathname.startsWith("/super-admin/login")
   ) {
     return NextResponse.next();
   }
@@ -24,10 +24,11 @@ export async function middleware(request: NextRequest) {
 
   // Not authenticated
   if (!user) {
-    if (pathname !== "/") {
+    if (pathname.startsWith("/super-admin")) {
+      const loginUrl = new URL("/super-admin/login", request.url);
+      return NextResponse.redirect(loginUrl);
+    } else if (pathname !== "/") {
       const loginUrl = new URL("/", request.url);
-      // Optional: carry redirect path in query param
-      // loginUrl.searchParams.set("callbackUrl", pathname);
       return NextResponse.redirect(loginUrl);
     }
     return NextResponse.next();
