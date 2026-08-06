@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Lock, User, AlertCircle, Loader2, Eye, EyeOff } from "lucide-react";
+import { Lock, User, AlertCircle, Loader2, Eye, EyeOff, Factory } from "lucide-react";
 
 export default function LoginPage() {
+  const [organization, setOrganization] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -12,8 +13,8 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !password) {
-      setError("Please enter both username and password.");
+    if (!organization || !username || !password) {
+      setError("Please enter organization name, username, and password.");
       return;
     }
 
@@ -24,7 +25,7 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: username, password }),
+        body: JSON.stringify({ organization, email: username, password }),
       });
 
       const data = await res.json();
@@ -91,6 +92,23 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-xs font-bold text-slate-300 mb-2">Organization Name</label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-3 text-slate-500">
+                  <Factory className="w-4.5 h-4.5" />
+                </span>
+                <input
+                  type="text"
+                  value={organization}
+                  onChange={(e) => setOrganization(e.target.value)}
+                  placeholder="e.g. Matber Agro Industries Ltd"
+                  className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white font-bold transition-all outline-none"
+                  required
+                />
+              </div>
+            </div>
+
             <div>
               <label className="block text-xs font-bold text-slate-300 mb-2">Username / Email</label>
               <div className="relative">

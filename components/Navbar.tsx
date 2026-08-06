@@ -226,7 +226,16 @@ export default function Navbar() {
             </div>
 
             {currentUser && (
-              <div className="px-4 pb-4">
+              <div className="px-4 pb-4 space-y-2">
+                {currentUser.role === "SUPER_ADMIN" && (
+                  <button
+                    onClick={() => { window.location.href = "/super-admin"; }}
+                    className="w-full py-2 text-sm text-amber-500 hover:text-amber-400 border border-amber-900/50 hover:bg-amber-950/40 rounded-xl transition-colors font-semibold flex items-center justify-center gap-2"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    Exit to Master Dashboard
+                  </button>
+                )}
                 <button
                   onClick={handleLogout}
                   className="w-full py-2 text-sm text-rose-400 hover:text-rose-300 border border-rose-900 hover:bg-rose-950/40 rounded-xl transition-colors font-semibold"

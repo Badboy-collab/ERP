@@ -5,29 +5,15 @@ import { signJWT } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
-    const { organization, email, password } = await req.json();
-
-    if (!organization) {
-      return NextResponse.json({ error: "Organization Name is required." }, { status: 400 });
-    }
+    const { email, password } = await req.json();
 
     if (!email || !password) {
-      return NextResponse.json({ error: "Username and password are required." }, { status: 400 });
+      return NextResponse.json({ error: "Username and password are required" }, { status: 400 });
     }
 
-    // 1. Find Organization
-    const org = await prisma.organization.findFirst({
-      where: { name: { equals: organization, mode: "insensitive" } }
-    });
-
-    if (!org) {
-      return NextResponse.json({ error: "Organization not found." }, { status: 404 });
-    }
-
-    // 2. Find User inside that Organization
+    // Find user by email or username
     const user = await prisma.user.findFirst({
       where: {
-        org_id: org.id,
         OR: [
           { email: { equals: email, mode: "insensitive" } },
           { name: { equals: email, mode: "insensitive" } }
@@ -37,14 +23,15 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "Invalid username." }, { status: 401 });
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    if (user.role === "SUPER_ADMIN") {
-      return NextResponse.json({ error: "Super Admins must use the Super Admin portal." }, { status: 403 });
+    // Strictly enforce Super Admin role
+    if (user.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Access denied. Master Admin privileges required." }, { status: 403 });
     }
 
-    // Check password (support legacy plaintext check and automatic bcrypt upgrade)
+    // Check password
     let isMatch = false;
     if (user.password_hash.startsWith("$2b$") || user.password_hash.startsWith("$2a$") || user.password_hash.startsWith("$2y$")) {
       isMatch = await bcrypt.compare(password, user.password_hash);
@@ -61,7 +48,7 @@ export async function POST(req: Request) {
     }
 
     if (!isMatch) {
-      return NextResponse.json({ error: "Incorrect password." }, { status: 401 });
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
     // Sign JWT Session
@@ -70,18 +57,18 @@ export async function POST(req: Request) {
       name: user.name,
       email: user.email,
       role: user.role,
-      org_id: user.org_id || '',
-      org_name: user.organization?.name || '',
-      depot_id: user.depot_id,
-      depot: user.depot ? { id: user.depot.id, name: user.depot.name, code: user.depot.code } : null,
-      can_create_do: user.can_create_do,
-      can_edit_sales: user.can_edit_sales,
-      can_delete_sales: user.can_delete_sales,
-      can_create_sales: user.can_create_sales,
-      can_receive_stock: user.can_receive_stock,
-      can_view_reports: user.can_view_reports,
-      can_view_accounting: user.can_view_accounting,
-      can_manage_accounting: user.can_manage_accounting,
+      org_id: '', // Super Admin starts outside any organization
+      org_name: 'MASTER SYSTEM',
+      depot_id: null,
+      depot: null,
+      can_create_do: true,
+      can_edit_sales: true,
+      can_delete_sales: true,
+      can_create_sales: true,
+      can_receive_stock: true,
+      can_view_reports: true,
+      can_view_accounting: true,
+      can_manage_accounting: true,
     };
 
     const token = await signJWT(payload);
