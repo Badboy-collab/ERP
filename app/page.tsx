@@ -42,10 +42,6 @@ export default function LoginPage() {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.error || "Login failed. Please check your credentials.");
-      }
-
       // Handle Remember Me
       if (rememberMe) {
         localStorage.setItem("erp_remembered_org", organization);
@@ -53,6 +49,10 @@ export default function LoginPage() {
       } else {
         localStorage.removeItem("erp_remembered_org");
         localStorage.removeItem("erp_remembered_user");
+      }
+
+      if (!res.ok) {
+        throw new Error(data.error || "Login failed. Please check your credentials.");
       }
 
       // Sync with existing userSession localStorage for Navbar and client-side permissions
@@ -83,7 +83,7 @@ export default function LoginPage() {
 
         <div className="space-y-4 my-auto relative z-10 max-w-lg">
           <div className="inline-block mb-4 w-auto">
-            <img src="/logo.png?v=2" alt="NEXORA ERP ENTERPRISE" className="w-auto h-16 sm:h-20 drop-shadow-[0_0_10px_rgba(0,0,0,0.1)]" />
+            <Image src="/logo.png" alt="NEXORA ERP ENTERPRISE" width={250} height={80} priority className="object-contain drop-shadow-sm" />
           </div>
           <h1 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight">
             Welcome to <span className="text-emerald-600">NEXORA ERP</span>
