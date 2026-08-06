@@ -102,7 +102,7 @@ export default function LoginPage() {
                   type="text"
                   value={organization}
                   onChange={(e) => setOrganization(e.target.value)}
-                  placeholder="e.g. Matber Agro Industries Ltd"
+                  placeholder="e.g. matber-agro"
                   className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white font-bold transition-all outline-none"
                   required
                 />

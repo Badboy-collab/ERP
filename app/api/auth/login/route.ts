@@ -17,7 +17,12 @@ export async function POST(req: Request) {
 
     // 1. Find Organization
     const org = await prisma.organization.findFirst({
-      where: { name: { equals: organization, mode: "insensitive" } }
+      where: { 
+        OR: [
+          { name: { equals: organization, mode: "insensitive" } },
+          { slug: { equals: organization, mode: "insensitive" } }
+        ]
+      }
     });
 
     if (!org) {
