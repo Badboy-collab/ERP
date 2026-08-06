@@ -236,13 +236,14 @@ export default function AdminPage() {
         if (uRes.ok) setUsers(await uRes.json());
         if (depRes.ok) setDepots(await depRes.json());
       } else if (activeTab === "override") {
-        const [sRes, rRes, lRes, depRes, dealerRes, userRes] = await Promise.all([
+        const [sRes, rRes, lRes, depRes, dealerRes, userRes, prodRes] = await Promise.all([
           fetch("/api/sales"),
           fetch("/api/receives"),
           fetch("/api/lots?include_zero=true"),
           fetch("/api/admin/depots"),
           fetch("/api/dealers"),
           fetch("/api/admin/users"),
+          fetch("/api/products"),
         ]);
         if (sRes.ok) setSalesLogs(await sRes.json());
         if (rRes.ok) setReceiveLogs(await rRes.json());
@@ -250,6 +251,7 @@ export default function AdminPage() {
         if (depRes.ok) setDepots(await depRes.json());
         if (dealerRes.ok) setDealers(await dealerRes.json());
         if (userRes.ok) setUsers(await userRes.json());
+        if (prodRes.ok) setProducts(await prodRes.json());
       } else if (activeTab === "setup") {
         const [depRes, prodRes] = await Promise.all([fetch("/api/admin/depots"), fetch("/api/products")]);
         if (depRes.ok) setDepots(await depRes.json());
