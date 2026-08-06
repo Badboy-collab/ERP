@@ -59,8 +59,9 @@ export default function LoginPage() {
         </div>
 
         <div className="space-y-4 my-auto relative z-10 max-w-lg">
+          <img src="/logo.png" alt="NEXORA ERP ENTERPRISE" className="w-auto h-20 mb-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]" />
           <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-            Welcome to <span className="text-emerald-400">Matber Agro ERP</span>
+            Welcome to <span className="text-emerald-400">NEXORA ERP</span>
           </h1>
           <p className="text-slate-300 text-sm lg:text-base leading-relaxed font-medium">
             Streamlining feed distribution, inventory, sales, and depot management for Matber Agro Industries Ltd. Experience real-time stock control, granular RBAC, and automated sales processing.
