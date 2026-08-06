@@ -60,7 +60,9 @@ export default function LoginPage() {
         </div>
 
         <div className="space-y-4 my-auto relative z-10 max-w-lg">
-          <img src="/logo.png" alt="NEXORA ERP ENTERPRISE" className="w-auto h-20 mb-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]" />
+          <div className="bg-white/95 p-3 rounded-2xl inline-block mb-4 w-auto shadow-2xl">
+            <img src="/logo.png" alt="NEXORA ERP ENTERPRISE" className="w-auto h-16 sm:h-20 drop-shadow-[0_0_10px_rgba(0,0,0,0.1)]" />
+          </div>
           <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
             Welcome to <span className="text-emerald-400">NEXORA ERP</span>
           </h1>
