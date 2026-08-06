@@ -59,6 +59,7 @@ async function main() {
           name: dealer.name,
           phone: dealer.phone,
           depot_id: depot.id,
+          code: `DLR-PAB-${Math.floor(1000 + Math.random() * 9000)}`,
         }
       });
       console.log(`  + Added: ${dealer.name}`);
