@@ -97,7 +97,7 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
           <div className="flex justify-between items-center border-b border-gray-300 pb-4">
             {/* Left: Brand Logo Badge */}
             <div className="flex items-center space-x-3 w-32">
-              <img src="/logo.png" alt="Matber Agro" className="w-full h-auto object-contain" />
+              <img src="/matber-logo.png" alt="Matber Agro" className="w-full h-auto object-contain" />
             </div>
 
             {/* Middle: Company Details */}
