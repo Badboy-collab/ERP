@@ -43,6 +43,7 @@ interface FormRowItem {
   product_id: string;
   lot_id: string;
   quantity: number | ""; // in Kg
+  original_pending_qty?: number;
   unit_price: number | "";
   availableLots: Lot[];
   fifoLot: Lot | null;
@@ -55,7 +56,7 @@ interface PosEntryFormProps {
 }
 
 export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntryFormProps) {
-  const [transactionType, setTransactionType] = useState<"SALES" | "DELIVERY" | "TRANSFER_OUT" | "FACTORY_RETURN">("SALES");
+  const [transactionType, setTransactionType] = useState<"SALES" | "DELIVERY" | "TRANSFER_OUT" | "FACTORY_RETURN">("DELIVERY");
 
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [depots, setDepots] = useState<Depot[]>([]);
@@ -166,6 +167,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
             product_id: item.product_id,
             lot_id: fifoLot ? fifoLot.id : "",
             quantity: item.pending_qty, // In Kg now
+            original_pending_qty: item.pending_qty,
             unit_price: "",
             availableLots,
             fifoLot,
@@ -259,6 +261,15 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
           text: `Error: Insufficient stock. Only ${item.selectedLotObj.available_qty} kg (${Math.round(availBags * 100) / 100} bags) available for Lot ${item.selectedLotObj.lot_no}. You requested ${item.quantity} kg (${Math.round(requestedBags * 100) / 100} bags).`,
         });
         return;
+      }
+      if (transactionType === "DELIVERY" && item.original_pending_qty !== undefined) {
+        if (Number(item.quantity) !== item.original_pending_qty) {
+          setMessage({
+            type: "error",
+            text: `Delivery Order quantity must match exactly. Pending quantity is ${item.original_pending_qty} kg but you entered ${item.quantity} kg.`,
+          });
+          return;
+        }
       }
     }
 
@@ -383,15 +394,6 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
         </div>
 
         <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200 text-xs font-semibold">
-          <button
-            type="button"
-            onClick={() => setTransactionType("SALES")}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
-              transactionType === "SALES" ? "bg-emerald-600 text-slate-900 shadow" : "text-slate-500 hover:text-slate-900"
-            }`}
-          >
-            Direct Sale
-          </button>
           <button
             type="button"
             onClick={() => setTransactionType("DELIVERY")}
