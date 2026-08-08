@@ -60,7 +60,8 @@ export class ERPService {
    */
   static async getNextDONumber(org_id: string, depot_id?: string) {
     const today = new Date();
-    const yy = String(today.getFullYear()).slice(-2);
+    const yyyy = today.getFullYear();
+    const yy = String(yyyy).slice(-2);
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
 
@@ -72,24 +73,18 @@ export class ERPService {
       }
     }
 
-    const prefix = depotCode ? `${depotCode}-${yy}${mm}${dd}` : `${yy}${mm}${dd}`;
+    const sequenceName = `DO_${depotCode || 'DEFAULT'}_${yyyy}`;
 
-    const lastDO = await prisma.deliveryOrder.findFirst({
-      where: {
-        org_id,
-        order_no: { startsWith: prefix },
-        ...(depot_id ? { depot_id } : {})
-      },
-      orderBy: { order_no: 'desc' }
+    const sequence = await prisma.sequence.upsert({
+      where: { org_id_name: { org_id, name: sequenceName } },
+      update: { value: { increment: 1 } },
+      create: { org_id, name: sequenceName, value: 1 }
     });
 
-    if (lastDO) {
-      const lastSeq = parseInt(lastDO.order_no.slice(-3), 10);
-      const nextSeq = String(lastSeq + 1).padStart(3, '0');
-      return `${prefix}${nextSeq}`;
-    }
+    const prefix = depotCode ? `${depotCode}-${yy}${mm}${dd}` : `${yy}${mm}${dd}`;
+    const nextSeq = String(sequence.value).padStart(3, '0');
 
-    return `${prefix}001`;
+    return `${prefix}${nextSeq}`;
   }
 
   /**

@@ -67,15 +67,29 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  let parsedBody: any = null;
   try {
     const session = await getSession(req);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const org_id = session.org_id;
 
-    const body = await req.json();
-    const result = await ERPService.createDeliveryOrder(org_id, body);
+    parsedBody = await req.json();
+    const result = await ERPService.createDeliveryOrder(org_id, parsedBody);
     return NextResponse.json(result, { status: 201 });
   } catch (error: any) {
+    // Handle Prisma Unique Constraint Error (P2002) for Delivery Order duplication
+    if (error.code === 'P2002') {
+      if (parsedBody && parsedBody.order_no) {
+         // Return existing delivery order to act idempotently
+         const existingOrder = await prisma.deliveryOrder.findFirst({
+           where: { org_id: (await getSession(req))?.org_id, order_no: parsedBody.order_no },
+           include: { items: { include: { product: true } }, dealer: true, depot: true }
+         });
+         if (existingOrder) {
+           return NextResponse.json(existingOrder, { status: 200 });
+         }
+      }
+    }
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 }

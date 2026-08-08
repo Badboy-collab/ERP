@@ -61,6 +61,7 @@ export default function OrdersPage() {
   const [orderItems, setOrderItems] = useState<{ product_id: string; ordered_qty: number | "" }[]>([
     { product_id: "", ordered_qty: "" },
   ]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Stock Receive Form State
   const [receiveInvoiceNo, setReceiveInvoiceNo] = useState<string>(`RCV-${Date.now().toString().slice(-6)}`);
@@ -146,6 +147,10 @@ export default function OrdersPage() {
       return;
     }
 
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setMessage(null);
+
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
@@ -171,6 +176,8 @@ export default function OrdersPage() {
       fetchNextDONumber();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -392,9 +399,10 @@ export default function OrdersPage() {
 
                 <button
                   type="submit"
-                  className="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-slate-900 font-bold py-3 rounded-xl shadow-lg transition-all"
+                  disabled={isSubmitting}
+                  className="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-slate-900 font-bold py-3 rounded-xl shadow-lg transition-all"
                 >
-                  Create Delivery Order
+                  {isSubmitting ? "Creating..." : "Create Delivery Order"}
                 </button>
               </form>
             </div>

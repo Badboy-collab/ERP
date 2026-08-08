@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const savedOrg = localStorage.getItem("erp_remembered_org");
@@ -22,6 +23,29 @@ export default function LoginPage() {
       setRememberMe(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (!organization || organization.trim().length < 3) {
+      setLogoUrl(null);
+      return;
+    }
+    const fetchOrg = async () => {
+      try {
+        const res = await fetch(`/api/public/organization?slug=${encodeURIComponent(organization.trim())}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.logo_url) setLogoUrl(data.logo_url);
+          else setLogoUrl(null);
+        } else {
+          setLogoUrl(null);
+        }
+      } catch {
+        setLogoUrl(null);
+      }
+    };
+    const timeoutId = setTimeout(fetchOrg, 500);
+    return () => clearTimeout(timeoutId);
+  }, [organization]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,8 +106,12 @@ export default function LoginPage() {
         </div>
 
         <div className="space-y-4 my-auto relative z-10 max-w-lg">
-          <div className="inline-block mb-4 w-auto">
-            <Image src="/login-logo.png" alt="NEXORA ERP ENTERPRISE" width={250} height={80} priority unoptimized className="object-contain drop-shadow-sm" />
+          <div className="mb-6 w-full">
+            {logoUrl ? (
+              <img src={logoUrl} alt="Organization Logo" className="h-auto max-w-[300px] w-auto object-contain drop-shadow-sm" />
+            ) : (
+              <img src="/login-logo.png" alt="NEXORA ERP ENTERPRISE" className="h-auto max-w-[300px] w-auto object-contain drop-shadow-sm" />
+            )}
           </div>
           <h1 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight">
             Welcome to <span className="text-emerald-600">NEXORA ERP</span>

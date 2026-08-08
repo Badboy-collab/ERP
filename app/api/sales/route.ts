@@ -9,8 +9,14 @@ export async function GET(req: Request) {
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const org_id = session.org_id;
 
+    const { searchParams } = new URL(req.url);
+    const depotId = searchParams.get("depot_id") || undefined;
+
     const sales = await prisma.salesLog.findMany({
-      where: { org_id },
+      where: {
+        org_id,
+        ...(depotId ? { depot_id: depotId } : {}),
+      },
       include: {
         dealer: true,
         product: true,

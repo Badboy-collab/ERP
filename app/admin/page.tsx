@@ -156,6 +156,8 @@ export default function AdminPage() {
   const [setupProductId, setSetupProductId] = useState("");
   const [setupQuantity, setSetupQuantity] = useState<number | "">("");
   const [setupCashAmount, setSetupCashAmount] = useState<number | "">("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [faviconFile, setFaviconFile] = useState<File | null>(null);
 
   // Edit Sales State (Super Admin)
   const [editingSale, setEditingSale] = useState<TransactionItem | null>(null);
@@ -190,6 +192,8 @@ export default function AdminPage() {
   const [editProdSortOrder, setEditProdSortOrder] = useState("");
 
   // Master Delivery Orders Override State
+  const [selectedOverrideDepotId, setSelectedOverrideDepotId] = useState<string>("");
+  const [selectedOverrideUserId, setSelectedOverrideUserId] = useState<string>("");
   const [deliveryOrders, setDeliveryOrders] = useState<DeliveryOrder[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<DeliveryOrder | null>(null);
   const [viewOrder, setViewOrder] = useState<DeliveryOrder | null>(null);
@@ -215,9 +219,12 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (activeTab === "override") {
-      fetchDeliveryOrders();
+      fetchMasterOrders();
+      fetchMasterSales();
+      fetchMasterReceives();
+      fetchMasterLots();
     }
-  }, [activeTab]);
+  }, [activeTab, selectedOverrideDepotId, selectedOverrideUserId]);
 
   const fetchInitialData = async () => {
     try {
@@ -235,23 +242,6 @@ export default function AdminPage() {
         const [uRes, depRes] = await Promise.all([fetch("/api/admin/users"), fetch("/api/admin/depots")]);
         if (uRes.ok) setUsers(await uRes.json());
         if (depRes.ok) setDepots(await depRes.json());
-      } else if (activeTab === "override") {
-        const [sRes, rRes, lRes, depRes, dealerRes, userRes, prodRes] = await Promise.all([
-          fetch("/api/sales"),
-          fetch("/api/receives"),
-          fetch("/api/lots?include_zero=true"),
-          fetch("/api/admin/depots"),
-          fetch("/api/dealers"),
-          fetch("/api/admin/users"),
-          fetch("/api/products"),
-        ]);
-        if (sRes.ok) setSalesLogs(await sRes.json());
-        if (rRes.ok) setReceiveLogs(await rRes.json());
-        if (lRes.ok) setLots(await lRes.json());
-        if (depRes.ok) setDepots(await depRes.json());
-        if (dealerRes.ok) setDealers(await dealerRes.json());
-        if (userRes.ok) setUsers(await userRes.json());
-        if (prodRes.ok) setProducts(await prodRes.json());
       } else if (activeTab === "setup") {
         const [depRes, prodRes] = await Promise.all([fetch("/api/admin/depots"), fetch("/api/products")]);
         if (depRes.ok) setDepots(await depRes.json());
@@ -262,15 +252,57 @@ export default function AdminPage() {
     }
   };
 
-  const fetchDeliveryOrders = async () => {
+  const fetchMasterOrders = async () => {
     try {
-      const res = await fetch("/api/orders");
-      if (res.ok) {
-        const data = await res.json();
-        setDeliveryOrders(data);
-      } else {
-        console.error("Failed to load delivery orders", await res.text());
-      }
+      let url = "/api/orders";
+      const params = new URLSearchParams();
+      if (selectedOverrideDepotId) params.append("depot_id", selectedOverrideDepotId);
+      if (selectedOverrideUserId) params.append("user_id", selectedOverrideUserId);
+      if (params.toString()) url += `?${params.toString()}`;
+      
+      const res = await fetch(url);
+      if (res.ok) setDeliveryOrders(await res.json());
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchMasterSales = async () => {
+    try {
+      let url = "/api/sales";
+      const params = new URLSearchParams();
+      if (selectedOverrideDepotId) params.append("depot_id", selectedOverrideDepotId);
+      if (selectedOverrideUserId) params.append("user_id", selectedOverrideUserId);
+      if (params.toString()) url += `?${params.toString()}`;
+      
+      const res = await fetch(url);
+      if (res.ok) setSalesLogs(await res.json());
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchMasterReceives = async () => {
+    try {
+      let url = "/api/receives";
+      const params = new URLSearchParams();
+      if (selectedOverrideDepotId) params.append("depot_id", selectedOverrideDepotId);
+      if (selectedOverrideUserId) params.append("user_id", selectedOverrideUserId);
+      if (params.toString()) url += `?${params.toString()}`;
+      
+      const res = await fetch(url);
+      if (res.ok) setReceiveLogs(await res.json());
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchMasterLots = async () => {
+    try {
+      let url = "/api/lots?include_zero=true";
+      if (selectedOverrideDepotId) url += `&depot_id=${selectedOverrideDepotId}`;
+      const res = await fetch(url);
+      if (res.ok) setLots(await res.json());
     } catch (err) {
       console.error(err);
     }
@@ -399,7 +431,7 @@ export default function AdminPage() {
     setEditingUserId(user.id);
     setUserRole(user.role);
     setUserDepotId(user.depot_id || "");
-    setUserPassword(""); // Clear password field by default when editing starts
+    setUserPassword(""); 
     setUserPermissions({
       can_create_do: user.can_create_do,
       can_edit_sales: user.can_edit_sales,
@@ -421,14 +453,14 @@ export default function AdminPage() {
           id: userId,
           role: userRole,
           depot_id: userRole === "SUPER_ADMIN" ? null : userDepotId || null,
-          password: userPassword, // Include password if user types one to change it
+          password: userPassword, 
           ...userPermissions,
         }),
       });
       if (!res.ok) throw new Error("Failed to update user");
       setMessage({ type: "success", text: "User updated successfully!" });
       setEditingUserId(null);
-      setUserPassword(""); // Clear password field state
+      setUserPassword("");
       fetchInitialData();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
@@ -457,7 +489,7 @@ export default function AdminPage() {
       const res = await fetch(`/api/sales?id=${logId}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to reverse sales log");
       setMessage({ type: "success", text: "Sales record reversed and stock restored successfully!" });
-      fetchInitialData();
+      fetchMasterSales();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
     }
@@ -473,7 +505,7 @@ export default function AdminPage() {
       const res = await fetch(`/api/receives?id=${logId}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to reverse receive log");
       setMessage({ type: "success", text: "Receive record reversed and lot stock deducted successfully!" });
-      fetchInitialData();
+      fetchMasterReceives();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
     }
@@ -498,7 +530,7 @@ export default function AdminPage() {
       }
       setMessage({ type: "success", text: "Sales dispatch record overridden & stock/ledger recalculated successfully!" });
       setEditingSale(null);
-      fetchInitialData();
+      fetchMasterSales();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
     }
@@ -523,7 +555,7 @@ export default function AdminPage() {
       }
       setMessage({ type: "success", text: "Stock receive record overridden & lot stock updated successfully!" });
       setEditingReceive(null);
-      fetchInitialData();
+      fetchMasterReceives();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
     }
@@ -539,7 +571,7 @@ export default function AdminPage() {
       const res = await fetch(`/api/lots?id=${lotId}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete lot");
       setMessage({ type: "success", text: "Opening stock / lot deleted successfully!" });
-      fetchInitialData();
+      fetchMasterLots();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
     }
@@ -564,7 +596,7 @@ export default function AdminPage() {
       }
       setMessage({ type: "success", text: "Opening stock / lot quantity overridden successfully!" });
       setEditingLot(null);
-      fetchInitialData();
+      fetchMasterLots();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
     }
@@ -603,7 +635,7 @@ export default function AdminPage() {
 
       setMessage({ type: "success", text: "Delivery order updated successfully!" });
       setSelectedOrder(null);
-      fetchDeliveryOrders();
+      fetchMasterOrders();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
     }
@@ -622,13 +654,12 @@ export default function AdminPage() {
       if (!res.ok) throw new Error(data.error || "Failed to delete delivery order");
 
       setMessage({ type: "success", text: data.message || "Delivery order deleted successfully!" });
-      fetchDeliveryOrders();
+      fetchMasterOrders();
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
     }
   };
 
-  // ─── Depot Edit/Delete Handlers ─────────────────────────
   const handleEditDepot = (depot: Depot) => {
     setEditingDepot(depot);
     setEditDepotCode(depot.code);
@@ -670,7 +701,6 @@ export default function AdminPage() {
     } catch (err: any) { setMessage({ type: "error", text: err.message }); }
   };
 
-  // ─── Product Edit/Delete Handlers ──────────────────────
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
     setEditProdCode(product.code);
@@ -716,7 +746,6 @@ export default function AdminPage() {
     } catch (err: any) { setMessage({ type: "error", text: err.message }); }
   };
 
-  // ─── Dealer Edit/Delete Handlers ───────────────────────
   const handleEditDealer = (dealer: Dealer) => {
     setEditingDealer(dealer);
     setEditDealerName(dealer.name);
@@ -815,6 +844,36 @@ export default function AdminPage() {
     }
   };
 
+  const handleUploadBranding = async (e: React.FormEvent, type: 'logo' | 'favicon') => {
+    e.preventDefault();
+    const file = type === 'logo' ? logoFile : faviconFile;
+    if (!file) {
+      setMessage({ type: "error", text: `Please select a ${type} file to upload.` });
+      return;
+    }
+    try {
+      const formData = new FormData();
+      formData.append("type", type);
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/branding", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || `Failed to upload ${type}`);
+      }
+
+      setMessage({ type: "success", text: `${type === 'logo' ? 'Logo' : 'Favicon'} updated successfully! Changes will take effect on next reload.` });
+      if (type === 'logo') setLogoFile(null);
+      if (type === 'favicon') setFaviconFile(null);
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message });
+    }
+  };
+
   const depotOptions = depots.map((d) => ({ value: d.id, label: `${d.name} (${d.code})` }));
 
   return (
@@ -825,6 +884,11 @@ export default function AdminPage() {
           <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
             <ShieldAlert className="w-6 h-6 text-amber-600" />
             Master Admin Control Panel
+            {currentUser?.role === "SUPER_ADMIN" && (
+              <button onClick={() => { window.location.href = "/super-admin"; }} className="ml-4 text-[10px] bg-amber-100/50 text-amber-700 hover:bg-amber-200/50 border border-amber-200 px-3 py-1.5 rounded-full uppercase tracking-wider font-black transition-colors flex items-center gap-1 shadow-sm">
+                Exit to Control Center
+              </button>
+            )}
           </h1>
           <div className="flex bg-white border border-slate-200 rounded-xl p-1 text-xs font-bold flex-wrap gap-1">
             {["depots", "products", "dealers", "users", "override", "setup"].map((tab) => (
@@ -1231,7 +1295,31 @@ export default function AdminPage() {
 
         {/* Tab 5: Master Override */}
         {activeTab === "override" && (
-          <div className="space-y-8">
+          <div className="space-y-12">
+            <div className="bg-white p-6 border-b border-slate-200 rounded-2xl shadow-xl">
+              <h2 className="text-sm font-extrabold text-slate-800 mb-4">Global Override Filters</h2>
+              <div className="flex flex-col md:flex-row gap-4 max-w-2xl">
+                <div className="w-full">
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">Filter by Depot</label>
+                  <SearchableSelect
+                    options={[{ value: "", label: "All Depots" }, ...depots.map(d => ({ value: d.id, label: d.name }))]}
+                    value={selectedOverrideDepotId}
+                    onChange={setSelectedOverrideDepotId}
+                    placeholder="All Depots"
+                  />
+                </div>
+                <div className="w-full">
+                  <label className="block text-[10px] font-bold text-slate-500 mb-1">Filter by Creator (User)</label>
+                  <SearchableSelect
+                    options={[{ value: "", label: "All Users" }, ...users.map(u => ({ value: u.id, label: u.name }))]}
+                    value={selectedOverrideUserId}
+                    onChange={setSelectedOverrideUserId}
+                    placeholder="All Users"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
               <h2 className="text-base font-extrabold text-emerald-600 flex items-center gap-2">
                 <Package className="w-5 h-5" /> Master Delivery Orders (Direct Override)
@@ -1991,7 +2079,6 @@ export default function AdminPage() {
               </button>
             </form>
 
-            {/* Form 2: Opening Cash Balance Setup */}
             <form onSubmit={handleSetupCash} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-4">
               <h2 className="text-base font-extrabold text-slate-900 mb-2 flex items-center gap-2">
                 <DollarSign className="w-5 h-5 text-amber-600" /> Initialize Opening Cash Balance
@@ -2025,6 +2112,49 @@ export default function AdminPage() {
                 Initialize Opening Cash Balance
               </button>
             </form>
+            
+            {/* Form 3: Branding Setup */}
+            {(currentUser?.role === "SUPER_ADMIN" || currentUser?.role === "ORG_ADMIN") && (
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-6 lg:col-span-2">
+                <h2 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-emerald-600" /> Organization Branding Settings
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Logo Upload */}
+                  <form onSubmit={(e) => handleUploadBranding(e, 'logo')} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Organization Logo</label>
+                      <p className="text-[10px] text-slate-500 mb-2">Used on the login screen and global navigation. Recommended format: PNG with transparent background.</p>
+                      <input 
+                        type="file" 
+                        accept="image/png, image/jpeg, image/svg+xml"
+                        onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
+                        className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" 
+                      />
+                    </div>
+                    <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-slate-50 font-bold py-2.5 rounded-xl shadow transition-all text-xs">
+                      Upload Logo
+                    </button>
+                  </form>
+                  {/* Favicon Upload */}
+                  <form onSubmit={(e) => handleUploadBranding(e, 'favicon')} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Organization Favicon</label>
+                      <p className="text-[10px] text-slate-500 mb-2">Used as the browser tab icon. Recommended format: 32x32 ICO or PNG.</p>
+                      <input 
+                        type="file" 
+                        accept="image/png, image/x-icon, image/vnd.microsoft.icon"
+                        onChange={(e) => setFaviconFile(e.target.files?.[0] || null)}
+                        className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" 
+                      />
+                    </div>
+                    <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-slate-50 font-bold py-2.5 rounded-xl shadow transition-all text-xs">
+                      Upload Favicon
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>

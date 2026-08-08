@@ -57,6 +57,7 @@ model Organization {
   stockTransfers        StockTransfer[]
   auditLogs        AuditLog[]
   modules          OrganizationModule[]
+  sequences        Sequence[]
 
   @@index([status])
   @@index([slug])
@@ -466,5 +467,21 @@ model StockTransfer {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
+  @@index([org_id])
+}
+
+// ============================================================
+// ATOMIC SEQUENCE GENERATOR (For DOs, Invoices, etc.)
+// ============================================================
+model Sequence {
+  id        String       @id @default(uuid())
+  org_id    String
+  organization Organization @relation(fields: [org_id], references: [id], onDelete: Cascade)
+  name      String       // e.g., "DO_DEP-PAB_2026"
+  value     Int          @default(0)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@unique([org_id, name], name: "org_id_name")
   @@index([org_id])
 }
