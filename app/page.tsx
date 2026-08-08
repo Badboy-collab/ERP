@@ -116,7 +116,7 @@ export default function LoginPage() {
               />
             ) : (
               <img 
-                src="/login-logo.png" 
+                src="/logo.png" 
                 alt="NEXORA ERP ENTERPRISE" 
                 style={{ maxWidth: '300px', height: 'auto' }}
                 className="object-contain drop-shadow-sm"

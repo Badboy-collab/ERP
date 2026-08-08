@@ -5,12 +5,14 @@ import { verifyJWT } from "@/lib/auth";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Exclude static assets, icons, and auth routes
+  // Exclude static assets, icons, public uploads, and auth/public routes
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/static") ||
-    pathname === "/favicon.ico" ||
+    pathname.startsWith("/uploads") ||
+    pathname.match(/\.(png|jpg|jpeg|gif|svg|webp|ico)$/) ||
     pathname.startsWith("/api/auth/") ||
+    pathname.startsWith("/api/public/") ||
     pathname.startsWith("/super-admin/login")
   ) {
     return NextResponse.next();
@@ -51,7 +53,10 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - uploads (uploaded files)
+     * - any file with an image extension
+     * - api/public/ and api/auth/
      */
-    "/((?!api/auth/|super-admin/login|_next/static|_next/image|favicon.ico).*)",
+    "/((?!api/auth/|api/public/|super-admin/login|_next/static|_next/image|uploads/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };
