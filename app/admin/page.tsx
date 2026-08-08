@@ -884,11 +884,6 @@ export default function AdminPage() {
           <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
             <ShieldAlert className="w-6 h-6 text-amber-600" />
             Master Admin Control Panel
-            {currentUser?.role === "SUPER_ADMIN" && (
-              <button onClick={() => { window.location.href = "/super-admin"; }} className="ml-4 text-[10px] bg-amber-100/50 text-amber-700 hover:bg-amber-200/50 border border-amber-200 px-3 py-1.5 rounded-full uppercase tracking-wider font-black transition-colors flex items-center gap-1 shadow-sm">
-                Exit to Control Center
-              </button>
-            )}
           </h1>
           <div className="flex bg-white border border-slate-200 rounded-xl p-1 text-xs font-bold flex-wrap gap-1">
             {["depots", "products", "dealers", "users", "override", "setup"].map((tab) => (
