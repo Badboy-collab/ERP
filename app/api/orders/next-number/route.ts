@@ -12,7 +12,7 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const depot_id = searchParams.get("depot_id") || undefined;
-    const nextDONumber = await ERPService.getNextDONumber(org_id, depot_id);
+    const nextDONumber = await ERPService.getNextDONumber(org_id, depot_id, true);
     return NextResponse.json({ order_no: nextDONumber });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

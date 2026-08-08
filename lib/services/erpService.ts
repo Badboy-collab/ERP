@@ -58,7 +58,7 @@ export class ERPService {
   /**
    * Get Next D.O Number
    */
-  static async getNextDONumber(org_id: string, depot_id?: string) {
+  static async getNextDONumber(org_id: string, depot_id?: string, previewOnly: boolean = false) {
     const today = new Date();
     const yyyy = today.getFullYear();
     const yy = String(yyyy).slice(-2);
@@ -75,14 +75,24 @@ export class ERPService {
 
     const sequenceName = `DO_${depotCode || 'DEFAULT'}_${yyyy}`;
 
-    const sequence = await prisma.sequence.upsert({
-      where: { org_id_name: { org_id, name: sequenceName } },
-      update: { value: { increment: 1 } },
-      create: { org_id, name: sequenceName, value: 1 }
-    });
+    let nextSeqNum = 1;
+
+    if (previewOnly) {
+      const seq = await prisma.sequence.findUnique({
+        where: { org_id_name: { org_id, name: sequenceName } }
+      });
+      nextSeqNum = seq ? seq.value + 1 : 1;
+    } else {
+      const sequence = await prisma.sequence.upsert({
+        where: { org_id_name: { org_id, name: sequenceName } },
+        update: { value: { increment: 1 } },
+        create: { org_id, name: sequenceName, value: 1 }
+      });
+      nextSeqNum = sequence.value;
+    }
 
     const prefix = depotCode ? `${depotCode}-${yy}${mm}${dd}` : `${yy}${mm}${dd}`;
-    const nextSeq = String(sequence.value).padStart(3, '0');
+    const nextSeq = String(nextSeqNum).padStart(3, '0');
 
     return `${prefix}${nextSeq}`;
   }
@@ -395,7 +405,7 @@ export class ERPService {
    * Create Delivery Order
    */
   static async createDeliveryOrder(org_id: string, input: CreateOrderInput) {
-    const final_order_no = input.order_no || await ERPService.getNextDONumber(org_id, input.depot_id);
+    const final_order_no = await ERPService.getNextDONumber(org_id, input.depot_id, false);
 
     return prisma.deliveryOrder.create({
       data: {
