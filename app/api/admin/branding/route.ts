@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { promises as fs } from "fs";
-import path from "path";
 
 export async function POST(req: Request) {
   try {
@@ -25,28 +23,19 @@ export async function POST(req: Request) {
     }
 
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // Create uploads directory if it doesn't exist
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    try {
-      await fs.access(uploadDir);
-    } catch {
-      await fs.mkdir(uploadDir, { recursive: true });
+    
+    // Check file size (max 2MB to prevent huge DB bloat)
+    if (bytes.byteLength > 2 * 1024 * 1024) {
+      return NextResponse.json({ error: "File size exceeds 2MB limit. Please upload a smaller image." }, { status: 400 });
     }
 
-    // Generate unique filename
-    const ext = file.name.split(".").pop();
-    const fileName = `${org_id}_${type}_${Date.now()}.${ext}`;
-    const filePath = path.join(uploadDir, fileName);
-
-    // Write file
-    await fs.writeFile(filePath, buffer);
-
-    const publicUrl = `/uploads/${fileName}`;
+    const buffer = Buffer.from(bytes);
+    const mimeType = file.type;
+    const base64Data = buffer.toString("base64");
+    const dataUrl = `data:${mimeType};base64,${base64Data}`;
 
     // Update DB
-    const updateData = type === 'logo' ? { logo_url: publicUrl } : { favicon_url: publicUrl };
+    const updateData = type === 'logo' ? { logo_url: dataUrl } : { favicon_url: dataUrl };
     
     const updatedOrg = await prisma.organization.update({
       where: { id: org_id },
@@ -55,7 +44,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ 
       message: `${type === 'logo' ? 'Logo' : 'Favicon'} updated successfully`,
-      url: publicUrl
+      url: dataUrl
     });
 
   } catch (error: any) {
