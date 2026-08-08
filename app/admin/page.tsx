@@ -246,6 +246,17 @@ export default function AdminPage() {
         const [depRes, prodRes] = await Promise.all([fetch("/api/admin/depots"), fetch("/api/products")]);
         if (depRes.ok) setDepots(await depRes.json());
         if (prodRes.ok) setProducts(await prodRes.json());
+      } else if (activeTab === "override") {
+        const [depRes, prodRes, dealRes, userRes] = await Promise.all([
+          fetch("/api/admin/depots"),
+          fetch("/api/products"),
+          fetch("/api/dealers"),
+          fetch("/api/admin/users")
+        ]);
+        if (depRes.ok) setDepots(await depRes.json());
+        if (prodRes.ok) setProducts(await prodRes.json());
+        if (dealRes.ok) setDealers(await dealRes.json());
+        if (userRes.ok) setUsers(await userRes.json());
       }
     } catch (err) {
       console.error(err);
