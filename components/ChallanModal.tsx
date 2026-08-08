@@ -72,9 +72,21 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
             size: A4 portrait;
             margin: 15mm 10mm;
           }
+          body * {
+            visibility: hidden;
+          }
+          #printable-challan, #printable-challan * {
+            visibility: visible;
+          }
+          #printable-challan {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
         }
       `}</style>
-      <div className="fixed inset-0 z-50 bg-slate-50/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto print:p-0 print:bg-white print:static">
+      <div id="printable-challan" className="fixed inset-0 z-50 bg-slate-50/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto print:p-0 print:bg-white print:static">
       {/* Modal Box */}
       <div className="bg-white text-black w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:w-full print:max-w-none print:rounded-none print:m-0">
         {/* Action Header (Hidden during Print) */}

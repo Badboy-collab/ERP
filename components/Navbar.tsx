@@ -57,7 +57,7 @@ export default function Navbar({ isMinimal = false }: { isMinimal?: boolean }) {
             </div>
 
             {!isMinimal && (
-              <nav className="hidden md:flex items-center space-x-1 flex-1 overflow-x-auto mx-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              <nav className="hidden md:flex items-center space-x-1 flex-1 mx-4">
                 <Link href="/dashboard" className="px-3 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-800 hover:bg-slate-200 transition-colors flex items-center space-x-1.5 shadow-sm flex-shrink-0">
                   <Layers className="w-4 h-4 text-emerald-600" />
                   <span>Hub</span>
