@@ -633,7 +633,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
                 </div>
 
                 <div className="sm:col-span-1.5 relative">
-                  <label className="block text-[11px] text-slate-500 mb-1 font-semibold">Price/Kg *</label>
+                  <label className="block text-[11px] text-slate-500 mb-1 font-semibold">Price/Kg</label>
                   <div className="relative">
                     <input
                       type="number"
@@ -647,7 +647,6 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
                         setItems(updated);
                       }}
                       className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-2 text-xs text-slate-900 font-bold"
-                      required
                     />
                   </div>
                 </div>
