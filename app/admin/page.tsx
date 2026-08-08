@@ -213,6 +213,45 @@ export default function AdminPage() {
 
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // Password Confirmation State
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [overridePassword, setOverridePassword] = useState("");
+  const [overrideLoading, setOverrideLoading] = useState(false);
+  const [pendingOverrideAction, setPendingOverrideAction] = useState<(() => Promise<void>) | null>(null);
+
+  const requestPasswordConfirmation = (action: () => Promise<void>) => {
+    setPendingOverrideAction(() => action);
+    setOverridePassword("");
+    setPasswordModalOpen(true);
+  };
+
+  const handleConfirmPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setOverrideLoading(true);
+    try {
+      const res = await fetch("/api/auth/verify-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: overridePassword })
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Incorrect password");
+      }
+      
+      if (pendingOverrideAction) {
+        await pendingOverrideAction();
+      }
+      
+      setPasswordModalOpen(false);
+      setPendingOverrideAction(null);
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message });
+    } finally {
+      setOverrideLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchInitialData();
   }, [activeTab]);
@@ -495,15 +534,16 @@ export default function AdminPage() {
       alert("Permission Denied: Only Super Admin (Level 1) can reverse and delete sales records.");
       return;
     }
-    if (!confirm("Are you sure you want to reverse & delete this sales dispatch record? This will automatically restore lot stock and reverse dealer balance.")) return;
-    try {
-      const res = await fetch(`/api/sales?id=${logId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to reverse sales log");
-      setMessage({ type: "success", text: "Sales record reversed and stock restored successfully!" });
-      fetchMasterSales();
-    } catch (err: any) {
-      setMessage({ type: "error", text: err.message });
-    }
+    requestPasswordConfirmation(async () => {
+      try {
+        const res = await fetch(`/api/sales?id=${logId}`, { method: "DELETE" });
+        if (!res.ok) throw new Error("Failed to reverse sales log");
+        setMessage({ type: "success", text: "Sales record reversed and stock restored successfully!" });
+        fetchMasterSales();
+      } catch (err: any) {
+        setMessage({ type: "error", text: err.message });
+      }
+    });
   };
 
   const handleDeleteReceiveRecord = async (logId: string) => {
@@ -511,65 +551,70 @@ export default function AdminPage() {
       alert("Permission Denied: Only Super Admin (Level 1) can reverse and delete stock receive records.");
       return;
     }
-    if (!confirm("Are you sure you want to reverse & delete this receiving record? This will deduct the received quantity from the lot stock.")) return;
-    try {
-      const res = await fetch(`/api/receives?id=${logId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to reverse receive log");
-      setMessage({ type: "success", text: "Receive record reversed and lot stock deducted successfully!" });
-      fetchMasterReceives();
-    } catch (err: any) {
-      setMessage({ type: "error", text: err.message });
-    }
+    requestPasswordConfirmation(async () => {
+      try {
+        const res = await fetch(`/api/receives?id=${logId}`, { method: "DELETE" });
+        if (!res.ok) throw new Error("Failed to reverse receive log");
+        setMessage({ type: "success", text: "Receive record reversed and lot stock deducted successfully!" });
+        fetchMasterReceives();
+      } catch (err: any) {
+        setMessage({ type: "error", text: err.message });
+      }
+    });
   };
 
   const handleSaveEditSale = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingSale) return;
-    try {
-      const res = await fetch("/api/sales", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: editingSale.id,
-          quantity: Number(editSaleQty),
-          unit_price: Number(editSalePrice),
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to update sales log");
+    requestPasswordConfirmation(async () => {
+      try {
+        const res = await fetch("/api/sales", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: editingSale.id,
+            quantity: Number(editSaleQty),
+            unit_price: Number(editSalePrice),
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Failed to update sales log");
+        }
+        setMessage({ type: "success", text: "Sales dispatch record overridden & stock/ledger recalculated successfully!" });
+        setEditingSale(null);
+        fetchMasterSales();
+      } catch (err: any) {
+        setMessage({ type: "error", text: err.message });
       }
-      setMessage({ type: "success", text: "Sales dispatch record overridden & stock/ledger recalculated successfully!" });
-      setEditingSale(null);
-      fetchMasterSales();
-    } catch (err: any) {
-      setMessage({ type: "error", text: err.message });
-    }
+    });
   };
 
   const handleSaveEditReceive = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingReceive) return;
-    try {
-      const res = await fetch("/api/receives", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: editingReceive.id,
-          quantity: Number(editReceiveQty),
-          supplier_challan_no: editReceiveChallan,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to update receive log");
+    requestPasswordConfirmation(async () => {
+      try {
+        const res = await fetch("/api/receives", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: editingReceive.id,
+            quantity: Number(editReceiveQty),
+            supplier_challan_no: editReceiveChallan,
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Failed to update receive log");
+        }
+        setMessage({ type: "success", text: "Stock receive record overridden & lot stock updated successfully!" });
+        setEditingReceive(null);
+        fetchMasterReceives();
+      } catch (err: any) {
+        setMessage({ type: "error", text: err.message });
       }
-      setMessage({ type: "success", text: "Stock receive record overridden & lot stock updated successfully!" });
-      setEditingReceive(null);
-      fetchMasterReceives();
-    } catch (err: any) {
-      setMessage({ type: "error", text: err.message });
-    }
+    });
   };
 
   const handleDeleteLot = async (lotId: string) => {
@@ -577,40 +622,43 @@ export default function AdminPage() {
       alert("Permission Denied: Only Super Admin (Level 1) can delete lot records.");
       return;
     }
-    if (!confirm("Are you sure you want to delete this opening stock/lot entry?")) return;
-    try {
-      const res = await fetch(`/api/lots?id=${lotId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete lot");
-      setMessage({ type: "success", text: "Opening stock / lot deleted successfully!" });
-      fetchMasterLots();
-    } catch (err: any) {
-      setMessage({ type: "error", text: err.message });
-    }
+    requestPasswordConfirmation(async () => {
+      try {
+        const res = await fetch(`/api/lots?id=${lotId}`, { method: "DELETE" });
+        if (!res.ok) throw new Error("Failed to delete lot");
+        setMessage({ type: "success", text: "Opening stock / lot deleted successfully!" });
+        fetchMasterLots();
+      } catch (err: any) {
+        setMessage({ type: "error", text: err.message });
+      }
+    });
   };
 
   const handleSaveEditLot = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingLot) return;
-    try {
-      const res = await fetch("/api/lots", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: editingLot.id,
-          initial_qty: Number(editLotInitQty),
-          available_qty: Number(editLotAvailQty),
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to update lot stock");
+    requestPasswordConfirmation(async () => {
+      try {
+        const res = await fetch("/api/lots", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: editingLot.id,
+            initial_qty: Number(editLotInitQty),
+            available_qty: Number(editLotAvailQty),
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Failed to update lot stock");
+        }
+        setMessage({ type: "success", text: "Opening stock / lot quantity overridden successfully!" });
+        setEditingLot(null);
+        fetchMasterLots();
+      } catch (err: any) {
+        setMessage({ type: "error", text: err.message });
       }
-      setMessage({ type: "success", text: "Opening stock / lot quantity overridden successfully!" });
-      setEditingLot(null);
-      fetchMasterLots();
-    } catch (err: any) {
-      setMessage({ type: "error", text: err.message });
-    }
+    });
   };
 
   const handleEditDeliveryOrder = (order: DeliveryOrder) => {
@@ -629,27 +677,29 @@ export default function AdminPage() {
     e.preventDefault();
     if (!selectedOrder || currentUser?.role !== "SUPER_ADMIN") return;
 
-    try {
-      const res = await fetch("/api/orders/override", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: selectedOrder.id,
-          dealer_id: editOrderDealerId,
-          order_date: editOrderDate,
-          remarks: editOrderRemarks || null,
-          items: editOrderItems.map(it => ({ id: it.id, product_id: it.product_id, ordered_qty: Number(it.ordered_qty) })),
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to update delivery order");
+    requestPasswordConfirmation(async () => {
+      try {
+        const res = await fetch("/api/orders/override", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: selectedOrder.id,
+            dealer_id: editOrderDealerId,
+            order_date: editOrderDate,
+            remarks: editOrderRemarks || null,
+            items: editOrderItems.map(it => ({ id: it.id, product_id: it.product_id, ordered_qty: Number(it.ordered_qty) })),
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to update delivery order");
 
-      setMessage({ type: "success", text: "Delivery order updated successfully!" });
-      setSelectedOrder(null);
-      fetchMasterOrders();
-    } catch (err: any) {
-      setMessage({ type: "error", text: err.message });
-    }
+        setMessage({ type: "success", text: "Delivery order updated successfully!" });
+        setSelectedOrder(null);
+        fetchMasterOrders();
+      } catch (err: any) {
+        setMessage({ type: "error", text: err.message });
+      }
+    });
   };
 
   const handleDeleteDeliveryOrder = async (order: DeliveryOrder) => {
@@ -657,18 +707,18 @@ export default function AdminPage() {
       alert("Permission Denied: Only Super Admin (Level 1) can delete delivery orders.");
       return;
     }
-    if (!confirm(`Delete delivery order ${order.order_no}? This cannot be undone.`)) return;
+    requestPasswordConfirmation(async () => {
+      try {
+        const res = await fetch(`/api/orders/override?id=${order.id}`, { method: "DELETE" });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to delete delivery order");
 
-    try {
-      const res = await fetch(`/api/orders/override?id=${order.id}`, { method: "DELETE" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to delete delivery order");
-
-      setMessage({ type: "success", text: data.message || "Delivery order deleted successfully!" });
-      fetchMasterOrders();
-    } catch (err: any) {
-      setMessage({ type: "error", text: err.message });
-    }
+        setMessage({ type: "success", text: data.message || "Delivery order deleted successfully!" });
+        fetchMasterOrders();
+      } catch (err: any) {
+        setMessage({ type: "error", text: err.message });
+      }
+    });
   };
 
   const handleEditDepot = (depot: Depot) => {
@@ -2122,9 +2172,11 @@ export default function AdminPage() {
             {/* Form 3: Branding Setup */}
             {(currentUser?.role === "SUPER_ADMIN" || currentUser?.role === "ORG_ADMIN") && (
               <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl space-y-6 lg:col-span-2">
+                {/* Branding Setup Snippet remains unchanged */}
                 <h2 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
                   <Building2 className="w-5 h-5 text-emerald-600" /> Organization Branding Settings
                 </h2>
+                {/* Logo and Favicon Form omitted for brevity, keeping original JSX by placing the bottom div */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {/* Logo Upload */}
                   <form onSubmit={(e) => handleUploadBranding(e, 'logo')} className="space-y-4">
@@ -2163,6 +2215,55 @@ export default function AdminPage() {
             )}
           </div>
         )}
+
+        {/* Password Confirmation Modal */}
+        {passwordModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
+            <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+              <div className="flex items-center gap-3 text-amber-600 mb-4">
+                <ShieldAlert className="w-8 h-8" />
+                <h3 className="text-lg font-black text-slate-900">Security Override</h3>
+              </div>
+              <p className="text-sm text-slate-600 mb-5">
+                You are about to modify or delete a master record. Please enter your password to confirm this action.
+              </p>
+              <form onSubmit={handleConfirmPassword} className="space-y-4">
+                <div>
+                  <input
+                    type="password"
+                    value={overridePassword}
+                    onChange={(e) => setOverridePassword(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 font-bold tracking-widest placeholder:tracking-normal focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                    placeholder="Enter password..."
+                    required
+                    autoFocus
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={overrideLoading}
+                    className="flex-1 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-900 font-bold py-2.5 rounded-xl transition-all text-xs"
+                  >
+                    {overrideLoading ? "Verifying..." : "Confirm Action"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={overrideLoading}
+                    onClick={() => {
+                      setPasswordModalOpen(false);
+                      setPendingOverrideAction(null);
+                    }}
+                    className="bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-600 font-bold py-2.5 px-4 rounded-xl transition-all text-xs"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
       </main>
     </div>
   );
