@@ -58,11 +58,11 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
     return `${day}-${month}-${year}`;
   };
 
-  const totalBags = invoice.items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalWeightKg = invoice.items.reduce(
-    (sum, item) => sum + item.quantity * (item.product.bag_size_kg || 50),
+  const totalBags = invoice.items.reduce(
+    (sum, item) => sum + Math.round(item.quantity / (item.product.bag_size_kg || 50)),
     0
   );
+  const totalWeightKg = invoice.items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <>
@@ -146,9 +146,9 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
           </div>
 
           {/* CUSTOMER & DELIVERY INFO GRID */}
-          <div className="flex justify-between text-xs text-black font-semibold leading-relaxed mb-4">
+          <div className="grid grid-cols-2 gap-4 text-xs text-black font-semibold leading-relaxed mb-4 print:grid-cols-2">
             {/* Column 1: Customer Details */}
-            <div className="space-y-1.5 w-1/2 pr-4">
+            <div className="space-y-1.5 pr-2">
               <div className="flex">
                 <span className="w-28 font-bold text-black flex justify-between">Customer Name <span>:</span></span>
                 <span className="flex-1 font-extrabold text-black pl-2">
@@ -176,7 +176,7 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
             </div>
 
             {/* Column 2: Challan Details */}
-            <div className="space-y-1.5 w-1/2 pl-4">
+            <div className="space-y-1.5 pl-2">
               <div className="flex">
                 <span className="w-24 font-bold text-black flex justify-between">Challan No <span>:</span></span>
                 <span className="flex-1 font-mono font-bold text-black pl-2">{invoice.invoice_no}</span>
@@ -220,8 +220,10 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
                       {item.product.name} {item.product.bag_size_kg || 50} kg
                     </td>
                     <td className="p-2 border-r border-black text-center uppercase font-bold">KG</td>
-                    <td className="p-2 border-r border-black text-right font-bold">{item.quantity}</td>
-                    <td className="p-2 text-right font-bold">{item.quantity * (item.product.bag_size_kg || 50)}</td>
+                    <td className="p-2 border-r border-black text-right font-bold">
+                      {Math.round(item.quantity / (item.product.bag_size_kg || 50))}
+                    </td>
+                    <td className="p-2 text-right font-bold">{item.quantity}</td>
                   </tr>
                 ))}
               </tbody>
