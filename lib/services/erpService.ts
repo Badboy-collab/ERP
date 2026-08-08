@@ -219,8 +219,24 @@ export class ERPService {
 
         if (lot.available_qty < qty) {
           throw new Error(
-            `Error: Insufficient stock. Only ${lot.available_qty} kg available for Lot ${lot.lot_no}. Requested: ${qty} kg.`
+            `Error: Insufficient stock for ${lot.product?.name || "Product"}. Only ${lot.available_qty} kg available in Lot ${lot.lot_no}. You requested ${qty} kg.`
           );
+        }
+
+        if (input.order_id && input.transaction_type === "DELIVERY") {
+          const orderItem = await tx.orderItem.findFirst({
+            where: {
+              order_id: input.order_id,
+              product_id: item.product_id,
+            },
+          });
+
+          if (!orderItem) {
+            throw new Error(`Error: Product ${lot.product?.name} is not part of this Delivery Order.`);
+          }
+          if (orderItem.pending_qty !== qty) {
+            throw new Error(`Error: Delivery quantity must match DO exactly. Pending quantity is ${orderItem.pending_qty} kg but you entered ${qty} kg.`);
+          }
         }
 
         await tx.salesLog.create({
