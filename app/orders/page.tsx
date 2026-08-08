@@ -97,8 +97,11 @@ export default function OrdersPage() {
   // Auto-fetch Next D.O. Number
   const fetchNextDONumber = async () => {
     try {
-      const url = selectedDepotId ? `/api/orders/next-number?depot_id=${selectedDepotId}` : "/api/orders/next-number";
-      const res = await fetch(url);
+      const url = new URL("/api/orders/next-number", window.location.origin);
+      if (selectedDepotId) url.searchParams.append("depot_id", selectedDepotId);
+      if (orderDate) url.searchParams.append("order_date", orderDate);
+
+      const res = await fetch(url.toString());
       if (res.ok) {
         const data = await res.json();
         setOrderNo(data.order_no);
@@ -112,7 +115,7 @@ export default function OrdersPage() {
     if (activeTab === "orders") {
       fetchNextDONumber();
     }
-  }, [activeTab, selectedDepotId]);
+  }, [activeTab, selectedDepotId, orderDate]);
 
   const fetchInitialData = async () => {
     try {

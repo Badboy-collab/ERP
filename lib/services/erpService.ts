@@ -59,8 +59,8 @@ export class ERPService {
   /**
    * Get Next D.O Number
    */
-  static async getNextDONumber(org_id: string, depot_id?: string, previewOnly: boolean = false) {
-    const today = new Date();
+  static async getNextDONumber(org_id: string, depot_id?: string, previewOnly: boolean = false, orderDate?: Date | string) {
+    const today = orderDate ? new Date(orderDate) : new Date();
     const yyyy = today.getFullYear();
     const yy = String(yyyy).slice(-2);
     const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -423,7 +423,8 @@ export class ERPService {
    * Create Delivery Order
    */
   static async createDeliveryOrder(org_id: string, input: CreateOrderInput) {
-    const final_order_no = await ERPService.getNextDONumber(org_id, input.depot_id, false);
+    const orderDate = input.order_date ? new Date(input.order_date) : new Date();
+    const final_order_no = await ERPService.getNextDONumber(org_id, input.depot_id, false, orderDate);
 
     return prisma.deliveryOrder.create({
       data: {
@@ -431,7 +432,7 @@ export class ERPService {
         depot_id: input.depot_id,
         dealer_id: input.dealer_id,
         order_no: final_order_no,
-        order_date: input.order_date ? new Date(input.order_date) : new Date(),
+        order_date: orderDate,
         status: "Pending",
         remarks: input.remarks || null,
         created_by: input.created_by || null,
