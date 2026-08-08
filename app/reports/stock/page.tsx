@@ -217,7 +217,7 @@ export default function StockReportPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 font-medium print:divide-slate-200">
+              <tbody className="divide-y divide-slate-200 font-medium print:divide-slate-200">
                 {loading ? (
                   <tr>
                     <td colSpan={10} className="text-center py-12 text-slate-500 animate-pulse">
@@ -233,7 +233,7 @@ export default function StockReportPage() {
                 ) : (
                   displayedStock.map((row) => (
                     <tr key={row.product_id} className="hover:bg-slate-100/40 transition-colors">
-                      <td className="p-3 font-semibold text-slate-100 print:text-slate-900">
+                      <td className="p-3 font-semibold text-slate-700 print:text-slate-900">
                         <span className="text-[10px] text-emerald-600 block font-normal uppercase print:text-slate-600">
                           {row.category}
                         </span>
@@ -243,11 +243,11 @@ export default function StockReportPage() {
                       <td className="p-3 text-right font-mono text-slate-500 print:text-slate-800">
                         {row.bag_size_kg} kg
                       </td>
-                      <td className="p-3 text-right font-mono">{row.opening_kg.toLocaleString()}</td>
-                      <td className="p-3 text-right font-mono text-blue-400 print:text-slate-900">
+                      <td className="p-3 text-right font-mono text-slate-700">{row.opening_kg.toLocaleString()}</td>
+                      <td className="p-3 text-right font-mono text-blue-600 print:text-slate-900">
                         +{row.received_kg.toLocaleString()}
                       </td>
-                      <td className="p-3 text-right font-mono font-bold text-blue-300 print:text-slate-900">
+                      <td className="p-3 text-right font-mono font-bold text-blue-700 print:text-slate-900">
                         {row.total_kg.toLocaleString()}
                       </td>
                       <td className="p-3 text-right font-mono text-rose-600 print:text-slate-900">
@@ -259,23 +259,23 @@ export default function StockReportPage() {
                       <td className="p-3 text-right font-mono font-extrabold text-emerald-600 print:text-slate-900 text-sm">
                         {row.balance_kg.toLocaleString()} kg
                       </td>
-                      <td className="p-3 text-right font-mono font-extrabold text-emerald-300 print:text-slate-900 text-sm">
+                      <td className="p-3 text-right font-mono font-extrabold text-emerald-700 print:text-slate-900 text-sm">
                         {row.balance_bags} bags
                       </td>
                     </tr>
                   ))
                 )}
               </tbody>
-              <tfoot className="bg-slate-50 font-bold border-t-2 border-slate-200 text-slate-100 print:bg-slate-100 print:text-slate-900">
+              <tfoot className="bg-slate-50 font-bold border-t-2 border-slate-200 text-slate-700 print:bg-slate-100 print:text-slate-900">
                 <tr>
                   <td colSpan={3} className="p-3 uppercase tracking-wider text-right">
                     Total Consolidated Stock:
                   </td>
-                  <td className="p-3 text-right font-mono">{totals.opening_kg.toLocaleString()} kg</td>
-                  <td className="p-3 text-right font-mono text-blue-400 print:text-slate-900">
+                  <td className="p-3 text-right font-mono text-slate-700">{totals.opening_kg.toLocaleString()} kg</td>
+                  <td className="p-3 text-right font-mono text-blue-600 print:text-slate-900">
                     +{totals.received_kg.toLocaleString()} kg
                   </td>
-                  <td className="p-3 text-right font-mono text-blue-300 print:text-slate-900">
+                  <td className="p-3 text-right font-mono text-blue-700 print:text-slate-900">
                     {totals.total_kg.toLocaleString()} kg
                   </td>
                   <td className="p-3 text-right font-mono text-rose-600 print:text-slate-900">
@@ -287,7 +287,7 @@ export default function StockReportPage() {
                   <td className="p-3 text-right font-mono text-emerald-600 print:text-slate-900 text-sm">
                     {totals.balance_kg.toLocaleString()} kg
                   </td>
-                  <td className="p-3 text-right font-mono text-emerald-300 print:text-slate-900 text-sm">
+                  <td className="p-3 text-right font-mono text-emerald-700 print:text-slate-900 text-sm">
                     {totals.balance_bags.toLocaleString()} bags
                   </td>
                 </tr>
