@@ -102,7 +102,7 @@ export default function InvoicesPage() {
                   </tr>
                 ) : (
                   invoices.map((inv) => {
-                    const totalBags = inv.items.reduce((sum, item) => sum + item.quantity, 0);
+                    const totalBags = inv.items.reduce((sum, item) => sum + Math.round(item.quantity / (item.product.bag_size_kg || 50)), 0);
                     return (
                       <tr key={inv.id} className="hover:bg-slate-100/40 transition-colors">
                         <td className="p-4 font-mono font-bold text-emerald-600">
