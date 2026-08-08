@@ -74,6 +74,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
   const [orderId, setOrderId] = useState<string>("");
   const [destination, setDestination] = useState<string>("");
   const [invoiceNo, setInvoiceNo] = useState<string>("");
+  const [manualChallanNo, setManualChallanNo] = useState<string>("");
 
   // Dynamic Product Rows State
   const [items, setItems] = useState<FormRowItem[]>([
@@ -310,6 +311,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
         dealer_id: dealerId || undefined,
         order_id: orderId || undefined,
         destination: destination || undefined,
+        manual_challan_no: manualChallanNo || undefined,
         date,
         items: items.map((i) => ({
           product_id: i.product_id,
@@ -335,6 +337,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
       setDealerId("");
       setOrderId("");
       setDestination("");
+      setManualChallanNo("");
 
       if (onSaleSuccess) {
         onSaleSuccess(data);
@@ -425,7 +428,7 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Top Controls */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 bg-slate-50/60 p-4 rounded-xl border border-slate-200/80">
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-3 bg-slate-50/60 p-4 rounded-xl border border-slate-200/80">
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1">
               <Building2 className="w-3.5 h-3.5 text-emerald-600" /> Depot
@@ -516,6 +519,21 @@ export default function PosEntryForm({ onSaleSuccess, onDealerChange }: PosEntry
               required
             />
           </div>
+
+          {transactionType !== "TRANSFER_OUT" && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                <FileText className="w-3.5 h-3.5 text-emerald-600" /> Manual Challan (Opt)
+              </label>
+              <input
+                type="text"
+                value={manualChallanNo}
+                onChange={(e) => setManualChallanNo(e.target.value)}
+                placeholder="e.g. MC-1029"
+                className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-2 text-xs text-slate-900"
+              />
+            </div>
+          )}
         </div>
 
         {transactionType === "TRANSFER_OUT" && transferTargetType === "DEPOT" && (

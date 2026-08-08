@@ -334,6 +334,7 @@ model Invoice {
   order            DeliveryOrder? @relation(fields: [order_id], references: [id])
   destination      String?
   notes            String?
+  manual_challan_no String?
   total_amount     Float          @default(0)
   createdAt        DateTime       @default(now())
 

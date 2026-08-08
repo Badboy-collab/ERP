@@ -17,6 +17,7 @@ export interface CreateInvoiceTransactionInput {
   order_id?: string;
   destination?: string;
   notes?: string;
+  manual_challan_no?: string;
   date?: Date;
   items: InvoiceItemInput[];
 }
@@ -197,6 +198,7 @@ export class ERPService {
           order_id: input.order_id || null,
           destination: input.destination || null,
           notes: input.notes || null,
+          manual_challan_no: input.manual_challan_no || null,
           total_amount: invoiceTotalAmount,
         },
       });

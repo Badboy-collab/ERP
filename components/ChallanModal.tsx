@@ -22,6 +22,7 @@ export interface ChallanInvoice {
   date: string;
   destination?: string | null;
   notes?: string | null;
+  manual_challan_no?: string | null;
   vehicle_no?: string | null;
   driver_name?: string | null;
   driver_phone?: string | null;
@@ -147,6 +148,12 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
                 <span className="w-24 font-bold text-black flex justify-between">Challan No <span>:</span></span>
                 <span className="flex-1 font-mono font-bold text-black pl-2">{invoice.invoice_no}</span>
               </div>
+              {invoice.manual_challan_no && (
+                <div className="flex">
+                  <span className="w-24 font-bold text-black flex justify-between">Manual Chln <span>:</span></span>
+                  <span className="flex-1 font-mono font-bold text-black pl-2">{invoice.manual_challan_no}</span>
+                </div>
+              )}
               <div className="flex">
                 <span className="w-24 font-bold text-black flex justify-between">Challan Date <span>:</span></span>
                 <span className="flex-1 font-medium text-gray-900 pl-2">{formatDate(invoice.date)}</span>
