@@ -146,9 +146,9 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
           </div>
 
           {/* CUSTOMER & DELIVERY INFO GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-black font-semibold leading-relaxed">
+          <div className="flex justify-between text-xs text-black font-semibold leading-relaxed mb-4">
             {/* Column 1: Customer Details */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 w-1/2 pr-4">
               <div className="flex">
                 <span className="w-28 font-bold text-black flex justify-between">Customer Name <span>:</span></span>
                 <span className="flex-1 font-extrabold text-black pl-2">
@@ -161,10 +161,22 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
                   {invoice.dealer?.address || invoice.destination || "N/A"}
                 </span>
               </div>
+              <div className="flex">
+                <span className="w-28 font-bold text-black flex justify-between">Driver Name <span>:</span></span>
+                <span className="flex-1 font-bold text-black pl-2">{invoice.driver_name || "Ismail"}</span>
+              </div>
+              <div className="flex">
+                <span className="w-28 font-bold text-black flex justify-between">Driver Contact <span>:</span></span>
+                <span className="flex-1 font-medium text-gray-900 pl-2">{invoice.driver_phone || ""}</span>
+              </div>
+              <div className="flex">
+                <span className="w-28 font-bold text-black flex justify-between">Vehicle No <span>:</span></span>
+                <span className="flex-1 font-medium text-gray-900 pl-2">{invoice.vehicle_no || invoice.notes || "Auto van"}</span>
+              </div>
             </div>
 
-            {/* Column 2: Challan & Gate Pass Numbers */}
-            <div className="space-y-1.5">
+            {/* Column 2: Challan Details */}
+            <div className="space-y-1.5 w-1/2 pl-4">
               <div className="flex">
                 <span className="w-24 font-bold text-black flex justify-between">Challan No <span>:</span></span>
                 <span className="flex-1 font-mono font-bold text-black pl-2">{invoice.invoice_no}</span>
@@ -182,22 +194,6 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
               <div className="flex">
                 <span className="w-24 font-bold text-black flex justify-between">Gate Pass <span>:</span></span>
                 <span className="flex-1 font-mono font-bold text-black pl-2">{invoice.invoice_no}</span>
-              </div>
-              <div className="flex">
-                <span className="w-24 font-bold text-black flex justify-between">Vehicle No <span>:</span></span>
-                <span className="flex-1 font-medium text-gray-900 pl-2">{invoice.vehicle_no || invoice.notes || "Auto van"}</span>
-              </div>
-            </div>
-
-            {/* Column 3: Driver Information */}
-            <div className="space-y-1.5">
-              <div className="flex">
-                <span className="w-24 font-bold text-black flex justify-between">Driver Name <span>:</span></span>
-                <span className="flex-1 font-bold text-black pl-2">{invoice.driver_name || "Ismail"}</span>
-              </div>
-              <div className="flex">
-                <span className="w-24 font-bold text-black flex justify-between">Driver Contact <span>:</span></span>
-                <span className="flex-1 font-medium text-gray-900 pl-2">{invoice.driver_phone || ""}</span>
               </div>
             </div>
           </div>
