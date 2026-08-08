@@ -106,11 +106,21 @@ export default function LoginPage() {
         </div>
 
         <div className="space-y-4 my-auto relative z-10 max-w-lg">
-          <div className="mb-6 w-full">
+          <div className="mb-6 w-full h-32 flex items-center">
             {logoUrl ? (
-              <img src={logoUrl} alt="Organization Logo" className="h-auto max-w-[300px] w-auto object-contain drop-shadow-sm" />
+              <img 
+                src={logoUrl} 
+                alt="Organization Logo" 
+                style={{ maxWidth: '300px', height: 'auto' }}
+                className="object-contain drop-shadow-sm"
+              />
             ) : (
-              <img src="/login-logo.png" alt="NEXORA ERP ENTERPRISE" className="h-auto max-w-[300px] w-auto object-contain drop-shadow-sm" />
+              <img 
+                src="/login-logo.png" 
+                alt="NEXORA ERP ENTERPRISE" 
+                style={{ maxWidth: '300px', height: 'auto' }}
+                className="object-contain drop-shadow-sm"
+              />
             )}
           </div>
           <h1 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight">
