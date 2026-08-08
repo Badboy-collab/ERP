@@ -1473,14 +1473,14 @@ export default function AdminPage() {
                       <th className="p-3 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 font-medium">
+                  <tbody className="divide-y divide-slate-200 font-medium">
                     {salesLogs.map((log) => (
                       <tr key={log.id} className="hover:bg-slate-100/40">
                         <td className="p-3 font-mono font-bold text-slate-900">{log.invoice_no}</td>
                         <td className="p-3 text-slate-500">{new Date(log.date).toLocaleDateString()}</td>
                         <td className="p-3 text-slate-600">{log.depot?.name}</td>
-                        <td className="p-3 text-slate-100">{log.product?.name}</td>
-                        <td className="p-3 text-right font-mono">{log.quantity.toLocaleString()} kg</td>
+                        <td className="p-3 text-slate-700">{log.product?.name}</td>
+                        <td className="p-3 text-right font-mono text-slate-800">{log.quantity.toLocaleString()} kg</td>
                         <td className="p-3 text-right">
                           <div className="flex justify-end gap-2">
                             <button
