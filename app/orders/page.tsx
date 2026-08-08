@@ -417,10 +417,15 @@ export default function OrdersPage() {
                   >
                     <div className="flex justify-between items-center">
                       <div>
-                        <span className="font-mono text-sm font-bold text-emerald-600">
-                          {ord.order_no}
-                        </span>
-                        <span className="text-[11px] text-slate-500 block font-semibold">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-sm font-bold text-emerald-600">
+                            {ord.order_no}
+                          </span>
+                          <span className="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-semibold">
+                            {new Date(ord.order_date).toLocaleDateString('en-GB')}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-slate-500 block font-semibold mt-0.5">
                           Depot: {ord.depot?.name}
                         </span>
                       </div>
