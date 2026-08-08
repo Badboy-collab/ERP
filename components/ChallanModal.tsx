@@ -95,12 +95,8 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
           {/* HEADER SECTION: Logo & Company Information */}
           <div className="flex justify-between items-center border-b border-gray-300 pb-4">
             {/* Left: Brand Logo Badge */}
-            <div className="flex items-center space-x-3">
-              <div className="w-20 h-20 bg-emerald-700 text-slate-900 rounded-2xl flex flex-col items-center justify-center border-2 border-emerald-500 p-1.5 text-center shadow-md">
-                <span className="text-[9px] uppercase font-extrabold tracking-tighter leading-none">Matber Agro</span>
-                <span className="text-xs font-black text-amber-300 uppercase leading-tight my-0.5">LEADER</span>
-                <span className="text-[9px] uppercase font-bold tracking-tighter leading-none">FEED</span>
-              </div>
+            <div className="flex items-center space-x-3 w-32">
+              <img src="/logo.png" alt="Matber Agro" className="w-full h-auto object-contain" />
             </div>
 
             {/* Middle: Company Details */}
@@ -141,12 +137,6 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
                 <span className="w-28 font-bold text-black flex justify-between">Address <span>:</span></span>
                 <span className="flex-1 font-medium text-gray-900 pl-2">
                   {invoice.dealer?.address || invoice.destination || "N/A"}
-                </span>
-              </div>
-              <div className="flex">
-                <span className="w-28 font-bold text-black flex justify-between">Delivery Point <span>:</span></span>
-                <span className="flex-1 font-medium text-gray-900 pl-2">
-                  {invoice.destination || invoice.dealer?.address || "Depot Location"}
                 </span>
               </div>
             </div>
