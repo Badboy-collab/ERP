@@ -65,7 +65,16 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-50/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto print:p-0 print:bg-white print:static">
+    <>
+      <style>{`
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 15mm 10mm;
+          }
+        }
+      `}</style>
+      <div className="fixed inset-0 z-50 bg-slate-50/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto print:p-0 print:bg-white print:static">
       {/* Modal Box */}
       <div className="bg-white text-black w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:w-full print:max-w-none print:rounded-none print:m-0">
         {/* Action Header (Hidden during Print) */}
@@ -244,5 +253,6 @@ export default function ChallanModal({ invoice, onClose }: ChallanModalProps) {
         </div>
       </div>
     </div>
+    </>
   );
 }
